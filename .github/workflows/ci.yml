@@ -1,0 +1,49 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Each job skips its real steps until that area has code, so CI is green on the empty scaffold.
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12" # ❓ confirm with Elise
+      - name: Install
+        if: ${{ hashFiles('backend/requirements.txt') != '' }}
+        run: pip install -r backend/requirements.txt
+      - name: Test
+        if: ${{ hashFiles('backend/requirements.txt') != '' }}
+        # pytest exits with 5 when it finds no tests; that is fine early on
+        run: pytest || [ $? -eq 5 ]
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install
+        if: ${{ hashFiles('frontend/package-lock.json') != '' }}
+        run: npm ci --prefix frontend
+      - name: Lint
+        if: ${{ hashFiles('frontend/package-lock.json') != '' }}
+        run: npm run lint --prefix frontend
+      - name: Type check
+        if: ${{ hashFiles('frontend/package-lock.json') != '' }}
+        run: npx --prefix frontend tsc --noEmit -p frontend
+      - name: Test
+        if: ${{ hashFiles('frontend/package-lock.json') != '' }}
+        run: npm test --prefix frontend -- --run
+      - name: Build
+        if: ${{ hashFiles('frontend/package-lock.json') != '' }}
+        run: npm run build --prefix frontend

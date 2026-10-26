@@ -1,0 +1,12 @@
+# Every path lists its lead AND the backups, so nobody's own PR is blocked.
+# Perfect = @PeaElorm · Elise = @Elise-Oyi · Nana = @isanamoa · Opei = @AdzeyenaOpei
+
+*                @PeaElorm @AdzeyenaOpei @Elise-Oyi @isanamoa
+
+/backend/        @Elise-Oyi @AdzeyenaOpei @PeaElorm @isanamoa
+/agent/          @AdzeyenaOpei @isanamoa @Elise-Oyi @PeaElorm
+/frontend/       @PeaElorm @isanamoa @Elise-Oyi @AdzeyenaOpei
+/evaluation/     @isanamoa @Elise-Oyi @AdzeyenaOpei @PeaElorm
+/deploy/         @isanamoa @Elise-Oyi @AdzeyenaOpei @PeaElorm
+/evidence/       @isanamoa @PeaElorm @Elise-Oyi @AdzeyenaOpei
+/.github/        @PeaElorm @isanamoa @Elise-Oyi @AdzeyenaOpei
