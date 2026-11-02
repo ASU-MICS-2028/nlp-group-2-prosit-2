@@ -20,15 +20,16 @@ Code is kept short and plain on purpose. See [CONTRIBUTING.md](CONTRIBUTING.md) 
 
 ## Pending now
 
-Last updated: 2026-11-02. Stage: **Phase 0, Setup** (frontend skeleton done; backend skeleton S-5 is the critical path).
-Critical path: S-5 backend skeleton → W-2/W-5 → W-9 first end-to-end → features → evaluation → report.
+Last updated: 2026-11-02. Stage: **Phase 1, Walking skeleton** (frontend and backend skeletons done).
+Critical path: W-5 endpoints + W-2 sandbox runner → W-3 agent loop → W-9 first end-to-end → features → evaluation → report.
+Tasks that stall get picked up by someone else (D-009); see Handovers in PLAN.md.
 Deadline for the prosit deliverables (code, report, slides): **Sun 1 Nov 2026**. Presentation and viva come after (dates ❓).
 
 | Person | Now (can start today) | Next (waiting on) |
 |---|---|---|
-| **Perfect** | S-2 branch protection, S-3 check CODEOWNERS handles and add everyone as collaborators, A-3 Section A draft | W-6 typed API client (W-5), W-7 chat screen (W-6) |
+| **Perfect** | S-2 branch protection, S-3 collaborators, W-5 endpoints, W-8 `GET /projects`, A-3 Section A draft | W-6 typed API client (W-5), W-7 chat screen (W-6) |
 | **Opei** | S-4 Gemini key + `llm.py` hello world, A-2 Section A draft | W-1 tools, W-4 system prompt (S-4) |
-| **Elise** | S-5 FastAPI skeleton, A-1 Section A draft | W-2 sandbox runner, W-5 endpoints (S-5) |
+| **Elise** | A-1 Section A draft; W-2 sandbox runner and W-5 endpoints are open to take back (see Handovers in PLAN.md) | F-1, F-2, F-5, F-11 |
 | **Nana** | S-7 evaluation set, S-8 Vercel and Render accounts, D-1 deploy frontend to Vercel, A-4 Section A draft | E-1 scoring script (W-9) |
 
 Full task list, owners and blockers: [PLAN.md](PLAN.md). Rows leave this table once they are finished.

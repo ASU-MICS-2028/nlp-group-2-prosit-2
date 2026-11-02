@@ -20,6 +20,13 @@ Status legend: ✅ Done · 🔄 In progress · 🟢 Ready · ⛔ Blocked · ⚪ 
 
 Every person also writes their own Section A (all 18 topics, 3–5 pages) and the Section B paragraph for their area.
 
+### Handovers (see D-009)
+When a task stalls, someone picks it up. The Owner column then says "Name (from Owner)". The original owner can take any unfinished task back by asking in the team chat and changing the row. Finished work stays with whoever did it; the previous owner reads its learnings note before the teach-back.
+
+| Date | Task | From | To | Why | Hand back by |
+|---|---|---|---|---|---|
+| 2026-11-02 | S-5 FastAPI skeleton | Elise | Perfect | Owner unreachable; it blocked W-2, W-5, W-6, W-7, W-8 | Done. Elise: read `learnings/backend.md` |
+
 ## Scope
 
 | Item | Decision | Reason |
@@ -43,7 +50,7 @@ Every person also writes their own Section A (all 18 topics, 3–5 pages) and th
 | S-2 | Turn on branch protection (settings in CONTRIBUTING.md) | Perfect | S-1 | ⛔ | Direct pushes to `main` blocked |
 | S-3 | Check CODEOWNERS shows no handle errors on GitHub; add all teammates as repo collaborators | Perfect | S-1 | ⛔ | No handle errors; all four can push branches |
 | S-4 | Gemini free API key in local `.env`; `agent/llm.py` hello world | Opei | none | 🟢 | `python -m agent.llm` prints a reply; key not in git |
-| S-5 | FastAPI skeleton with `/health` and OpenAPI | Elise | S-1 | 🟢 | `/docs` opens locally |
+| S-5 | FastAPI skeleton with `/health` and OpenAPI | Perfect (from Elise) | S-1 | ✅ | `/docs` opens locally |
 | S-6 | Vite + React + TS (strict) skeleton, oxlint, Prettier, Vitest; design tokens, 13 components, `/dev/gallery`, Start screen | Perfect | S-1 | ✅ | `npm run lint`, `tsc`, `npm test`, `npm run build` all pass |
 | S-7 | Draft the 20 plain-English test requests with expected endpoints | Nana | S-1 | 🟢 | `evaluation/requests.json` merged |
 | S-8 | Vercel and Render accounts, confirm free tier limits | Nana | none | 🟢 | Limits written in `learnings/deployment.md` |
@@ -53,13 +60,13 @@ Every person also writes their own Section A (all 18 topics, 3–5 pages) and th
 | ID | Task | Owner | Blocked by | Status | Done when |
 |---|---|---|---|---|---|
 | W-1 | Tool definitions: write_file, read_file, run_tests | Opei | S-4 | ⛔ | Each tool has a test |
-| W-2 | Sandbox runner: run a generated project's pytest in a temp folder with timeout | Elise | S-5 | ⛔ | A passing and a failing project give correct results |
+| W-2 | Sandbox runner: run a generated project's pytest in a temp folder with timeout | Elise | S-5 | 🟢 | A passing and a failing project give correct results |
 | W-3 | Agent loop (Thought → Action → Observation) | Elise | W-1, W-2 | ⛔ | Loop ends with success or a clear stop reason |
 | W-4 | System prompt for code generation | Opei | S-4 | ⛔ | Prompt file reviewed; produces a valid endpoint by hand |
-| W-5 | Endpoints: start project, get status, stream progress (SSE) | Elise | S-5 | ⛔ | Visible in `/docs`; stream works with curl |
+| W-5 | Endpoints: start project, get status, stream progress (SSE) | Elise | S-5 | 🟢 | Visible in `/docs`; stream works with curl |
 | W-6 | Generate typed API client from OpenAPI | Perfect | S-6, W-5 | ⛔ | `frontend/src/api` builds from the schema |
 | W-7 | Chat screen: send request, show live progress | Perfect | W-6 | ⛔ | Works against local backend |
-| W-8 | `GET /projects` endpoint (outside lane) | Perfect | S-5 | ⛔ | Returns list; has a test; Elise approves |
+| W-8 | `GET /projects` endpoint (outside lane) | Perfect | S-5 | 🟢 | Returns list; has a test; Elise approves |
 | W-9 | End-to-end: one request → one endpoint → test passes → shown in UI | Elise | W-3, W-4, W-5, W-7 | ⛔ | Screenshot + terminal output in `evidence/` |
 
 ## Phase 2: Features (Thu 29 Oct)
