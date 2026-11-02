@@ -35,12 +35,15 @@ jobs:
       - name: Install
         if: ${{ hashFiles('frontend/package-lock.json') != '' }}
         run: npm ci --prefix frontend
+      - name: Format check
+        if: ${{ hashFiles('frontend/package-lock.json') != '' }}
+        run: npm run format:check --prefix frontend
       - name: Lint
         if: ${{ hashFiles('frontend/package-lock.json') != '' }}
         run: npm run lint --prefix frontend
       - name: Type check
         if: ${{ hashFiles('frontend/package-lock.json') != '' }}
-        run: npx --prefix frontend tsc --noEmit -p frontend
+        run: npm run typecheck --prefix frontend
       - name: Test
         if: ${{ hashFiles('frontend/package-lock.json') != '' }}
         run: npm test --prefix frontend -- --run

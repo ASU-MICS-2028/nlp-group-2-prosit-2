@@ -39,13 +39,13 @@ Every person also writes their own Section A (all 18 topics, 3–5 pages) and th
 
 | ID | Task | Owner | Blocked by | Status | Done when |
 |---|---|---|---|---|---|
-| S-1 | Scaffold repo (these files) pushed to `main` | Perfect | none | 🔄 | Files on `main`, CI runs |
+| S-1 | Scaffold repo (these files) pushed to `main` | Perfect | none | ✅ | Files on `main`, CI runs (first CI run still to be confirmed on the Actions tab) |
 | S-2 | Turn on branch protection (settings in CONTRIBUTING.md) | Perfect | S-1 | ⛔ | Direct pushes to `main` blocked |
 | S-3 | Check CODEOWNERS shows no handle errors on GitHub; add all teammates as repo collaborators | Perfect | S-1 | ⛔ | No handle errors; all four can push branches |
 | S-4 | Gemini free API key in local `.env`; `agent/llm.py` hello world | Opei | none | 🟢 | `python -m agent.llm` prints a reply; key not in git |
-| S-5 | FastAPI skeleton with `/health` and OpenAPI | Elise | S-1 | ⛔ | `/docs` opens locally |
-| S-6 | Vite + React + TS (strict) skeleton, ESLint, Prettier, Vitest | Perfect | S-1 | ⛔ | `npm run lint`, `tsc`, `npm test`, `npm run build` all pass |
-| S-7 | Draft the 20 plain-English test requests with expected endpoints | Nana | S-1 | ⛔ | `evaluation/requests.json` merged |
+| S-5 | FastAPI skeleton with `/health` and OpenAPI | Elise | S-1 | 🟢 | `/docs` opens locally |
+| S-6 | Vite + React + TS (strict) skeleton, oxlint, Prettier, Vitest; design tokens, 13 components, `/dev/gallery`, Start screen | Perfect | S-1 | ✅ | `npm run lint`, `tsc`, `npm test`, `npm run build` all pass |
+| S-7 | Draft the 20 plain-English test requests with expected endpoints | Nana | S-1 | 🟢 | `evaluation/requests.json` merged |
 | S-8 | Vercel and Render accounts, confirm free tier limits | Nana | none | 🟢 | Limits written in `learnings/deployment.md` |
 
 ## Phase 1: Walking skeleton (Tue 27 – Wed 28 Oct)
@@ -86,7 +86,7 @@ Every person also writes their own Section A (all 18 topics, 3–5 pages) and th
 | E-2 | Run evaluation on all 20 requests | Nana | E-1, F-4, F-5 | ⛔ | `evidence/evaluation/outputs_eval_run1.txt` saved |
 | E-3 | Fix the top failures (prompts: Opei; code: Elise) | Opei | E-2 | ⛔ | Fixes listed in `learnings/` |
 | E-4 | Re-run evaluation, compare to run 1 | Nana | E-3 | ⛔ | `outputs_eval_run2.txt` saved; numbers go into the report only now |
-| D-1 | Deploy frontend to Vercel | Nana | S-6 | ⛔ | Public URL loads |
+| D-1 | Deploy frontend to Vercel | Nana | S-6 | 🟢 | Public URL loads |
 | D-2 | Deploy backend to Render (keys in host settings, not code) | Nana | W-9 | ⛔ | `/health` OK on public URL |
 | D-3 | Smoke test deployed frontend ↔ backend | Nana | D-1, D-2 | ⛔ | One full request works online |
 | D-4 | Prove the provider switch: change env var, still works | Opei | W-4 | ⛔ | Terminal output saved in `evidence/` |
