@@ -24,9 +24,9 @@ Gave up: The backend sleeps when idle on free tiers (slow first request). No one
 ## D-004: Frontend uses React + Vite + TypeScript (strict), plain `fetch`, no state library
 Date: 2026-10-26 · Status: Proposed
 Affects: Perfect, Nana
-Decision: React + Vite + TypeScript with `strict`, ESLint, Prettier, Vitest + Testing Library, a generated API client, SSE for live progress.
-Why: Standard best practice, easy to explain, strong type safety.
-Gave up: Heavier tools (Redux, Next.js) that would be harder for everyone to explain in the viva.
+Decision: React + Vite + TypeScript with `strict`, oxlint (the linter the current Vite template ships with), Prettier, Vitest + Testing Library, a generated API client, SSE for live progress. Visual style follows `knowledge/DESIGN-SYSTEM.md`: design tokens in one CSS file, plain CSS classes, Lucide icons, Inter and JetBrains Mono fonts installed from npm (no CDN).
+Why: Standard best practice, easy to explain, strong type safety. oxlint needs no config and is one fewer tool to explain than ESLint. Plain CSS with tokens means no styling library to learn.
+Gave up: Heavier tools (Redux, Next.js, Tailwind, ESLint plugin setups) that would be harder for everyone to explain in the viva.
 
 ## D-005: Generated APIs use FastAPI + SQLite + pytest
 Date: 2026-10-26 · Status: Proposed

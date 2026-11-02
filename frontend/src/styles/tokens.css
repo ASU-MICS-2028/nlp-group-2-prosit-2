@@ -1,0 +1,211 @@
+/* Design tokens: values come straight from knowledge/DESIGN-SYSTEM.md (sections 4-7).
+   Use only these. No new colours, fonts, radii or shadows. */
+
+:root {
+  /* Colour (dark only) */
+  --bg: #050505;
+  --panel: #151515;
+  --panel-raised: #1c1c1c;
+  --tile: #282828;
+  --border: #262626;
+  --border-control: #6b6b6b;
+  --text: #eeeeee;
+  --text-muted: #9a9a9a;
+  --accent: #fa3d1d;
+  --accent-text: #ff6a4d;
+  --accent-deep: #c42a10;
+  --success: #2dd4bf;
+  --error: #ff6b6b;
+  --warning: #fbbf24;
+  --info: #60a5fa;
+
+  /* Fonts */
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Spacing (4px grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  /* Radius */
+  --radius-tile: 8px;
+  --radius-card: 16px;
+  --radius-panel: 20px;
+  --radius-pill: 999px;
+
+  /* Focus ring: shown on every interactive element */
+  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+
+  /* Panel sheen (v0.2): a faint light from above, so panels are not flat grey blocks */
+  --sheen: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.035),
+    rgba(255, 255, 255, 0) 40%
+  );
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  /* Accent gradient: logo tile and active-step dot only */
+  --accent-gradient: linear-gradient(
+    135deg,
+    #ff6a4d 0%,
+    #fa3d1d 45%,
+    #c42a10 100%
+  );
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Type styles */
+.t-display {
+  font-size: 44px;
+  line-height: 50px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.t-title {
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.t-label {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+}
+.t-caption {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+}
+.t-section {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+.t-code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 20px;
+}
+.muted {
+  color: var(--text-muted);
+}
+.accent-text {
+  color: var(--accent-text);
+}
+
+/* 7.1 Glow edge: a dark pill whose border lights up at the top-left corner */
+/* v0.2: a soft inner light at the lit corner (first layer), like the reference */
+.glow-edge {
+  border: 1px solid transparent;
+  background:
+    radial-gradient(80px 32px at 0 0, rgba(250, 61, 29, 0.3), transparent 70%)
+      padding-box,
+    linear-gradient(var(--panel), var(--panel)) padding-box,
+    linear-gradient(135deg, rgba(250, 61, 29, 0.9), rgba(250, 61, 29, 0) 45%)
+      border-box;
+  transition: filter 150ms;
+}
+.glow-edge:hover {
+  filter: brightness(1.25);
+}
+/* Stronger version, for the one primary button per screen */
+.glow-edge--strong {
+  background:
+    radial-gradient(100px 40px at 0 0, rgba(250, 61, 29, 0.45), transparent 70%)
+      padding-box,
+    linear-gradient(var(--panel-raised), var(--panel-raised)) padding-box,
+    linear-gradient(135deg, #ff6a4d, rgba(250, 61, 29, 0) 60%) border-box;
+  box-shadow: -8px -6px 24px -8px rgba(250, 61, 29, 0.6);
+}
+
+/* 7.2 Ambient haze: once per screen, main area only.
+   v0.2: sized in pixels and pinned to the top-right corner, so it looks the
+   same on a short screen and on a very long page (percentages did not). */
+.haze {
+  position: relative;
+  isolation: isolate;
+  background: var(--bg);
+}
+.haze::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: 0;
+  width: min(900px, 100%);
+  height: 560px;
+  border-top-right-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 100% 0%,
+    rgba(250, 61, 29, 0.32),
+    transparent 70%
+  );
+}
+
+/* 7.4 Warm highlight card: only for "Approve plan" and "Your API is ready" */
+/* Two classes (.card.warm-card) so it always beats the plain .card background */
+.card.warm-card {
+  background:
+    linear-gradient(180deg, rgba(250, 61, 29, 0.22), rgba(21, 21, 21, 0) 55%),
+    var(--panel);
+  border: 1px solid rgba(250, 61, 29, 0.35);
+  border-radius: var(--radius-card);
+}
+
+/* 7.5 Motion: the active dot pulses; nothing moves for people who ask for less motion */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+.pulse {
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulse,
+  .spin {
+    animation: none;
+  }
+  .glow-edge {
+    transition: none;
+  }
+}
