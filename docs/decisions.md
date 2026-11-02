@@ -48,3 +48,17 @@ Affects: Elise
 Decision: The sandbox runner copies generated files to a temp folder, runs pytest with a time limit, and caps input and output size. It is a demo sandbox, not production-grade isolation, and the report says so.
 Why: LLM-written code is untrusted. Full isolation (containers) is out of scope for one week.
 Gave up: Strong isolation guarantees.
+
+## D-008: The API between frontend and backend is agreed in writing first (`docs/api-contract.md`)
+Date: 2026-11-02 · Status: Proposed
+Affects: Elise (reviews and changes it), Perfect (owns the draft), Nana (evaluation calls the same API)
+Decision: The contract lists every endpoint, its JSON shape, the live-progress stream (SSE) and the error format. Elise reviews it; once both agree it becomes Accepted, and the FastAPI code and the generated TypeScript client must match it.
+Why: Both sides can build at the same time without waiting. It follows D-001 (frontend and backend talk only through the API).
+Gave up: Some freedom to change shapes quickly. Changing an agreed shape needs a new decision.
+
+## D-009: Stalled tasks are picked up by whoever can, and owners can take them back
+Date: 2026-11-02 · Status: Accepted (Perfect, after the team stopped responding; teammates can still object)
+Affects: everyone, most of all Elise (backend) and Opei (agent)
+Decision: When a 🟢 task has no progress and its owner is unreachable, someone else picks it up. The pick-up is recorded in the same PR: the Owner column says "Name (from Owner)" and a row is added to "Handovers" in PLAN.md. The original owner can take any unfinished task back at any time by asking in the team chat and changing the row. Finished work stays with whoever did it, and the previous owner must read its learnings note before the teach-back.
+Why: The week is short and the backend is on the critical path. Waiting stalls everyone, and PLAN.md should say who really does what.
+Gave up: One owner per area is now a default, not a promise. The viva still covers all the code, so everyone has to be able to explain the picked-up parts too.
