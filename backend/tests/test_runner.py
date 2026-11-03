@@ -44,3 +44,22 @@ def test_file_name_that_leaves_the_folder_is_refused() -> None:
     result = run_tests(SNEAKY_PROJECT)
     assert result.passed is False
     assert "Unsafe file name" in result.output
+
+
+# A project with files inside sub-folders, like a real API project.
+FOLDERS_PROJECT = {
+    "app/maths.py": "def add(a, b):\n    return a + b\n",
+    "tests/test_maths.py": "from app.maths import add\n\n\ndef test_add():\n    assert add(1, 1) == 2\n",
+}
+
+
+def test_files_in_sub_folders_work() -> None:
+    result = run_tests(FOLDERS_PROJECT)
+    assert result.passed is True
+
+#test too big
+def test_too_big_project_is_refused() -> None:
+    huge_file = "x = 1\n" * 100_000  # about 600,000 characters
+    result = run_tests({"big.py": huge_file})
+    assert result.passed is False
+    assert "too big" in result.output

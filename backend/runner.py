@@ -6,6 +6,9 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
+# The most text (all files added together) we accept. A real generated project is far smaller.
+MAX_TOTAL_CHARACTERS = 200_000
+
 
 @dataclass
 class RunResult:
@@ -21,6 +24,10 @@ def is_inside(folder: Path, name: str) -> bool:
 
 
 def run_tests(files: dict[str, str], timeout_seconds: int = 30) -> RunResult:
+    total = sum(len(content) for content in files.values())
+    if total > MAX_TOTAL_CHARACTERS:
+        return RunResult(passed=False, output=f"Project is too big: {total} characters", timed_out=False)
+
     # The folder is deleted automatically when the "with" block ends, even if something goes wrong.
     with tempfile.TemporaryDirectory() as folder_name:
         folder = Path(folder_name)
@@ -28,7 +35,10 @@ def run_tests(files: dict[str, str], timeout_seconds: int = 30) -> RunResult:
         for name, content in files.items():
             if not is_inside(folder, name):
                 return RunResult(passed=False, output=f"Unsafe file name: {name}", timed_out=False)
-            (folder / name).write_text(content)
+            target = folder / name
+            # Make any missing folders first (e.g. "app/" for "app/main.py"). exist_ok: fine if it's already there.
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(content)
 
         try:
             completed = subprocess.run(
