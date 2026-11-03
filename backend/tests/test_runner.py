@@ -85,4 +85,4 @@ NOISY_PROJECT = {
 
 def test_long_output_is_trimmed() -> None:
     result = run_tests(NOISY_PROJECT)
-    assert len(result.output) <= 20_000
+    assert len(result.output) <= 20_00

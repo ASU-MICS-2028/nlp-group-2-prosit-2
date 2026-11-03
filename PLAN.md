@@ -60,7 +60,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | ID | Task | Owner | Blocked by | Status | Done when |
 |---|---|---|---|---|---|
 | W-1 | Tool definitions: write_file, read_file, run_tests | Opei | S-4 | ⛔ | Each tool has a test |
-| W-2 | Sandbox runner: run a generated project's pytest in a temp folder with timeout | Elise | S-5 | 🟢 | A passing and a failing project give correct results |
+| W-2 | Sandbox runner: run a generated project's pytest in a temp folder with timeout | Elise | S-5 | ✅ | A passing and a failing project give correct results |
 | W-3 | Agent loop (Thought → Action → Observation) | Elise | W-1, W-2 | ⛔ | Loop ends with success or a clear stop reason |
 | W-4 | System prompt for code generation | Opei | S-4 | ⛔ | Prompt file reviewed; produces a valid endpoint by hand |
 | W-5 | Endpoints: start project, get status, stream progress (SSE) | Elise | S-5 | 🟢 | Visible in `/docs`; stream works with curl |
@@ -83,7 +83,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | F-8 | Frontend tests for send, approve, download | Perfect | W-7 | ⛔ | Vitest passes in CI |
 | F-9 | UI text and user guide for non-developers (outside lane) | Nana | F-3 | ⛔ | Guide merged; Perfect approves |
 | F-10 | Test one UI page by hand and file bugs (outside lane) | Nana | F-3 | ⛔ | Bug list in `learnings/frontend-qa.md` |
-| F-11 | Security and privacy checks: input size limits, no secrets in logs, sandbox timeout | Elise | W-2 | ⛔ | Checklist in `learnings/backend.md` with results |
+| F-11 | Security and privacy checks: input size limits, no secrets in logs, sandbox timeout | Elise | W-2 | 🔄 | Checklist in `learnings/backend.md` with results |
 
 ## Phase 3: Evaluation and deployment (Fri 30 – Sat 31 Oct)
 
