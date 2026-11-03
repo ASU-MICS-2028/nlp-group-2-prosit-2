@@ -30,7 +30,7 @@ Deadline for the prosit deliverables (code, report, slides): **Sun 1 Nov 2026**.
 | **Perfect** | S-2 branch protection, S-3 collaborators, S-4 Gemini key + live check, W-5 endpoints, W-8 `GET /projects`, A-3 Section A draft | W-6 typed API client (W-5), W-7 chat screen (W-6) |
 | **Opei** | A-2 Section A draft; `llm.py` is written (picked up by Perfect); W-1 tools and W-4 system prompt are open to take back (see Handovers in PLAN.md) | F-4, F-6, D-4 |
 | **Elise** | A-1 Section A draft; W-2 sandbox runner and W-5 endpoints are open to take back (see Handovers in PLAN.md) | F-1, F-2, F-5, F-11 |
-| **Nana** | S-7 evaluation set, S-8 Vercel and Render accounts, D-1 deploy frontend to Vercel, A-4 Section A draft | E-1 scoring script (W-9) |
+| **Nana** | F-12 prototype features in the frontend components (in review), S-7 evaluation set, S-8 Vercel and Render accounts, D-1 deploy frontend to Vercel, A-4 Section A draft | E-1 scoring script (W-9) |
 
 Full task list, owners and blockers: [PLAN.md](PLAN.md). Rows leave this table once they are finished.
 
