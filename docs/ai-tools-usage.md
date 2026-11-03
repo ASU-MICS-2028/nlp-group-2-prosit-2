@@ -7,6 +7,7 @@ One line per use. Add a line in the same PR as the work. Say how you checked the
 | 2026-10-26 | Perfect | Claude Code | Drafted the repo scaffold (README, PLAN, CONTRIBUTING, AGENTS, docs, CI) | Read every file; edited for the team's real roles and deadlines |
 | 2026-11-02 | Perfect | Claude Code | Built the frontend skeleton, design tokens, 13 components, `/dev/gallery`, Start screen and tests | Ran lint, typecheck, tests and build; reviewed the screenshots against the reference and corrected the design (v0.2) |
 | 2026-11-02 | Perfect | Claude Code | Wrote the FastAPI skeleton (S-5), its tests, the API contract draft and the handover docs (D-008, D-009) | Ran `pytest` (9 passed) and a live `curl` against the server; read all files |
+| 2026-11-02 | Perfect | Claude Code | Wrote `agent/llm.py` (S-4) and its 18 tests | Ran `pytest` (all pass, fake model only); read the SDK's error object to confirm field names. The real Gemini call was not run |
 
 ## Sign-off
 Each person confirms they understand and can explain everything they submitted.

@@ -30,6 +30,10 @@ curl -i http://localhost:8000/health        # 200 and {"status":"ok"}
 ```
 Open http://localhost:8000/docs to see the interactive API page.
 
+Two things people trip over:
+- Run every command from the **repo root** (`nlp-group-2-prosit-2`), not from `backend/`.
+- The virtual environment is switched on **per terminal window**. In a new terminal, run `source backend/.venv/bin/activate` again, or you get `command not found: uvicorn`. The prompt starts with `(.venv)` when it is on.
+
 ## 5. What is NOT done or is faked
 - Only `/health` exists. The real endpoints (projects, answers, approve, events, download) are task W-5 and are described in `docs/api-contract.md`, which Elise has not reviewed yet.
 - No sandbox runner (W-2), no agent loop (W-3), no storage.

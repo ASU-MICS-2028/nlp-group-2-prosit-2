@@ -26,6 +26,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | Date | Task | From | To | Why | Hand back by |
 |---|---|---|---|---|---|
 | 2026-11-02 | S-5 FastAPI skeleton | Elise | Perfect | Owner unreachable; it blocked W-2, W-5, W-6, W-7, W-8 | Done. Elise: read `learnings/backend.md` |
+| 2026-11-02 | S-4 `agent/llm.py` | Opei | Perfect | Owner unreachable; it blocks W-1, W-3, W-4 | Code done; Opei can take over the live check and the rest of `agent/` |
 
 ## Scope
 
@@ -49,7 +50,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | S-1 | Scaffold repo (these files) pushed to `main` | Perfect | none | ✅ | Files on `main`, CI runs (first CI run still to be confirmed on the Actions tab) |
 | S-2 | Turn on branch protection (settings in CONTRIBUTING.md) | Perfect | S-1 | ⛔ | Direct pushes to `main` blocked |
 | S-3 | Check CODEOWNERS shows no handle errors on GitHub; add all teammates as repo collaborators | Perfect | S-1 | ⛔ | No handle errors; all four can push branches |
-| S-4 | Gemini free API key in local `.env`; `agent/llm.py` hello world | Opei | none | 🟢 | `python -m agent.llm` prints a reply; key not in git |
+| S-4 | Gemini free API key in local `.env`; `agent/llm.py` hello world | Perfect (from Opei) | none | 🔄 | `python -m agent.llm` prints a reply; key not in git. Code and 18 tests are done; the live run still needs the key |
 | S-5 | FastAPI skeleton with `/health` and OpenAPI | Perfect (from Elise) | S-1 | ✅ | `/docs` opens locally |
 | S-6 | Vite + React + TS (strict) skeleton, oxlint, Prettier, Vitest; design tokens, 13 components, `/dev/gallery`, Start screen | Perfect | S-1 | ✅ | `npm run lint`, `tsc`, `npm test`, `npm run build` all pass |
 | S-7 | Draft the 20 plain-English test requests with expected endpoints | Nana | S-1 | 🟢 | `evaluation/requests.json` merged |
