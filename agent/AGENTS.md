@@ -2,9 +2,9 @@
 
 `llm.py` (the only door to the model), prompts, tool definitions, and the retry/reflection step.
 
-## Commands (fill in as it lands, S-4)
-- Hello world: `python -m agent.llm`
-- Test: `pytest agent`
+## Commands (run from the repo root with the virtual environment on)
+- Test: `pytest -q agent` (uses a fake model; no key needed)
+- Live hello world: `python -m agent.llm` (needs `GEMINI_API_KEY` and `LLM_MODEL` in your local `.env`)
 
 ## Traps this area enforces
 - `llm.py` reads `LLM_PROVIDER`, `LLM_MODEL` and the API key from the environment. Nothing else imports a provider library (D-002).
