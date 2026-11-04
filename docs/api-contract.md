@@ -98,6 +98,21 @@ The ready screen also shows: `file_count`, `size_kb`, `tests_passed`, `tests_tot
 - `400`/`422` bad or too-long input · `404` unknown project · `409` wrong step (for example approving before answers) · `429` the free LLM is rate-limited, try again shortly · `503` the LLM is down.
 - Anything unexpected is `500` with a plain `detail`. No stack traces, no secrets.
 
+## Proposed additions (D-010, not agreed yet)
+The frontend components already use these shapes (task F-12). See D-010 in `docs/decisions.md` for the reasons.
+```json
+{ "id": "q2", "text": "What else should each book have?", "why": "Each one becomes a detail.",
+  "kind": "multi_choice", "options": ["Author", "Year published"] }
+```
+```json
+"tables": [{ "name": "books", "fields": [
+  { "name": "id", "type": "int", "required": true, "auto": true },
+  { "name": "title", "type": "str", "required": true },
+  { "name": "price", "type": "float", "required": false } ] }],
+"not_included": ["Taking card payments"]
+```
+A request that cannot go ahead: `{ "id": "p_2", "status": "stopped", "reason": "unsupported", "message": "...", "alternative": "..." }`.
+
 ## Open questions for Elise
 1. Is `POST /projects` allowed to return the plan directly when no questions are needed (as written), or should it always return questions?
 2. Server memory or SQLite for projects between requests? (The sidebar needs them to survive a page reload.)

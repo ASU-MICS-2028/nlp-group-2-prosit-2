@@ -69,7 +69,15 @@ export function BuildTimeline({
             <span className="step__dot" aria-hidden />
             <span className="step__kind t-caption">{step.kind}</span>
             <div>{step.text}</div>
-            {step.output && <pre className="well t-code">{step.output}</pre>}
+            {/* Raw output is for developers, so it stays folded away unless opened */}
+            {step.output && (
+              <details className="step__details">
+                <summary className="t-caption muted">
+                  Show details for a developer
+                </summary>
+                <pre className="well t-code">{step.output}</pre>
+              </details>
+            )}
           </li>
         ))}
       </ol>

@@ -3,12 +3,18 @@ import { useState, type ReactNode } from 'react'
 import { AppShell } from '../components/AppShell'
 import { BuildTimeline } from '../components/BuildTimeline'
 import { Button } from '../components/Button'
+import { CannotBuildNotice } from '../components/CannotBuildNotice'
 import { Chip } from '../components/Chip'
 import { IconTile } from '../components/IconTile'
 import { MethodBadge, type Method } from '../components/MethodBadge'
 import { Notice } from '../components/Notice'
 import { PlanCard, type Plan } from '../components/PlanCard'
-import { QuestionCard } from '../components/QuestionCard'
+import {
+  QuestionCard,
+  type Answer,
+  type Question,
+} from '../components/QuestionCard'
+import { QuestionFlow } from '../components/QuestionFlow'
 import { ReadyCard } from '../components/ReadyCard'
 import { RequestCard } from '../components/RequestCard'
 import { Sidebar, type ProjectSummary } from '../components/Sidebar'
@@ -48,9 +54,53 @@ const PLAN: Plan = {
     { method: 'PUT', path: '/books/{id}', description: 'Change a book' },
     { method: 'DELETE', path: '/books/{id}', description: 'Remove a book' },
   ],
-  tables: [{ name: 'books', fields: 'id, title, author, price, in_stock' }],
+  tables: [
+    {
+      name: 'books',
+      fields: [
+        { name: 'id', type: 'int', required: true, auto: true },
+        { name: 'title', type: 'str', required: true },
+        { name: 'author', type: 'str', required: false },
+        { name: 'price', type: 'float', required: false },
+        { name: 'in_stock', type: 'bool', required: true },
+      ],
+    },
+  ],
   testCount: 5,
+  notIncluded: ['Taking card payments', 'Sending emails to customers'],
 }
+
+// One question of each kind, so every layout can be checked
+const QUESTIONS: Question[] = [
+  {
+    id: 'q1',
+    text: 'Should each book have a price?',
+    why: 'This decides whether we store prices and let you search by price.',
+    kind: 'single_choice',
+    options: ['Yes, with a price', 'No, just titles'],
+  },
+  {
+    id: 'q2',
+    text: 'What else should each book have?',
+    why: 'Each one becomes a detail you can fill in.',
+    kind: 'multi_choice',
+    options: ['Author', 'Year published', 'Cover photo link'],
+  },
+  {
+    id: 'q3',
+    text: 'Can people delete books?',
+    why: 'Some shops prefer to keep every record.',
+    kind: 'yes_no',
+    options: [],
+  },
+  {
+    id: 'q4',
+    text: 'What is your shop called?',
+    why: 'We use it as the name of your API.',
+    kind: 'short_text',
+    options: [],
+  },
+]
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -66,8 +116,14 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 export function Gallery() {
   const [request, setRequest] = useState('')
   const [tooLong, setTooLong] = useState('a'.repeat(2040))
-  const [answer, setAnswer] = useState<string | null>('Yes, with a price')
-  const [custom, setCustom] = useState('')
+  const [answers, setAnswers] = useState<Record<string, Answer>>({
+    q1: 'Yes, with a price',
+    q2: ['Author'],
+    q3: '',
+    q4: '',
+  })
+  const [plan, setPlan] = useState<Plan>(PLAN)
+  const [lastSent, setLastSent] = useState('')
   const [chip, setChip] = useState(true)
   const [emptySidebar, setEmptySidebar] = useState(false)
 
@@ -164,22 +220,50 @@ export function Gallery() {
           />
         </Section>
 
-        <Section title="Question card">
-          <QuestionCard
-            index={1}
-            total={2}
-            question="Should each book have a price?"
-            why="This decides whether we store prices and let you search by price."
-            options={['Yes, with a price', 'No, just titles']}
-            selected={answer}
-            onSelect={setAnswer}
-            customAnswer={custom}
-            onCustomChange={setCustom}
+        <Section title="Question card (each kind)">
+          {QUESTIONS.map((question, position) => (
+            <QuestionCard
+              key={question.id}
+              index={position + 1}
+              total={QUESTIONS.length}
+              question={question}
+              answer={answers[question.id]}
+              onAnswer={(next) =>
+                setAnswers({ ...answers, [question.id]: next })
+              }
+            />
+          ))}
+        </Section>
+
+        <Section title="Question flow (one at a time, with Skip)">
+          <QuestionFlow
+            questions={QUESTIONS}
+            onSubmit={(sent) => setLastSent(JSON.stringify(sent))}
+          />
+          {lastSent && <pre className="well t-code">{lastSent}</pre>}
+        </Section>
+
+        <Section title="Plan card (editable; clear a name to see Approve turn off)">
+          <PlanCard
+            plan={plan}
+            onPlanChange={setPlan}
+            onApprove={() => {}}
+            onChange={() => setPlan(PLAN)}
           />
         </Section>
 
-        <Section title="Plan card">
-          <PlanCard plan={PLAN} onApprove={() => {}} onChange={() => {}} />
+        <Section title="Cannot build (refused, and unsupported)">
+          <CannotBuildNotice
+            reason="refused"
+            message="This request asks for a way to collect people's passwords without them knowing."
+            onStartOver={() => {}}
+          />
+          <CannotBuildNotice
+            reason="unsupported"
+            message="Live video calls need more than a simple API."
+            alternative="We could build an API that books and lists video appointments instead."
+            onStartOver={() => {}}
+          />
         </Section>
 
         <Section title="Build timeline (retrying)">

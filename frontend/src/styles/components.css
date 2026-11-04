@@ -226,6 +226,65 @@
   display: flex;
   gap: var(--space-2);
 }
+.plan__not-included {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+  padding: 0;
+  list-style: none;
+}
+.plan__not-included li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+}
+
+/* Question flow: one question card, then Skip on the left and Back/Next on the right */
+.question-flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.question-flow__nav {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Fields editor (inside the plan card): one row per stored detail */
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+.fields__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.fields__name {
+  flex: 1;
+  min-width: 140px;
+}
+.fields__select {
+  height: 36px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-tile);
+  background: var(--panel);
+  font: inherit;
+  color: var(--text);
+}
+.fields__required {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  /* accent-color tints the native checkbox with the brand colour */
+  accent-color: var(--accent);
+}
 
 /* 8.10 Build timeline */
 .tests-bar {
@@ -295,6 +354,12 @@
 }
 .step--failed .step__kind {
   color: var(--error);
+}
+.step__details {
+  margin-top: var(--space-2);
+}
+.step__details summary {
+  cursor: pointer;
 }
 .well {
   margin: var(--space-2) 0 0;

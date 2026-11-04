@@ -85,6 +85,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | F-9 | UI text and user guide for non-developers (outside lane) | Nana | F-3 | ⛔ | Guide merged; Perfect approves |
 | F-10 | Test one UI page by hand and file bugs (outside lane) | Nana | F-3 | ⛔ | Bug list in `learnings/frontend-qa.md` |
 | F-11 | Security and privacy checks: input size limits, no secrets in logs, sandbox timeout | Elise | W-2 | ⛔ | Checklist in `learnings/backend.md` with results |
+| F-12 | Bring features from Nana's earlier prototype into the components (question kinds + step-by-step flow with Skip, editable plan fields, "Not included yet", cannot-build notice, folded developer output). Components only, no backend calls | Nana | S-6 | 🔄 | Shown in `/dev/gallery`, tested, CI passes; D-010 contract additions reviewed by Perfect and Elise |
 
 ## Phase 3: Evaluation and deployment (Fri 30 – Sat 31 Oct)
 

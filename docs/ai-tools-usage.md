@@ -8,6 +8,7 @@ One line per use. Add a line in the same PR as the work. Say how you checked the
 | 2026-11-02 | Perfect | Claude Code | Built the frontend skeleton, design tokens, 13 components, `/dev/gallery`, Start screen and tests | Ran lint, typecheck, tests and build; reviewed the screenshots against the reference and corrected the design (v0.2) |
 | 2026-11-02 | Perfect | Claude Code | Wrote the FastAPI skeleton (S-5), its tests, the API contract draft and the handover docs (D-008, D-009) | Ran `pytest` (9 passed) and a live `curl` against the server; read all files |
 | 2026-11-02 | Perfect | Claude Code | Wrote `agent/llm.py` (S-4) and its 18 tests | Ran `pytest` (all pass, fake model only); read the SDK's error object to confirm field names. The real Gemini call was not run |
+| 2026-11-03 | Nana | Claude Code | F-12: compared the team frontend with Nana's earlier prototype; rewrote five of its features as components (question kinds and flow, editable plan fields, not-included list, cannot-build notice, folded developer output) with 25 tests; drafted D-010 | Ran format check, lint, typecheck, 38 tests and build (`evidence/frontend/outputs_f12_checks.txt`). Not yet checked by eye in a browser |
 
 ## Sign-off
 Each person confirms they understand and can explain everything they submitted.

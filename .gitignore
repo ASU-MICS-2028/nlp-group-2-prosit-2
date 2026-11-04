@@ -29,6 +29,9 @@ generated_projects/
 course-materials/
 *.docx
 
+# personal experiments that stay on one laptop (for example a copy of an older prototype)
+/local/
+
 # local tools and OS
 .claude/
 .vscode/

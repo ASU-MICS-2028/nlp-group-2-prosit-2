@@ -62,3 +62,13 @@ Affects: everyone, most of all Elise (backend) and Opei (agent)
 Decision: When a 🟢 task has no progress and its owner is unreachable, someone else picks it up. The pick-up is recorded in the same PR: the Owner column says "Name (from Owner)" and a row is added to "Handovers" in PLAN.md. The original owner can take any unfinished task back at any time by asking in the team chat and changing the row. Finished work stays with whoever did it, and the previous owner must read its learnings note before the teach-back.
 Why: The week is short and the backend is on the critical path. Waiting stalls everyone, and PLAN.md should say who really does what.
 Gave up: One owner per area is now a default, not a promise. The viva still covers all the code, so everyone has to be able to explain the picked-up parts too.
+
+## D-010: Questions say what kind they are, and the plan's stored fields are structured so people can edit them
+Date: 2026-11-03 · Status: Proposed (Nana; needs Perfect and Elise, because it adds to the D-008 contract)
+Affects: Elise (backend shapes), Perfect (frontend owner), Opei (the planner prompt must produce these shapes)
+Decision: Three additions to `docs/api-contract.md`, all backward compatible except the second:
+1. Each question gets `kind`: `single_choice`, `multi_choice`, `yes_no` or `short_text` (missing = `single_choice`). Answers are still sent as `{question_id, answer}` text; a multi-choice answer is joined with ", ".
+2. In the plan, `tables[].fields` becomes a list of `{name, type, required, auto}` instead of one string. `type` is one of `str int float bool datetime`; `auto` marks details the system fills in (like `id`). 2 to 10 details per table. The edited plan is sent back with `POST /projects/{id}/approve`.
+3. The plan may include `not_included`: a list of plain-English things the person asked for that we cannot build yet. A request we will not or cannot build returns `status: "stopped"` with `reason` (`refused` or `unsupported`), `message`, and an optional `alternative`.
+Why: Nana's earlier prototype showed that non-developers fix a wrong plan much faster by editing a detail than by rewriting their request, and that saying "not included yet" is more honest than silently dropping part of a request. Typed questions let a yes/no question look like one.
+Gave up: A simpler contract. The planner prompt has to produce structured fields, and the backend has to check them.
