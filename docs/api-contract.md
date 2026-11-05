@@ -13,7 +13,7 @@ Once it is agreed, the FastAPI code must match it, and the TypeScript client is 
 | Questions | answers sent with `POST /projects/{id}/answers` |
 | Plan | plan comes back from the answers call; `POST /projects/{id}/approve` |
 | Building | `GET /projects/{id}/events` (live stream) |
-| Ready | `GET /projects/{id}/download` |
+| Ready | `GET /projects/{id}` (live link), the live API at `/apis/{id}/docs`, `GET /projects/{id}/download` (take-home zip) |
 
 ## Words used
 - **Project**: one API the user asked for. It has an `id` and a `status`.
@@ -90,8 +90,24 @@ The ready screen also shows: `file_count`, `size_kb`, `tests_passed`, `tests_tot
 ```json
 { "id": "p_1", "name": "Bookshop API", "status": "ready",
   "file_count": 9, "size_kb": 14, "tests_passed": 5, "tests_total": 5,
-  "run_command": "docker compose up" }
+  "run_command": "docker compose up",
+  "api_url": "/apis/p_1", "live_status": "running" }
 ```
+`live_status` is `running` or `sleeping` (see "The live API" below). `api_url` is only present once the status is `ready`.
+
+## The live API (D-011)
+After the tests pass, our backend runs the generated project as its own process and passes calls through, so a non-developer can call it from a link.
+
+### `ANY /apis/{id}/{path}`
+Everything under `/apis/{id}/` goes to the generated API. For example `/apis/p_1/docs` is that API's own Swagger page, where "Try it out" really calls it, and `/apis/p_1/books` is one of its endpoints. These calls are not part of our OpenAPI schema.
+- If the API is `sleeping` (stopped to save memory, or the server restarted), the first call returns `503` with `{ "detail": "This API is asleep. Wake it up and try again." }`.
+- Data inside the generated API lasts while it is running and is lost when it restarts.
+
+### `POST /projects/{id}/wake`
+Restart a sleeping API from its stored files. Response `202`: `{ "live_status": "running" }` once it answers, or `503` with a plain `detail` if too many APIs are already running. Calling it on a running API does nothing new.
+
+### Optional: `POST /projects/{id}/followup` (D-012, F-15)
+Request: `{ "request": "Also add search by title" }`. Starts a new build round on the existing files, then the same events stream applies.
 
 ## Errors
 - Every error is `{ "detail": "plain-English sentence" }` (FastAPI's default shape), so the UI can show `detail` straight in a notice.
@@ -99,6 +115,7 @@ The ready screen also shows: `file_count`, `size_kb`, `tests_passed`, `tests_tot
 - Anything unexpected is `500` with a plain `detail`. No stack traces, no secrets.
 
 ## Open questions for Elise
+0. The live API (D-011) needs her runner to start a project as a long-running process and stop idle ones. Is a limit of 3 running at once about right for a free host?
 1. Is `POST /projects` allowed to return the plan directly when no questions are needed (as written), or should it always return questions?
 2. Server memory or SQLite for projects between requests? (The sidebar needs them to survive a page reload.)
 3. Do you prefer the stream at `/events` (SSE) or a polling endpoint? SSE is written here because it is simpler for the UI and shows live progress.
