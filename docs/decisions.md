@@ -85,3 +85,11 @@ Affects: Perfect (F-15), Elise
 Decision: After the API is ready, the user can ask for a change ("also add search") and the agent runs a new round on the existing files, if there is time (F-15, optional). Changing the agent while it is building is future work and is described as such in the report.
 Why: The lecturer's "the loop must always be active" described the ideal. Mid-build interruption needs background tasks and careful handling of timing; a follow-up after the build avoids that.
 Gave up: Chatting with the agent during a build.
+
+## D-013: Projects are kept in server memory for now; the database choice is open
+Date: 2026-11-06 · Status: Proposed (Elise; team to decide the database)
+Affects: Elise (W-5, owns), Perfect (sidebar needs projects to survive a reload), Nana (deployment)
+Decision: For W-5, projects live in a Python dictionary inside `backend/projects.py`. All storing code stays in that one place so a database can replace it later.
+Open question for the team: a shared, hosted database would let projects survive restarts. Options on free tiers: hosted Postgres (for example Neon or Supabase) or Firebase Firestore (NoSQL). Either needs a connection secret shared with everyone who runs the backend and in CI, and tests that don't touch the shared data. Check each free tier's current limits before choosing.
+Why: Building and testing the endpoints needs no database today. Adding one now means more setup, more secrets and more to explain in the viva.
+Gave up (for now): Projects are lost when the server restarts, so the sidebar empties after a restart.

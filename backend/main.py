@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from backend.config import allowed_origins
+from backend.projects import router as projects_router
 
 app = FastAPI(
     title="Mesora API Builder",
@@ -23,6 +24,9 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
+
+# Plug in the project endpoints from backend/projects.py.
+app.include_router(projects_router)
 
 
 class Health(BaseModel):
