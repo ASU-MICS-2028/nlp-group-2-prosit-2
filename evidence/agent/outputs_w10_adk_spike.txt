@@ -1,0 +1,21 @@
+[spike_agent] TOOL CALL  write_file(['path', 'content'])
+[spike_agent] TOOL RESULT {'status': 'ok', 'path': 'math_utils.py', 'characters': 32}
+[spike_agent] TOOL CALL  write_file(['path', 'content'])
+[spike_agent] TOOL RESULT {'status': 'ok', 'path': 'test_math_utils.py', 'characters': 124}
+[spike_agent] TEXT        I have created `math_utils.py` and `test_math_utils.py` with the requested function and test.
+(final response event)
+
+Took 15.2s. Files written: ['math_utils.py', 'test_math_utils.py']
+--- math_utils.py
+def add(a, b):
+    return a + b
+
+--- test_math_utils.py
+from math_utils import add
+
+
+def test_add():
+    assert add(1, 2) == 3
+    assert add(-1, 1) == 0
+    assert add(0, 0) == 0
+
