@@ -9,6 +9,7 @@ One line per use. Add a line in the same PR as the work. Say how you checked the
 | 2026-11-02 | Perfect | Claude Code | Wrote the FastAPI skeleton (S-5), its tests, the API contract draft and the handover docs (D-008, D-009) | Ran `pytest` (9 passed) and a live `curl` against the server; read all files |
 | 2026-11-02 | Perfect | Claude Code | Wrote `agent/llm.py` (S-4) and its 18 tests | Ran `pytest` (all pass, fake model only); read the SDK's error object to confirm field names. The real Gemini call was not run |
 | 2026-11-03 | Perfect | Claude Code | Reviewed Elise's runner; summarised the lecture transcript; drafted D-010 to D-012 and the PLAN, contract and README updates | Ran Elise's tests and three probes on a clean checkout (secrets leak, home folder read, output size confirmed); decisions confirmed by Perfect before writing |
+| 2026-11-03 | Elise | Claude Code | Step-by-step help building the sandbox runner (W-2), its tests, the review fixes (secrets, output limit), and the learnings note | Wrote each test first and watched it fail; ran `python -m pytest` after every step (17 passed); read every line; teammate review on PR #3 |
 | 2026-11-04 | Perfect | Claude Code | Ran the live Gemini check (S-4) and wrote and ran the ADK spike (W-10) | Read the output of both runs; the spike's tool call, result and final text matched the script; saved script and output in `evidence/agent/` |
 
 ## Sign-off
