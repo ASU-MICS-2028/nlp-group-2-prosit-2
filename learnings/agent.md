@@ -66,7 +66,10 @@ pytest -q agent/tests/test_prompts.py    # 18 passed
 ```
 One test cuts the example project out of the prompt and runs it through the real sandbox runner (9 passed). If someone breaks the example, that test fails, because a broken example teaches the model the mistake.
 
-**Not done yet:** the live check (give the prompt and a sample plan to Gemini with the tools, and see a working project come back). It needs the tools from PR #9 and a Gemini key.
+**Live check (2026-11-08, Windows laptop, `gemini-3.5-flash`):** script `evidence/agent/w4_live_check.py`, output `evidence/agent/outputs_w4_live_check.txt`. Given the prompt, the tools from PR #9 and a Bookshop plan (5 fields, 4 endpoints), the agent said one planning sentence, wrote the 6 files of the fixed layout, ran the tests once and they passed. We then ran its files through the sandbox ourselves: **8 passed**. 44 seconds of agent time.
+- For the run, the runner was given only `PATH` and `SYSTEMROOT` (the PR #8 fix plus the Windows setting), so the generated code could not see the key.
+- The first try failed with Gemini `503` ("high demand"); a retry two minutes later worked. W-3 should treat 503 like a rate limit: wait and retry.
+- The final reply was the JSON we asked for, but wrapped in a ```json fence. W-3 must strip a fence before parsing (the check script does this).
 
 ## 6. What will bite us
 - Free-tier limits change and can be low: the evaluation (20 requests, each several calls) may hit them. Pace requests.

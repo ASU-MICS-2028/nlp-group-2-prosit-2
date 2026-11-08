@@ -29,7 +29,7 @@ Deadline for the prosit deliverables (code, report, slides): **Sun 1 Nov 2026**.
 | Person | Now (can start today) | Next (waiting on) |
 |---|---|---|
 | **Perfect** | S-2 branch protection, S-3 collaborators, W-5 endpoints, W-8 `GET /projects`, A-3 Section A draft | W-6 typed API client (W-5), W-7 chat screen (W-6), F-14 live Ready screen |
-| **Opei** | A-2 Section A draft; W-4 agent instructions (prompt written, live check next) | D-4 (W-4), F-4 (W-9), F-6 (F-5) |
+| **Opei** | A-2 Section A draft; D-4 model switch proof (W-4 done 2026-11-08) | F-4 (W-9), F-6 (F-5) |
 | **Elise** | A-1 Section A draft; F-11 runner security fixes (secrets leak, output cap); W-5 endpoints are open to take back | W-3 agent loop with ADK (W-1), F-12 and F-13 live API (F-11) |
 | **Nana** | S-7 evaluation set, S-8 Vercel and Render accounts, D-1 deploy frontend to Vercel, A-4 Section A draft | E-1 scoring script (W-9) |
 
