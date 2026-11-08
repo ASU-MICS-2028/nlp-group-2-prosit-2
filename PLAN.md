@@ -63,9 +63,9 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | ID | Task | Owner | Blocked by | Status | Done when |
 |---|---|---|---|---|---|
 | W-10 | ADK spike: one tool and one Gemini call with Google ADK, run locally; write down what works, what the free tier allows, what its events look like, and what to keep of `agent/llm.py` (D-010) | Perfect | S-4 | ✅ | Done 2026-11-04: works; notes in `learnings/agent.md`; script and output in `evidence/agent/` |
-| W-1 | Tool functions for the ADK agent: write_file, read_file, run_tests (wraps `backend/runner.py`) | Opei | W-10 | 🟢 | Each tool has a test |
+| W-1 | Tool functions for the ADK agent: write_file, read_file, run_tests (wraps `backend/runner.py`) | Opei | W-10 | ✅ | Each tool has a test. Done 2026-11-07: `agent/tools.py` (also `list_files`), 28 tests; output in `evidence/agent/outputs_w1_tools_tests_run2.txt` |
 | W-2 | Sandbox runner: run a generated project's pytest in a temp folder with timeout | Elise | S-5 | ✅ | A passing and a failing project give correct results (PR #3; the secrets leak and output cap are fixed under F-11) |
-| W-3 | Agent built with Google ADK: plans, calls the tools, loops until the tests pass or there is a clear stop reason | Elise | W-1, W-2, W-10 | ⛔ | Loop ends with success or a clear stop reason |
+| W-3 | Agent built with Google ADK: plans, calls the tools, loops until the tests pass or there is a clear stop reason | Elise | W-1, W-2, W-10 | 🟢 | Loop ends with success or a clear stop reason |
 | W-4 | Agent instructions (system prompt) for code generation | Opei | W-10 | ✅ | Prompt file reviewed; produces a valid endpoint by hand. Done 2026-11-08: `agent/prompts/builder.md`; live check with `gemini-3.5-flash` built a 4-endpoint Bookshop API whose 8 tests passed (`evidence/agent/outputs_w4_live_check.txt`) |
 | W-5 | Endpoints: start project, get status, stream progress (SSE) | Elise | S-5 | 🟢 | Visible in `/docs`; stream works with curl |
 | W-6 | Generate typed API client from OpenAPI | Perfect | S-6, W-5 | ⛔ | `frontend/src/api` builds from the schema |
