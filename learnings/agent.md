@@ -55,16 +55,16 @@ Question: can Google's Agent Development Kit (D-010) run a tiny agent with a too
 
 **Why this way**
 - **Tools never raise.** A bad call returns `{"status": "error", "message": ...}`. The model reads the message and tries again, instead of the whole build crashing.
-- **Safe file names.** Absolute paths (`/etc/passwd`), climbing out (`../x`), `./`, `a//b` and Windows `\` paths are refused.
-- **Limits:** at most 30 files and 50,000 characters per file, so a looping model cannot fill memory. Text sent back to the model is cut to its last 4,000 characters (the pytest summary is at the end), which saves free-tier quota.
+- **Safe file names.** Absolute paths (`/etc/passwd`), climbing out (`../x`), `./`, `a//b`, Windows `\` and drive (`C:`) paths are refused.
+- **Limits:** at most 30 files and 50,000 characters per file, so a looping model cannot fill memory. Test output sent back to the model is cut to its last 4,000 characters (the pytest summary is at the end), which saves free-tier quota. Files are never cut: `read_file` returns a whole file up to 20,000 characters, or an error, because a model shown half a file rewrites it without the other half.
 - **`test_runs` counter:** the agent loop (W-3, F-4) can stop after a set number of test runs.
 - **Runner crashes are hidden from the model:** it gets "the test runner itself failed", never our internal error text.
 
 **How to check it**
 ```
-pytest -q agent/tests/test_tools.py    # 26 passed
+pytest -q agent/tests/test_tools.py    # 28 passed
 ```
-24 tests use a fake runner; 2 use the real sandbox runner (one passing and one failing project). Output: `evidence/agent/outputs_w1_tools_tests.txt`.
+26 tests use a fake runner; 2 use the real sandbox runner (one passing and one failing project). Output: `evidence/agent/outputs_w1_tools_tests_run2.txt` (run 1, before the read_file fix: `outputs_w1_tools_tests.txt`).
 
 **Not done or not tested**
 - Not yet run inside a real ADK agent with Gemini; that happens in W-3.

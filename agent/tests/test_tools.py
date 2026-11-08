@@ -24,7 +24,7 @@ def test_normal_names_are_allowed(name):
     assert tools.clean_path(name) == name.strip()
 
 
-@pytest.mark.parametrize("name", ["", "   ", "../secret.py", "app/../../x.py", "/etc/passwd", "./a.py", "app\\main.py"])
+@pytest.mark.parametrize("name", ["", "   ", "../secret.py", "app/../../x.py", "/etc/passwd", "./a.py", "app\\main.py", "C:/x.py"])
 def test_unsafe_names_are_refused(name):
     assert tools.clean_path(name) is None
 
@@ -81,14 +81,23 @@ def test_reading_a_missing_file_is_an_error(workspace):
     assert read_file("nope.py")["status"] == "error"
 
 
-def test_reading_a_long_file_is_trimmed(workspace):
+def test_reading_a_file_longer_than_test_output_gives_the_whole_file(workspace):
+    # A file is not cut like test output: the model must see it from the first line.
     write_file, read_file, _, _ = get_tools(workspace)
-    write_file("long.txt", "a" * (tools.MAX_RESULT_CHARACTERS + 500))
+    text = "import os\n" + "a" * (tools.MAX_RESULT_CHARACTERS + 500)
+    write_file("app/main.py", text)
 
-    content = read_file("long.txt")["content"]
+    assert read_file("app/main.py")["content"] == text
 
-    assert content.startswith("[earlier output cut]")
-    assert len(content) < tools.MAX_RESULT_CHARACTERS + 50
+
+def test_reading_a_file_too_long_to_send_is_an_error_not_a_part(workspace):
+    write_file, read_file, _, _ = get_tools(workspace)
+    write_file("big.py", "a" * (tools.MAX_READ_CHARACTERS + 1))
+
+    result = read_file("big.py")
+
+    assert result["status"] == "error"
+    assert "content" not in result
 
 
 def test_list_files_is_sorted(workspace):

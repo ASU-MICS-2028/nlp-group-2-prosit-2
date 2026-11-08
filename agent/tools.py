@@ -21,7 +21,8 @@ from backend import runner
 
 MAX_FILES = 30  # a generated project is about 10 files; more means the model is looping
 MAX_FILE_CHARACTERS = 50_000  # one file larger than this is almost surely a mistake
-MAX_RESULT_CHARACTERS = 4_000  # longest text we send back to the model (saves free-tier quota)
+MAX_RESULT_CHARACTERS = 4_000  # longest test output we send back to the model (saves free-tier quota)
+MAX_READ_CHARACTERS = 20_000  # longest file read_file returns whole; the model must see a file from its first line
 TEST_TIMEOUT_SECONDS = 30
 
 
@@ -36,7 +37,7 @@ class Workspace:
 def clean_path(path: str) -> str | None:
     """Return a safe relative file name like "app/main.py", or None if the name is not allowed."""
     path = path.strip()
-    if not path or "\\" in path:  # empty, or a Windows-style path
+    if not path or "\\" in path or ":" in path:  # empty, or a Windows-style path like "C:/x"
         return None
     parts = path.split("/")
     # No absolute paths ("/etc/passwd"), no climbing out ("../x"), no "./" or "a//b" tricks.
@@ -90,7 +91,11 @@ def make_tools(workspace: Workspace) -> list:
         name = clean_path(path)
         if name is None or name not in workspace.files:
             return error(f"There is no file '{path}'. Call list_files to see the files.")
-        return {"status": "ok", "path": name, "content": keep_end(workspace.files[name])}
+        content = workspace.files[name]
+        if len(content) > MAX_READ_CHARACTERS:
+            # Never send part of a file: the model would rewrite it without the missing part.
+            return error(f"'{name}' is too long to read ({len(content)} characters). Write it again in smaller files.")
+        return {"status": "ok", "path": name, "content": content}
 
     def list_files() -> dict:
         """List the names of all files written so far."""

@@ -1,0 +1,38 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.2.0, pluggy-1.7.0 -- <repo>/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: <repo>
+configfile: pytest.ini
+plugins: anyio-4.16.0
+collecting ... collected 28 items
+
+agent/tests/test_tools.py::test_normal_names_are_allowed[app/main.py] PASSED [  3%]
+agent/tests/test_tools.py::test_normal_names_are_allowed[main.py] PASSED [  7%]
+agent/tests/test_tools.py::test_normal_names_are_allowed[ tests/test_a.py ] PASSED [ 10%]
+agent/tests/test_tools.py::test_unsafe_names_are_refused[] PASSED        [ 14%]
+agent/tests/test_tools.py::test_unsafe_names_are_refused[   ] PASSED     [ 17%]
+agent/tests/test_tools.py::test_unsafe_names_are_refused[../secret.py] PASSED [ 21%]
+agent/tests/test_tools.py::test_unsafe_names_are_refused[app/../../x.py] PASSED [ 25%]
+agent/tests/test_tools.py::test_unsafe_names_are_refused[/etc/passwd] PASSED [ 28%]
+agent/tests/test_tools.py::test_unsafe_names_are_refused[./a.py] PASSED  [ 32%]
+agent/tests/test_tools.py::test_unsafe_names_are_refused[app\\main.py] PASSED [ 35%]
+agent/tests/test_tools.py::test_unsafe_names_are_refused[C:/x.py] PASSED [ 39%]
+agent/tests/test_tools.py::test_write_then_read_gives_the_same_text PASSED [ 42%]
+agent/tests/test_tools.py::test_writing_again_replaces_the_file PASSED   [ 46%]
+agent/tests/test_tools.py::test_unsafe_write_is_an_error_and_writes_nothing PASSED [ 50%]
+agent/tests/test_tools.py::test_too_long_file_is_refused PASSED          [ 53%]
+agent/tests/test_tools.py::test_too_many_files_is_refused_but_replacing_still_works PASSED [ 57%]
+agent/tests/test_tools.py::test_reading_a_missing_file_is_an_error PASSED [ 60%]
+agent/tests/test_tools.py::test_reading_a_file_longer_than_test_output_gives_the_whole_file PASSED [ 64%]
+agent/tests/test_tools.py::test_reading_a_file_too_long_to_send_is_an_error_not_a_part PASSED [ 67%]
+agent/tests/test_tools.py::test_list_files_is_sorted PASSED              [ 71%]
+agent/tests/test_tools.py::test_each_project_has_its_own_files PASSED    [ 75%]
+agent/tests/test_tools.py::test_run_tests_with_no_files_is_an_error PASSED [ 78%]
+agent/tests/test_tools.py::test_run_tests_passes_the_files_and_reports_the_result PASSED [ 82%]
+agent/tests/test_tools.py::test_long_test_output_keeps_the_end PASSED    [ 85%]
+agent/tests/test_tools.py::test_a_crashing_runner_becomes_an_error_message PASSED [ 89%]
+agent/tests/test_tools.py::test_timeout_is_reported PASSED               [ 92%]
+agent/tests/test_tools.py::test_real_runner_passing_project PASSED       [ 96%]
+agent/tests/test_tools.py::test_real_runner_failing_project_shows_why PASSED [100%]
+
+============================== 28 passed in 0.63s ==============================
