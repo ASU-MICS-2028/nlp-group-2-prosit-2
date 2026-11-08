@@ -53,3 +53,26 @@ def test_get_unknown_project_gives_404() -> None:
     assert response.status_code == 404
     # The contract says errors are a plain-English sentence the UI can show.
     assert response.json()["detail"] == "Project not found."
+
+def test_empty_request_is_refused() -> None:
+    response = client.post("/projects", json={"request": ""})
+
+    # 422 means "I understood you, but this data isn't allowed".
+    assert response.status_code == 422
+
+
+def test_too_long_request_is_refused() -> None:
+    too_long = "a" * 2001  # one character over the limit
+    response = client.post("/projects", json={"request": too_long})
+
+    assert response.status_code == 422
+
+def test_bad_input_error_is_a_plain_sentence() -> None:
+    response = client.post("/projects", json={"request": ""})
+
+    # The contract says every error is {"detail": "a plain sentence"},
+    # so Perfect's page can show it to the user without any extra work.
+    detail = response.json()["detail"]
+    assert isinstance(detail, str)  # a sentence, not a list
+    assert "request" in detail  # it says which field was wrong
+

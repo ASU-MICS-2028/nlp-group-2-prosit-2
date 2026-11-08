@@ -1,7 +1,7 @@
 """Project endpoints (W-5). The shapes follow docs/api-contract.md."""
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # A router is a group of endpoints; main.py plugs it into the app.
 router = APIRouter(tags=["projects"])
@@ -11,7 +11,10 @@ projects: dict[str, dict[str, str]] = {}
 
 
 class StartRequest(BaseModel):
-    request: str  # the user's plain-English description of the API they want
+    # The user's plain-English description of the API they want.
+    # Field(...) sets the allowed length (1 to 2000 characters, as in the contract).
+    # FastAPI checks it before our function runs, and answers 422 if it's wrong.
+    request: str = Field(min_length=1, max_length=2000)
 
 
 class Question(BaseModel):
