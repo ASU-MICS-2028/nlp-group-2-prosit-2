@@ -3,6 +3,7 @@
 from fastapi.testclient import TestClient
 
 from backend.main import app
+from backend.projects import add_event
 
 client = TestClient(app)
 
@@ -76,3 +77,22 @@ def test_bad_input_error_is_a_plain_sentence() -> None:
     assert isinstance(detail, str)  # a sentence, not a list
     assert "request" in detail  # it says which field was wrong
 
+def test_events_stream_sends_the_history_and_ends() -> None:
+    start = client.post("/projects", json={"request": "A to-do list API"})
+    project_id = start.json()["id"]
+    # Pretend to be the AI agent: say the build failed (a final status, so the stream ends).
+    add_event(project_id, {"status": "failed"})
+
+    response = client.get(f"/projects/{project_id}/events")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    # Each SSE message is a line starting with "data: ", followed by the JSON.
+    assert 'data: {"status":"waiting"}' in response.text
+    assert 'data: {"status":"failed"}' in response.text
+
+
+def test_events_for_unknown_project_gives_404() -> None:
+    response = client.get("/projects/p_999/events")
+
+    assert response.status_code == 404
