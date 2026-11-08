@@ -32,7 +32,7 @@ Common messages: "GEMINI_API_KEY is not set" (fill `.env`), "LLM_MODEL is not se
 ## 5. What is NOT done or is faked
 - The real Gemini call has been run **once** (2026-11-04, model `gemini-3.5-flash`, evidence in `evidence/agent/outputs_s4_llm_hello.txt`). Behaviour under load, rate limits and the retry waits have not been tried against the real service.
 - The Claude provider is a placeholder that says "not set up yet". The provider-switch proof (task D-4) needs credits.
-- Tool definitions (W-1), the system prompt (W-4) and the retry/reflection loop (F-4) do not exist yet.
+- The retry/reflection loop (F-4) does not exist yet. The tools (W-1) are in PR #9; the builder prompt (W-4) is described below.
 
 ## ADK spike result (task W-10, 2026-11-04)
 Question: can Google's Agent Development Kit (D-010) run a tiny agent with a tool on our free Gemini key?
@@ -43,6 +43,30 @@ Question: can Google's Agent Development Kit (D-010) run a tiny agent with a too
 - **What to keep of `agent/llm.py`:** the settings (`LLM_MODEL`, the key) and one-off calls. ADK makes the model calls inside the agent.
 - **Not checked yet:** what happens when the free tier says "slow down" inside an ADK run, running many projects at once, and how to cap steps and time per build. Check these when W-3 is built.
 - **Dependencies:** `google-adk` is not in `backend/requirements.txt` yet. Add it (pinned) in the PR that builds W-3, so CI does not install it before it is used.
+
+## Builder prompt (task W-4, 2026-11-08)
+**In one sentence:** `agent/prompts/builder.md` is the standing instruction the ADK agent gets: what to build, in which fixed layout, with which rules, and how to finish.
+
+**What is in it**
+1. **Role:** turn the approved plan into a small FastAPI project with tests, for a person who cannot code.
+2. **Tools and steps:** say in one sentence what you will build (so the UI has a "Thinking" step), write the files, call `run_tests`, fix failures, stop after 3 failing test runs.
+3. **Fixed layout (D-005):** `requirements.txt`, `conftest.py`, `app/__init__.py`, `app/database.py`, `app/main.py`, `tests/test_<table>.py`.
+4. **Rules:** only `fastapi`, `pydantic`, `sqlite3` and the standard library (nothing else is installed in the sandbox); `?` placeholders in SQL; plan types mapped to SQLite types; exactly the planned endpoints; 201 / 404 / 204 / 422; plain-English Swagger text; no environment variables, network or outside files.
+5. **Test rules:** a normal case and a failure case for every endpoint; never delete or weaken a test to get green.
+6. **A complete worked example** (a Notes API, 5 endpoints, 9 tests). Showing one full example is "few-shot prompting": models copy a shown pattern far more reliably than they follow a description.
+7. **Final reply:** only JSON, `{"status": "done" | "gave_up", "summary", "tests_passed", "tests_total"}`, so W-3 can read the result without guessing.
+
+**The loader** (`agent/prompts/__init__.py`): `load_prompt("builder")` reads the file; `builder_message(plan)` turns the approved plan into the agent's first message (as JSON), and refuses a plan with no name, endpoints or tables, or one over 10,000 characters.
+
+**ADK trap: curly braces.** When ADK gets instructions as text, it fills in any `{word}` from its session and fails if there is none. Our prompt needs `{note_id}` in its FastAPI example, so W-3 must pass `instruction=builder_instruction()`: a function, which ADK uses as-is (checked in ADK 2.13's source).
+
+**How to check it**
+```
+pytest -q agent/tests/test_prompts.py    # 18 passed
+```
+One test cuts the example project out of the prompt and runs it through the real sandbox runner (9 passed). If someone breaks the example, that test fails, because a broken example teaches the model the mistake.
+
+**Not done yet:** the live check (give the prompt and a sample plan to Gemini with the tools, and see a working project come back). It needs the tools from PR #9 and a Gemini key.
 
 ## 6. What will bite us
 - Free-tier limits change and can be low: the evaluation (20 requests, each several calls) may hit them. Pace requests.

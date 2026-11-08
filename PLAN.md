@@ -66,7 +66,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | W-1 | Tool functions for the ADK agent: write_file, read_file, run_tests (wraps `backend/runner.py`) | Opei | W-10 | 🟢 | Each tool has a test |
 | W-2 | Sandbox runner: run a generated project's pytest in a temp folder with timeout | Elise | S-5 | ✅ | A passing and a failing project give correct results (PR #3; the secrets leak and output cap are fixed under F-11) |
 | W-3 | Agent built with Google ADK: plans, calls the tools, loops until the tests pass or there is a clear stop reason | Elise | W-1, W-2, W-10 | ⛔ | Loop ends with success or a clear stop reason |
-| W-4 | Agent instructions (system prompt) for code generation | Opei | W-10 | 🟢 | Prompt file reviewed; produces a valid endpoint by hand |
+| W-4 | Agent instructions (system prompt) for code generation | Opei | W-10 | 🔄 | Prompt file reviewed; produces a valid endpoint by hand. 2026-11-08: `agent/prompts/builder.md` written; its example project passes its own 9 tests; live Gemini check still to do |
 | W-5 | Endpoints: start project, get status, stream progress (SSE) | Elise | S-5 | 🟢 | Visible in `/docs`; stream works with curl |
 | W-6 | Generate typed API client from OpenAPI | Perfect | S-6, W-5 | ⛔ | `frontend/src/api` builds from the schema |
 | W-7 | Chat screen: send request, show live progress | Perfect | W-6 | ⛔ | Works against local backend |
