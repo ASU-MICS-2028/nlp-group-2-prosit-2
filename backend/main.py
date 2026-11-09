@@ -38,7 +38,11 @@ app.include_router(projects_router)
 def plain_validation_error(request: Request, error: RequestValidationError) -> JSONResponse:
     # FastAPI always passes `request` to error handlers; we don't need it here, but it must be in the list.
     first = error.errors()[0]  # show only the first problem, to keep the message short
-    field = first["loc"][-1]  # the name of the field with the problem, e.g. "request"
+    field = first["loc"][-1]  # usually the name of the field with the problem, e.g. "request"
+    # For broken JSON, the last part is a character position (a number like 24), not a field name.
+    # A number would confuse the user, so we say what really went wrong instead.
+    if not isinstance(field, str):
+        return JSONResponse(status_code=422, content={"detail": "The request body is not valid JSON."})
     return JSONResponse(status_code=422, content={"detail": f"Invalid {field}: {first['msg']}."})
 
 

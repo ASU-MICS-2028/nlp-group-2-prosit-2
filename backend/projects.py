@@ -5,7 +5,7 @@ from collections.abc import AsyncIterator
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.sse import EventSourceResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 # A router is a group of endpoints; main.py plugs it into the app.
 router = APIRouter(tags=["projects"])
@@ -22,6 +22,10 @@ FINAL_STATUSES = {"ready", "failed", "stopped"}
 
 
 class StartRequest(BaseModel):
+    # Trim spaces from the start and end of text BEFORE the length is checked,
+    # so "   " becomes "" and is refused, and " A bookshop " is saved as "A bookshop".
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     # The user's plain-English description of the API they want.
     # Field(...) sets the allowed length (1 to 2000 characters, as in the contract).
     # FastAPI checks it before our function runs, and answers 422 if it's wrong.
@@ -59,6 +63,8 @@ def find_project(project_id: str) -> dict[str, str]:
 
 def add_event(project_id: str, event: dict[str, object]) -> None:
     # Write one new entry in the project's diary. The agent (W-3) will call this as it works.
+    # An unknown id raises KeyError on purpose: only our own code calls this, always with a real id,
+    # so a KeyError here means a bug in our code, and it should be loud.
     events[project_id].append(event)
     status = event.get("status")
     if isinstance(status, str):  # keep the project's current status up to date too

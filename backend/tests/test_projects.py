@@ -36,24 +36,6 @@ def test_get_unknown_project_gives_404() -> None:
     # The contract says errors are a plain-English sentence the UI can show.
     assert response.json()["detail"] == "Project not found."
 
-def test_get_project_shows_its_status() -> None:
-    # First create a project, then ask for it by its id.
-    start = client.post("/projects", json={"request": "A to-do list API"})
-    project_id = start.json()["id"]
-
-    response = client.get(f"/projects/{project_id}")
-
-    assert response.status_code == 200
-    assert response.json()["id"] == project_id
-    assert response.json()["status"] == "waiting"
-
-
-def test_get_unknown_project_gives_404() -> None:
-    response = client.get("/projects/p_999")
-
-    assert response.status_code == 404
-    # The contract says errors are a plain-English sentence the UI can show.
-    assert response.json()["detail"] == "Project not found."
 
 def test_empty_request_is_refused() -> None:
     response = client.post("/projects", json={"request": ""})
@@ -96,3 +78,18 @@ def test_events_for_unknown_project_gives_404() -> None:
     response = client.get("/projects/p_999/events")
 
     assert response.status_code == 404
+
+
+def test_request_of_only_spaces_is_refused() -> None:
+    # "   " is 3 characters long, but it says nothing, so it counts as empty.
+    response = client.post("/projects", json={"request": "   "})
+
+    assert response.status_code == 422
+
+def test_broken_json_gives_a_plain_sentence() -> None:
+    # The closing } is missing, so this isn't valid JSON at all.
+    broken = '{"request": "A bookshop"'
+    response = client.post("/projects", content=broken, headers={"Content-Type": "application/json"})
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == "The request body is not valid JSON."
