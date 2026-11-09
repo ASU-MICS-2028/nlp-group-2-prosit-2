@@ -120,3 +120,10 @@ Request: `{ "request": "Also add search by title" }`. Starts a new build round o
 2. Server memory or SQLite for projects between requests? (The sidebar needs them to survive a page reload.)
 3. Do you prefer the stream at `/events` (SSE) or a polling endpoint? SSE is written here because it is simpler for the UI and shows live progress.
 4. Is `max_attempts` fixed at 3?
+
+### Elise's answers so far (2026-11-09, W-5)
+- **2:** Server memory for now (D-013), so projects are lost when the server restarts. A database is an open team question in D-013.
+- **3:** SSE at `/events`, as written. It also sends a `: ping` comment every few seconds to keep the line open; the browser ignores it.
+- Built so far: `POST /projects` (questions are always `[]` until the agent exists), `GET /projects/{id}` (only `id` and `status` for now; the other fields come when the agent can fill them), `GET /projects/{id}/events`.
+- 422 errors are turned into one plain sentence in `detail` (a handler in `backend/main.py`), so every error matches the shape above.
+- Questions 0, 1 and 4 are still open.
