@@ -31,7 +31,7 @@ Common messages: "GEMINI_API_KEY is not set" (fill `.env`), "LLM_MODEL is not se
 
 ## 5. What is NOT done or is faked
 - The real Gemini call has been run **once** (2026-11-04, model `gemini-3.5-flash`, evidence in `evidence/agent/outputs_s4_llm_hello.txt`). Behaviour under load, rate limits and the retry waits have not been tried against the real service.
-- The Claude provider is a placeholder that says "not set up yet". The provider-switch proof (task D-4) needs credits.
+- The Claude provider is a placeholder that says "not set up yet". Switching the provider needs paid credits, so D-4 switched only the model name.
 - The retry/reflection loop (F-4) does not exist yet. The tools (W-1) and the builder prompt (W-4) are done, see below.
 
 ## ADK spike result (task W-10, 2026-11-04)
@@ -104,6 +104,21 @@ One test cuts the example project out of the prompt and runs it through the real
 - The first try failed with Gemini `503` ("high demand"); a retry two minutes later worked. W-3 should treat 503 like a rate limit: wait and retry.
 - The final reply was the JSON we asked for, but wrapped in a ```json fence. W-3 must strip a fence before parsing (the check script does this).
 
+## Model switch (task D-4, 2026-11-08 and 2026-11-10)
+**In one sentence:** changing only `LLM_MODEL` in `.env` moves every call to another model with no code change, but no second free-tier model finished the Bookshop build.
+
+| Model | What happened |
+|---|---|
+| `gemini-3.5-flash` (our default) | Built the project, 8 passed (W-4) |
+| `gemini-3.5-flash-lite` | Hello worked; in the build it wrote one sentence and stopped without calling a tool |
+| `gemini-2.5-flash` | 404: "no longer available to new users" |
+| `gemini-3.8-flash`, `gemini-3.7-flash` | 503 "high demand" on every try over two days |
+
+**What it teaches us**
+- Tool use depends on the model: a smaller model can ignore the tool instructions and just reply. W-3's loop should notice "finished without writing a file" and re-prompt once (part of F-4).
+- What the free tier offers changes without warning, so keep `gemini-3.5-flash` as the default and treat 404/503 as "pick another model or wait", not as a bug.
+- Evidence: `evidence/agent/outputs_d4_model_switch.txt`.
+
 ## 6. What will bite us
 - Free-tier limits change and can be low: the evaluation (20 requests, each several calls) may hit them. Pace requests.
 - Model names change over time; `LLM_MODEL` is deliberately not hard-coded.
@@ -125,3 +140,4 @@ One test cuts the example project out of the prompt and runs it through the real
 - All model calls go through one wrapper, so the provider can be swapped by configuration.
 - The wrapper retries rate-limited calls with increasing waits and fails fast on other errors.
 - Tests use a fake model so they are quick, free and repeatable.
+- The model is a setting: changing one line in `.env` switched every call to another model with no code change. Whether the agent still succeeds depends on the model: a smaller model stopped without using its tools.
