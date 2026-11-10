@@ -1,0 +1,17 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.6, pytest-9.2.0, pluggy-1.7.0 -- <repo>/backend/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: <repo>
+configfile: pytest.ini
+plugins: anyio-4.16.0
+collecting ... collected 7 items
+
+backend/tests/test_builder.py::test_build_ends_ready_when_the_tests_pass PASSED [ 14%]
+backend/tests/test_builder.py::test_each_step_is_reported_for_the_timeline PASSED [ 28%]
+backend/tests/test_builder.py::test_build_stops_after_three_failed_test_runs PASSED [ 42%]
+backend/tests/test_builder.py::test_build_fails_clearly_when_the_ai_writes_no_files PASSED [ 57%]
+backend/tests/test_builder.py::test_build_fails_clearly_when_the_ai_service_is_down PASSED [ 71%]
+backend/tests/test_builder.py::test_build_stops_after_too_many_ai_moves PASSED [ 85%]
+backend/tests/test_builder.py::test_build_stops_when_it_takes_too_long PASSED [100%]
+
+============================== 7 passed in 3.97s ===============================

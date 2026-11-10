@@ -16,6 +16,7 @@ One line per use. Add a line in the same PR as the work. Say how you checked the
 | 2026-11-08 | Opei | Claude Code | Drafted the builder prompt `agent/prompts/builder.md` (W-4), its loader and 18 tests | Ran `pytest -q` (all pass); the prompt's example project is run through the sandbox runner in a test (9 passed); read the whole prompt. Live check: Gemini built a Bookshop API whose 8 tests passed when we re-ran them ourselves |
 | 2026-11-09 | Elise | Claude Code | Step-by-step help building the W-5 endpoints (start, status, live stream), the plain-sentence 422 handler, D-013 and the learnings note | Wrote each test first and watched it fail; ran `python -m pytest` after every step; tried every endpoint by hand in `/docs` and the stream with curl; read every line |
 | 2026-11-10 | Opei | Claude Code | Ran the D-4 model switch check on the laptop (4 other Gemini models, only `LLM_MODEL` changed) and wrote up the results | Read every output; checked no key or folder path is in the evidence file |
+| 2026-11-10 | Elise | Claude Code | Step-by-step help building the W-3 agent loop (`backend/builder.py`), its fake-model tests and five stop rules, the live check script, and the W-5/F-11 review fixes | Wrote each test first and watched it fail; ran `python -m pytest` after every step (99 passed); one real Gemini build ended `ready` and our own test run confirmed it; read every line |
 
 ## Sign-off
 Each person confirms they understand and can explain everything they submitted.
