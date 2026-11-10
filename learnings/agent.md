@@ -32,7 +32,7 @@ Common messages: "GEMINI_API_KEY is not set" (fill `.env`), "LLM_MODEL is not se
 ## 5. What is NOT done or is faked
 - The real Gemini call has been run **once** (2026-11-04, model `gemini-3.5-flash`, evidence in `evidence/agent/outputs_s4_llm_hello.txt`). Behaviour under load, rate limits and the retry waits have not been tried against the real service.
 - The Claude provider is a placeholder that says "not set up yet". The provider-switch proof (task D-4) needs credits.
-- The system prompt (W-4) and the retry/reflection loop (F-4) do not exist yet. The tools (W-1) are done, see below.
+- The retry/reflection loop (F-4) does not exist yet. The tools (W-1) and the builder prompt (W-4) are done, see below.
 
 ## ADK spike result (task W-10, 2026-11-04)
 Question: can Google's Agent Development Kit (D-010) run a tiny agent with a tool on our free Gemini key?
@@ -76,6 +76,33 @@ pytest -q agent/tests/test_tools.py    # 28 passed
 | Tool | A plain Python function the agent may ask to run; the model only sends its name and arguments |
 | Workspace | One project's files, kept in a dictionary in memory |
 | Closure | A function made inside another function that remembers the outer function's variables (here: the workspace) |
+
+## Builder prompt (task W-4, 2026-11-08)
+**In one sentence:** `agent/prompts/builder.md` is the standing instruction the ADK agent gets: what to build, in which fixed layout, with which rules, and how to finish.
+
+**What is in it**
+1. **Role:** turn the approved plan into a small FastAPI project with tests, for a person who cannot code.
+2. **Tools and steps:** say in one sentence what you will build (so the UI has a "Thinking" step), write the files, call `run_tests`, fix failures, stop after 3 failing test runs.
+3. **Fixed layout (D-005):** `requirements.txt`, `conftest.py`, `app/__init__.py`, `app/database.py`, `app/main.py`, `tests/test_<table>.py`.
+4. **Rules:** only `fastapi`, `pydantic`, `sqlite3` and the standard library (nothing else is installed in the sandbox); `?` placeholders in SQL; plan types mapped to SQLite types; exactly the planned endpoints; 201 / 404 / 204 / 422; plain-English Swagger text; no environment variables, network or outside files.
+5. **Test rules:** a normal case and a failure case for every endpoint; never delete or weaken a test to get green.
+6. **A complete worked example** (a Notes API, 5 endpoints, 9 tests). Showing one full example is "few-shot prompting": models copy a shown pattern far more reliably than they follow a description.
+7. **Final reply:** only JSON, `{"status": "done" | "gave_up", "summary", "tests_passed", "tests_total"}`, so W-3 can read the result without guessing.
+
+**The loader** (`agent/prompts/__init__.py`): `load_prompt("builder")` reads the file; `builder_message(plan)` turns the approved plan into the agent's first message (as JSON), and refuses a plan with no name, endpoints or tables, or one over 10,000 characters.
+
+**ADK trap: curly braces.** When ADK gets instructions as text, it fills in any `{word}` from its session and fails if there is none. Our prompt needs `{note_id}` in its FastAPI example, so W-3 must pass `instruction=builder_instruction()`: a function, which ADK uses as-is (checked in ADK 2.13's source).
+
+**How to check it**
+```
+pytest -q agent/tests/test_prompts.py    # 18 passed
+```
+One test cuts the example project out of the prompt and runs it through the real sandbox runner (9 passed). If someone breaks the example, that test fails, because a broken example teaches the model the mistake.
+
+**Live check (2026-11-08, Windows laptop, `gemini-3.5-flash`):** script `evidence/agent/w4_live_check.py`, output `evidence/agent/outputs_w4_live_check.txt`. Given the prompt, the tools from PR #9 and a Bookshop plan (5 fields, 4 endpoints), the agent said one planning sentence, wrote the 6 files of the fixed layout, ran the tests once and they passed. We then ran its files through the sandbox ourselves: **8 passed**. 44 seconds of agent time.
+- For the run, the runner was given only `PATH` and `SYSTEMROOT` (the PR #8 fix plus the Windows setting), so the generated code could not see the key.
+- The first try failed with Gemini `503` ("high demand"); a retry two minutes later worked. W-3 should treat 503 like a rate limit: wait and retry.
+- The final reply was the JSON we asked for, but wrapped in a ```json fence. W-3 must strip a fence before parsing (the check script does this).
 
 ## 6. What will bite us
 - Free-tier limits change and can be low: the evaluation (20 requests, each several calls) may hit them. Pace requests.
