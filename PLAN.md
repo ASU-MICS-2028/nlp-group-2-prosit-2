@@ -77,7 +77,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 
 | ID | Task | Owner | Blocked by | Status | Done when |
 |---|---|---|---|---|---|
-| F-1 | Clarifying-questions prompt (outside lane) | Elise | W-4 | ⛔ | Gives ≤3 sensible questions on 5 sample requests; Opei approves |
+| F-1 | Clarifying-questions prompt (outside lane) | Elise | W-4 | 🟢 | Gives ≤3 sensible questions on 5 sample requests; Opei approves |
 | F-2 | Plan preview + approval step in backend | Elise | W-9, F-1 | ⛔ | Nothing is generated before approval |
 | F-3 | Plan preview + approve UI | Perfect | F-2 | ⛔ | Approve and reject both work |
 | F-4 | Retry / self-reflection loop (reads test failure, fixes) | Opei | W-9 | ⛔ | Fixes a seeded failing project within N tries |
@@ -87,7 +87,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | F-8 | Frontend tests for send, approve, download | Perfect | W-7 | ⛔ | Vitest passes in CI |
 | F-9 | UI text and user guide for non-developers (outside lane) | Nana | F-3 | ⛔ | Guide merged; Perfect approves |
 | F-10 | Test one UI page by hand and file bugs (outside lane) | Nana | F-3 | ⛔ | Bug list in `learnings/frontend-qa.md` |
-| F-11 | Security and privacy checks: runner gets a minimal environment (only `PATH`, so `GEMINI_API_KEY` no longer leaks), output capped (last 20,000 characters), input size limits, no secrets in logs | Elise | W-2 | ✅ | Tests for the leak and the cap; checklist in `learnings/backend.md` with results. "No secrets in logs" is checked again once the server has logging |
+| F-11 | Security and privacy checks: runner gets a minimal environment (only `PATH` and `SYSTEMROOT`, which Windows needs; neither is a secret, so `GEMINI_API_KEY` no longer leaks), output capped (last 20,000 characters), input size limits, no secrets in logs | Elise | W-2 | ✅ | Tests for the leak and the cap; checklist in `learnings/backend.md` with results. "No secrets in logs" is checked again once the server has logging |
 | F-12 | Live runner: start a generated project as its own process on a local port, stop idle ones, limit how many run at once, minimal environment (D-011) | Elise | W-2, F-11 | 🟢 | A sample project answers a real HTTP call; starting one more than the limit stops the oldest |
 | F-13 | Pass-through endpoint `/apis/{id}/...`; reopen restarts the API from stored files; `api_url` and `live_status` on the project (D-011) | Elise | F-12, W-5 | ⛔ | `/apis/{id}/docs` opens and "Try it out" works through our backend |
 | F-14 | Ready screen: live link, the API's Swagger page, "Wake it up" when sleeping, zip as take-home | Perfect | F-13, F-7 | ⛔ | Keyboard-only walkthrough works; screenshot in `evidence/live/` |
