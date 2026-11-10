@@ -104,7 +104,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | D-1 | Deploy frontend to Vercel | Nana | S-6 | 🟢 | Public URL loads |
 | D-2 | Deploy backend to Render (keys in host settings, not code) | Nana | W-9 | ⛔ | `/health` OK on public URL |
 | D-3 | Smoke test deployed frontend ↔ backend | Nana | D-1, D-2 | ⛔ | One full request works online |
-| D-4 | Prove the model switch: change `LLM_MODEL` (and the provider if ADK allows it), still works | Opei | W-4 | 🟢 | Terminal output saved in `evidence/`; if only the model name can change, say so in the report |
+| D-4 | Prove the model switch: change `LLM_MODEL` (and the provider if ADK allows it), still works | Opei | W-4 | ✅ | Terminal output saved in `evidence/`; if only the model name can change, say so in the report. Done 2026-11-10: the model name switches by `.env` alone; no second model finished a build (flash-lite skipped tools, others refused or overloaded on the free tier); `evidence/agent/outputs_d4_model_switch.txt` |
 
 ## Phase 4: Writing and handing in (from Wed 28; final Sat 31 Oct – Sun 1 Nov)
 
