@@ -1,4 +1,5 @@
 """Tests for the sandbox runner (W-2)."""
+import pytest
 
 from backend.runner import run_tests
 
@@ -63,3 +64,40 @@ def test_too_big_project_is_refused() -> None:
     result = run_tests({"big.py": huge_file})
     assert result.passed is False
     assert "too big" in result.output
+
+# A project whose test tries to print our secret key.
+SPY_PROJECT = {
+    # It fails on purpose: pytest only shows what a test printed when the test fails.
+    "test_spy.py": "import os\n\n\ndef test_spy():\n    print(os.environ.get('GEMINI_API_KEY'))\n    assert False\n",
+}
+
+
+def test_secret_keys_are_hidden_from_ai_code(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GEMINI_API_KEY", "fake-secret-123")
+    result = run_tests(SPY_PROJECT)
+    assert "fake-secret-123" not in result.output
+
+# A project whose test prints a huge amount of text.
+NOISY_PROJECT = {
+    "test_noisy.py": "def test_noisy():\n    print('x' * 5_000_000)\n    assert False\n",
+}
+
+
+def test_long_output_is_trimmed() -> None:
+    result = run_tests(NOISY_PROJECT)
+    assert len(result.output) <= 20_000
+
+
+# A project whose setup file is broken, so pytest crashes before running any test.
+# (conftest.py is a special file pytest always loads first.)
+BROKEN_SETUP_PROJECT = {
+    "conftest.py": "raise RuntimeError('broken setup')\n",
+    "test_a.py": "def test_a():\n    pass\n",
+}
+
+
+def test_crash_message_is_kept() -> None:
+    result = run_tests(BROKEN_SETUP_PROJECT)
+    assert result.passed is False
+    # The reason for the crash must reach the AI, so it can fix it.
+    assert "broken setup" in result.output

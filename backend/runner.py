@@ -1,5 +1,6 @@
 """Sandbox runner (W-2): run an AI-written project's tests in a throwaway folder."""
 
+import os
 import subprocess
 import sys
 import tempfile
@@ -8,6 +9,9 @@ from pathlib import Path
 
 # The most text (all files added together) we accept. A real generated project is far smaller.
 MAX_TOTAL_CHARACTERS = 200_000
+
+# The most of pytest's output we keep. We keep the end, because pytest's summary is at the end.
+MAX_OUTPUT_CHARACTERS = 20_000
 
 
 @dataclass
@@ -44,9 +48,17 @@ def run_tests(files: dict[str, str], timeout_seconds: int = 30) -> RunResult:
             completed = subprocess.run(
                 [sys.executable, "-m", "pytest", "-q"],  # sys.executable = the same Python running us (the venv one)
                 cwd=folder,  # run inside the throwaway folder
-                capture_output=True,  # keep what pytest prints instead of showing it on screen
+                stdout=subprocess.PIPE,  # keep what pytest prints (normal messages) instead of showing it on screen
+                stderr=subprocess.STDOUT,  # send error messages down the same pipe, so a crash's reason isn't lost
                 text=True,  # give us the output as text, not raw bytes
                 timeout=timeout_seconds,  # stop pytest if it runs longer than this
+                # Give pytest only what it needs. Everything else, like our API key, is left out.
+                # PATH: where programs live. SYSTEMROOT: where Windows lives (Windows needs it to start
+                # Python's networking parts; on Mac and Linux it is just empty). Neither is a secret.
+                env={
+                    "PATH": os.environ.get("PATH", ""),
+                    "SYSTEMROOT": os.environ.get("SYSTEMROOT", ""),
+                },
             )
         except subprocess.TimeoutExpired:
             # subprocess.run has already stopped pytest; we only need to report it.
@@ -54,4 +66,6 @@ def run_tests(files: dict[str, str], timeout_seconds: int = 30) -> RunResult:
             return RunResult(passed=False, output=message, timed_out=True)
 
     # pytest finishes with code 0 only when all tests passed.
-    return RunResult(passed=completed.returncode == 0, output=completed.stdout, timed_out=False)
+    # [-N:] means "the last N characters" (or all of it, if it is shorter than N).
+    output = completed.stdout[-MAX_OUTPUT_CHARACTERS:]
+    return RunResult(passed=completed.returncode == 0, output=output, timed_out=False)

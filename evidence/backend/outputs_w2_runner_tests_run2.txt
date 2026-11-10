@@ -1,0 +1,18 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.6, pytest-9.2.0, pluggy-1.7.0 -- <repo>/backend/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: <repo>
+configfile: pytest.ini
+plugins: anyio-4.16.0
+collecting ... collected 8 items
+
+backend/tests/test_runner.py::test_passing_project_is_reported_as_passed PASSED [ 12%]
+backend/tests/test_runner.py::test_failing_project_is_reported_as_failed PASSED [ 25%]
+backend/tests/test_runner.py::test_endless_project_is_stopped_by_the_timeout PASSED [ 37%]
+backend/tests/test_runner.py::test_file_name_that_leaves_the_folder_is_refused PASSED [ 50%]
+backend/tests/test_runner.py::test_files_in_sub_folders_work PASSED      [ 62%]
+backend/tests/test_runner.py::test_too_big_project_is_refused PASSED     [ 75%]
+backend/tests/test_runner.py::test_secret_keys_are_hidden_from_ai_code PASSED [ 87%]
+backend/tests/test_runner.py::test_long_output_is_trimmed PASSED         [100%]
+
+============================== 8 passed in 3.20s ===============================

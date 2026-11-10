@@ -4,11 +4,14 @@ Run from the repo root:  uvicorn backend.main:app --reload
 Interactive docs:        http://localhost:8000/docs
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from backend.config import allowed_origins
+from backend.projects import router as projects_router
 
 app = FastAPI(
     title="Mesora API Builder",
@@ -23,6 +26,24 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
+
+# Plug in the project endpoints from backend/projects.py.
+app.include_router(projects_router)
+
+
+# When input breaks a rule (for example an empty request), FastAPI normally sends back a list of
+# technical details. The contract (docs/api-contract.md) promises one plain sentence instead,
+# so this function turns that list into a sentence the web page can show as it is.
+@app.exception_handler(RequestValidationError)
+def plain_validation_error(request: Request, error: RequestValidationError) -> JSONResponse:
+    # FastAPI always passes `request` to error handlers; we don't need it here, but it must be in the list.
+    first = error.errors()[0]  # show only the first problem, to keep the message short
+    field = first["loc"][-1]  # usually the name of the field with the problem, e.g. "request"
+    # For broken JSON, the last part is a character position (a number like 24), not a field name.
+    # A number would confuse the user, so we say what really went wrong instead.
+    if not isinstance(field, str):
+        return JSONResponse(status_code=422, content={"detail": "The request body is not valid JSON."})
+    return JSONResponse(status_code=422, content={"detail": f"Invalid {field}: {first['msg']}."})
 
 
 class Health(BaseModel):
