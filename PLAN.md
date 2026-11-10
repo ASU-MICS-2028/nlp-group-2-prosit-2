@@ -55,7 +55,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | S-4 | Gemini free API key in local `.env`; `agent/llm.py` hello world | Perfect (from Opei) | none | ✅ | `python -m agent.llm` prints a reply; key not in git. Done 2026-11-04 with `gemini-3.5-flash`; output in `evidence/agent/outputs_s4_llm_hello.txt` |
 | S-5 | FastAPI skeleton with `/health` and OpenAPI | Perfect (from Elise) | S-1 | ✅ | `/docs` opens locally |
 | S-6 | Vite + React + TS (strict) skeleton, oxlint, Prettier, Vitest; design tokens, 13 components, `/dev/gallery`, Start screen | Perfect | S-1 | ✅ | `npm run lint`, `tsc`, `npm test`, `npm run build` all pass |
-| S-7 | Draft the 20 plain-English test requests with expected endpoints | Nana | S-1 | 🟢 | `evaluation/requests.json` merged |
+| S-7 | Draft the 20 plain-English test requests with expected endpoints | Nana | S-1 | ✅ | `evaluation/requests.json` merged (20 requests in 5 kinds; checked by `evaluation/tests/test_requests.py`) |
 | S-8 | Vercel and Render accounts, confirm free tier limits | Nana | none | 🟢 | Limits written in `learnings/deployment.md` |
 
 ## Phase 1: Walking skeleton (Tue 27 – Wed 28 Oct)
