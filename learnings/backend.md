@@ -78,18 +78,19 @@ I wrote each test first, watched it fail, then wrote the code to make it pass.
 6. Files in sub-folders (`app/main.py`) work: missing folders are made first.
 7. A project over 200,000 characters is refused before anything is written.
 8. After review (PR #3): pytest gets only `PATH` from our environment, so it can't read our API key.
+   After review (PR #8): also `SYSTEMROOT` (Windows needs it to start Python's networking parts; not a secret), and error messages (stderr) are kept, so a crash's reason reaches the AI.
 9. After review: we keep only the last 20,000 characters of pytest's output.
 
 ## 3. Why we did it this way
 - **Separate program + time limit**: AI-written code can't be trusted. If it crashes or loops forever, our server keeps working (D-007).
-- **Only PATH is passed on**: a "keep only these" list is safer than a "remove these" list. A new secret added later is left out automatically.
+- **Only PATH (and SYSTEMROOT) are passed on**: a "keep only these" list is safer than a "remove these" list. A new secret added later is left out automatically.
 - **Keep the last part of the output**: pytest's summary (what failed and why) is at the end, and the AI will read this to fix its code.
 - **Problems are reported, not raised as errors**: the agent loop (W-3) can show the message to the AI so it can fix its files.
 
 ## 4. How to check it works
 From the repo root, with the venv active:
 ```
-python -m pytest -v backend/tests/test_runner.py    # 8 passed
+python -m pytest -v backend/tests/test_runner.py    # 9 passed
 ```
 Saved output: `evidence/backend/outputs_w2_runner_tests_run2.txt` (local folder path replaced with `<repo>`).
 
@@ -100,6 +101,7 @@ Saved output: `evidence/backend/outputs_w2_runner_tests_run2.txt` (local folder 
 
 ## 6. What will bite us
 - If generated code needs another environment variable to work (for example `HOME`), it won't have it. Add only what is needed, never keys.
+- Windows needs `SYSTEMROOT`; without it, pytest can't start there (`WinError 10106`). CI runs on Linux, so it would not notice.
 - `pytest` must be installed in the same Python that runs the server, because we start it with `sys.executable`.
 - Locally, run tests with `python -m pytest`, not plain `pytest`. Plain `pytest` can pick up a different Python (like Anaconda's).
 
@@ -123,6 +125,7 @@ Saved output: `evidence/backend/outputs_w2_runner_tests_run2.txt` (local folder 
 | Sandbox timeout | `test_endless_project_is_stopped_by_the_timeout` | ✅ passes |
 | No files written outside the folder | `test_file_name_that_leaves_the_folder_is_refused` | ✅ passes |
 | Our API key is hidden from AI code | `test_secret_keys_are_hidden_from_ai_code` | ✅ passes |
+| A crash's reason reaches the AI (stderr kept) | `test_crash_message_is_kept` | ✅ passes |
 | Temporary folder is deleted | not tested automatically (Python's `TemporaryDirectory` does it) | ⚠️ not tested |
 | No secrets in the server's logs | the server has no logging yet | ⬜ not done |
 | AI code can't read other files | not possible without containers (D-007) | ⚠️ known limit |

@@ -86,3 +86,18 @@ NOISY_PROJECT = {
 def test_long_output_is_trimmed() -> None:
     result = run_tests(NOISY_PROJECT)
     assert len(result.output) <= 20_000
+
+
+# A project whose setup file is broken, so pytest crashes before running any test.
+# (conftest.py is a special file pytest always loads first.)
+BROKEN_SETUP_PROJECT = {
+    "conftest.py": "raise RuntimeError('broken setup')\n",
+    "test_a.py": "def test_a():\n    pass\n",
+}
+
+
+def test_crash_message_is_kept() -> None:
+    result = run_tests(BROKEN_SETUP_PROJECT)
+    assert result.passed is False
+    # The reason for the crash must reach the AI, so it can fix it.
+    assert "broken setup" in result.output

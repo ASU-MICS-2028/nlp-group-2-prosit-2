@@ -4,7 +4,6 @@ Run from the repo root:  uvicorn backend.main:app --reload
 Interactive docs:        http://localhost:8000/docs
 """
 
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
