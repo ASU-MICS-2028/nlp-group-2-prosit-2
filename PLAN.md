@@ -77,7 +77,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 
 | ID | Task | Owner | Blocked by | Status | Done when |
 |---|---|---|---|---|---|
-| F-1 | Clarifying-questions prompt (outside lane) | Elise | W-4 | ⛔ | Gives ≤3 sensible questions on 5 sample requests; Opei approves |
+| F-1 | Clarifying-questions prompt (outside lane) | Elise | W-4 | 🟢 | Gives ≤3 sensible questions on 5 sample requests; Opei approves |
 | F-2 | Plan preview + approval step in backend | Elise | W-9, F-1 | ⛔ | Nothing is generated before approval |
 | F-3 | Plan preview + approve UI | Perfect | F-2 | ⛔ | Approve and reject both work |
 | F-4 | Retry / self-reflection loop (reads test failure, fixes) | Opei | W-9 | ⛔ | Fixes a seeded failing project within N tries |
