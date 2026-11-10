@@ -1,0 +1,255 @@
+{
+ "model_calls": 21,
+ "results": [
+  {
+   "request": "Manage my school: students, teachers, classes, tests and exams, and daily attendance",
+   "expect": {
+    "min_record_types": 4,
+    "needs_links": true
+   },
+   "checks": {
+    "design follows every rule": true,
+    "at least 4 record type(s)": true,
+    "record types are linked": true,
+    "built API passes all its own tests": true
+   },
+   "verdict": "vague",
+   "questions": [
+    {
+     "text": "Which record types should be included in the system?",
+     "kind": "multi_choice"
+    },
+    {
+     "text": "Can a student be in more than one classroom?",
+     "kind": "yes_no"
+    },
+    {
+     "text": "What are the most important details to record for each student?",
+     "kind": "multi_choice"
+    },
+    {
+     "text": "Which dates and times should be recorded?",
+     "kind": "multi_choice"
+    },
+    {
+     "text": "What status values should be tracked?",
+     "kind": "multi_choice"
+    },
+    {
+     "text": "Who needs to see the data and who may change it?",
+     "kind": "short_text"
+    }
+   ],
+   "design": {
+    "record_types": 7,
+    "names": [
+     "students",
+     "teachers",
+     "classrooms",
+     "subjects",
+     "exams",
+     "exam_results",
+     "attendances"
+    ],
+    "links": 7,
+    "problems": []
+   },
+   "build": {
+    "tests": 62,
+    "passed": 62,
+    "openapi": "llm",
+    "readme": "llm",
+    "tests_error": ""
+   },
+   "seconds": 92.2
+  },
+  {
+   "request": "A school management system",
+   "expect": {
+    "vague": true,
+    "min_record_types": 3,
+    "needs_links": true
+   },
+   "checks": {
+    "at least 5 questions": true,
+    "design follows every rule": true,
+    "at least 3 record type(s)": true,
+    "record types are linked": true,
+    "built API passes all its own tests": true
+   },
+   "verdict": "vague",
+   "questions": [
+    {
+     "text": "Which record types would you like to include?",
+     "kind": "multi_choice"
+    },
+    {
+     "text": "Can a student be in more than one classroom?",
+     "kind": "yes_no"
+    },
+    {
+     "text": "What are the most important details to record for each student?",
+     "kind": "multi_choice"
+    },
+    {
+     "text": "Which dates and times should be recorded?",
+     "kind": "multi_choice"
+    },
+    {
+     "text": "What status values do you need to track?",
+     "kind": "multi_choice"
+    },
+    {
+     "text": "Who needs to see the data and who may change it?",
+     "kind": "short_text"
+    },
+    {
+     "text": "Is there anything else you must record?",
+     "kind": "short_text"
+    }
+   ],
+   "design": {
+    "record_types": 7,
+    "names": [
+     "students",
+     "teachers",
+     "classrooms",
+     "subjects",
+     "exams",
+     "exam_results",
+     "attendances"
+    ],
+    "links": 5,
+    "problems": []
+   },
+   "build": {
+    "tests": 56,
+    "passed": 56,
+    "openapi": "llm",
+    "readme": "llm",
+    "tests_error": ""
+   },
+   "seconds": 98.6
+  },
+  {
+   "request": "Something for my hair salon",
+   "expect": {
+    "vague": true,
+    "min_record_types": 1
+   },
+   "checks": {
+    "at least 5 questions": true,
+    "design follows every rule": true,
+    "at least 1 record type(s)": true,
+    "built API passes all its own tests": true
+   },
+   "verdict": "vague",
+   "questions": [
+    {
+     "text": "Which record types should be included?",
+     "kind": "multi_choice"
+    },
+    {
+     "text": "What are the most important details to record for each appointment?",
+     "kind": "multi_choice"
+    },
+    {
+     "text": "Which dates and times are important to track?",
+     "kind": "multi_choice"
+    },
+    {
+     "text": "Which currency do you use for pricing services?",
+     "kind": "single_choice"
+    },
+    {
+     "text": "Are there any status values you need to track for appointments?",
+     "kind": "multi_choice"
+    }
+   ],
+   "design": {
+    "record_types": 4,
+    "names": [
+     "customers",
+     "appointments",
+     "services",
+     "staff_members"
+    ],
+    "links": 3,
+    "problems": []
+   },
+   "build": {
+    "tests": 35,
+    "passed": 35,
+    "openapi": "llm",
+    "readme": "llm",
+    "tests_error": ""
+   },
+   "seconds": 72.8
+  },
+  {
+   "request": "A clinic: patients, doctors, appointments and prescriptions",
+   "expect": {
+    "min_record_types": 3,
+    "needs_links": true
+   },
+   "checks": {
+    "design follows every rule": true,
+    "at least 3 record type(s)": true,
+    "record types are linked": true,
+    "built API passes all its own tests": true
+   },
+   "verdict": "clear",
+   "questions": [],
+   "design": {
+    "record_types": 4,
+    "names": [
+     "patients",
+     "doctors",
+     "appointments",
+     "prescriptions"
+    ],
+    "links": 4,
+    "problems": []
+   },
+   "build": {
+    "tests": 38,
+    "passed": 38,
+    "openapi": "llm",
+    "readme": "llm",
+    "tests_error": ""
+   },
+   "seconds": 52.8
+  },
+  {
+   "request": "A todo API. Tasks have title, description and completed (yes/no).",
+   "expect": {
+    "min_record_types": 1,
+    "clear": true
+   },
+   "checks": {
+    "no questions for a clear request": true,
+    "design follows every rule": true,
+    "at least 1 record type(s)": true,
+    "built API passes all its own tests": true
+   },
+   "verdict": "clear",
+   "questions": [],
+   "design": {
+    "record_types": 1,
+    "names": [
+     "tasks"
+    ],
+    "links": 0,
+    "problems": []
+   },
+   "build": {
+    "tests": 11,
+    "passed": 11,
+    "openapi": "llm",
+    "readme": "llm",
+    "tests_error": ""
+   },
+   "seconds": 21.2
+  }
+ ]
+}

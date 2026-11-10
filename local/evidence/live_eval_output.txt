@@ -1,0 +1,48 @@
+5 requests, at most about 40 model calls (gpt-4o / gpt-4o-mini).
+
+'Manage my school: students, teachers, classes, tests and exams, and daily attendance': 4 of 4 checks passed
+  [OK ] design follows every rule
+  [OK ] at least 4 record type(s)
+  [OK ] record types are linked
+  [OK ] built API passes all its own tests
+  design: {'record_types': 7, 'names': ['students', 'teachers', 'classrooms', 'subjects', 'exams', 'exam_results', 'attendances'], 'links': 7, 'problems': []}
+  6 questions: Which record types should be included in the system? | Can a student be in more than one classroom? | What are the most important details to record for each student? | Which dates and times should be recorded? | What status values should be tracked? | Who needs to see the data and who may change it?
+  build: {'tests': 62, 'passed': 62, 'openapi': 'llm', 'readme': 'llm', 'tests_error': ''}
+
+'A school management system': 5 of 5 checks passed
+  [OK ] at least 5 questions
+  [OK ] design follows every rule
+  [OK ] at least 3 record type(s)
+  [OK ] record types are linked
+  [OK ] built API passes all its own tests
+  design: {'record_types': 7, 'names': ['students', 'teachers', 'classrooms', 'subjects', 'exams', 'exam_results', 'attendances'], 'links': 5, 'problems': []}
+  7 questions: Which record types would you like to include? | Can a student be in more than one classroom? | What are the most important details to record for each student? | Which dates and times should be recorded? | What status values do you need to track? | Who needs to see the data and who may change it? | Is there anything else you must record?
+  build: {'tests': 56, 'passed': 56, 'openapi': 'llm', 'readme': 'llm', 'tests_error': ''}
+
+'Something for my hair salon': 4 of 4 checks passed
+  [OK ] at least 5 questions
+  [OK ] design follows every rule
+  [OK ] at least 1 record type(s)
+  [OK ] built API passes all its own tests
+  design: {'record_types': 4, 'names': ['customers', 'appointments', 'services', 'staff_members'], 'links': 3, 'problems': []}
+  5 questions: Which record types should be included? | What are the most important details to record for each appointment? | Which dates and times are important to track? | Which currency do you use for pricing services? | Are there any status values you need to track for appointments?
+  build: {'tests': 35, 'passed': 35, 'openapi': 'llm', 'readme': 'llm', 'tests_error': ''}
+
+'A clinic: patients, doctors, appointments and prescriptions': 4 of 4 checks passed
+  [OK ] design follows every rule
+  [OK ] at least 3 record type(s)
+  [OK ] record types are linked
+  [OK ] built API passes all its own tests
+  design: {'record_types': 4, 'names': ['patients', 'doctors', 'appointments', 'prescriptions'], 'links': 4, 'problems': []}
+  build: {'tests': 38, 'passed': 38, 'openapi': 'llm', 'readme': 'llm', 'tests_error': ''}
+
+'A todo API. Tasks have title, description and completed (yes/no).': 4 of 4 checks passed
+  [OK ] no questions for a clear request
+  [OK ] design follows every rule
+  [OK ] at least 1 record type(s)
+  [OK ] built API passes all its own tests
+  design: {'record_types': 1, 'names': ['tasks'], 'links': 0, 'problems': []}
+  build: {'tests': 11, 'passed': 11, 'openapi': 'llm', 'readme': 'llm', 'tests_error': ''}
+
+All requests: 21 of 21 checks passed, 21 model calls.
+Saved C:\Users\isanamoa\Documents\ashesi_ai_course\nlp-group-2-prosit-2\local\evidence\live_eval_2026-11-04.json

@@ -1,0 +1,22 @@
+# local/ is a personal sandbox. These parts must never be pushed (the repo is public):
+
+# Real data: accounts, sessions, memories (builder.db), the demand log, and the 30 MB embedding model
+prototype-backend/data/
+# Built projects: each one contains a .env with real, working API keys
+prototype-backend/generated/
+# Build output and caches (made again by the tools)
+prototype-frontend/dist/
+*.tsbuildinfo
+.builder-tests.xml
+test.db
+TEST_RESULTS.md
+
+# Already ignored by the root .gitignore, repeated here so this folder stays safe on its own:
+.venv/
+node_modules/
+__pycache__/
+.pytest_cache/
+.env
+.env.*
+!.env.example
+*.db

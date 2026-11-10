@@ -1,0 +1,40 @@
+# Step 3 evidence: a freshly generated 'Bookshop API' project (2026-11-03)
+
+## .env (key values hidden here; the real file holds two 43-character random keys)
+# Keys for this API. Send one in the X-API-Key header on every request except /health.
+# EDITOR_KEY can look at records AND change them (add, edit, delete). Keep it private.
+# READER_KEY can only look. You may share it with people who just need to read.
+# To change a key: replace it with a new random value (at least 16 characters), then restart.
+EDITOR_KEY=bqUe… (hidden)
+READER_KEY=kxdj… (hidden)
+
+## TEST_RESULTS.md written by the generated project's own tests
+# Test Results: Bookshop API
+
+Checked on 2026-11-03 at 18:25.
+
+## ✅ All 11 checks passed
+
+The API works as expected: it starts, protects your data with keys (the reader key can only look; the editor key can also change), and lets you add, view, edit and delete records.
+
+## Checks
+
+| Check | What it means for you | Result |
+|---|---|---|
+| API is running | The API starts and answers its health check. | ✅ Passed |
+| Data is protected | Requests without the API key are refused. | ✅ Passed |
+| Wrong keys are refused | A made-up key cannot see your data. | ✅ Passed |
+| Read-only key can look | The READER_KEY can see all books and open one. | ✅ Passed |
+| Read-only key cannot change | The READER_KEY cannot add, edit or delete books. | ✅ Passed |
+| No default key | If no keys are set up, the API refuses everything instead of letting anyone in. | ✅ Passed |
+| Add a book | You can add a new book and it gets an id. | ✅ Passed |
+| See all books | A newly added book appears in the list. | ✅ Passed |
+| Open one book | You can open a single book by its id. | ✅ Passed |
+| Edit a book | Changes to a book are saved. | ✅ Passed |
+| Delete a book | A deleted book is really gone. | ✅ Passed |
+
+**11 of 11 checks passed.**
+
+## Run the checks again
+
+From this folder, run `pytest`. This file is rewritten every time the checks run.

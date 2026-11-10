@@ -1,0 +1,9 @@
+
+ RUN  v4.1.12 C:/Users/isanamoa/Documents/ashesi_ai_course/nlp-group-2-prosit-2/local/prototype-frontend
+
+
+ Test Files  3 passed (3)
+      Tests  68 passed (68)
+   Start at  07:55:07
+   Duration  6.65s (transform 711ms, setup 1.76s, import 1.52s, tests 3.89s, environment 8.40s)
+

@@ -1,0 +1,28 @@
+health (public)                               {"status":"ok"}  [HTTP 200]
+register user                                 {"id":1,"email":"live-user@example.com","role":"user"}  [HTTP 201]
+register same email, other case               {"detail":"An account with this email already exists. Try logging in."}  [HTTP 409]
+register bad email                            {"detail":"Please enter a real email address, like ama@example.com."}  [HTTP 400]
+register short password (detail hidden)         [HTTP 422]
+login wrong password                          {"detail":"Email or password is wrong."}  [HTTP 401]
+login unknown email                           {"detail":"Email or password is wrong."}  [HTTP 401]
+login ok: token is 43 characters
+me                                            {"id":1,"email":"live-user@example.com","role":"user"}  [HTTP 200]
+session, no token                             {"detail":"Please log in first."}  [HTTP 401]
+session, forged token                         {"detail":"Your login has ended. Please log in again."}  [HTTP 401]
+unknown session, logged in                    {"detail":"This conversation was lost, probably because the builder restarted. Please start again."}  [HTTP 404]
+too-short request                               [HTTP 422]
+real request, LLM unavailable (fake key)      {"detail":"I couldn't understand that request just now. Please try again, or describe it in a different way."}  [HTTP 502]
+demand-log as normal user                     {"detail":"Only an admin can see this."}  [HTTP 403]
+--- make_admin from the terminal (only way to make an admin)
+live-user@example.com is now: admin
+demand-log as admin                           []  [HTTP 200]
+--- what the database file holds (no plain passwords or tokens)
+users : [('live-user@example.com', 'admin', 'scrypt$df4faa9...')]
+tokens: ['b224299eb427...']
+plain password in file? False
+plain token in file?    False
+--- after a server restart (token and job were created before the restart)
+same token still works                        {"id":1,"email":"live-user@example.com","role":"user"}  [HTTP 200]
+build cut off by the restart                  {"id":"bda572807082","status":"failed","stage":"failed","error":"The builder restarted during this build. Please click the build button again.","title":null,"files":[],"latency_s":null,"metrics":{}}  [HTTP 200]
+log out                                       [HTTP 204]
+same token after log out                      {"detail":"Your login has ended. Please log in again."}  [HTTP 401]

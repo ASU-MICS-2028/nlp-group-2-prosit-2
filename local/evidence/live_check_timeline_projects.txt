@@ -1,0 +1,17 @@
+# Live check (after the relative-path fix): real build with timeline + /projects, fake OpenAI key, throwaway database, 2026-11-03
+--- /projects before building
+[{"id":"aa35c2616be5","name":"Bookshop API","status":"waiting","created_at":"2026-11-03T23:15:24+00:00"}]
+--- job after the build
+status: succeeded | latency_s: 4.79 | openapi: fallback_builder | readme: template
+tests: 11 of 11 passed: health, missing api key, wrong api key, reader can look, reader cannot change, no keys set up, create, list, get, update, delete
+  [done   ] Thinking I will build books with 3 details, then test them.
+  [done   ] Doing    Writing the API description (openapi.yaml).
+  [done   ] Doing    Writing the project files.
+  [done   ] Doing    Running the project's own tests.
+  [done   ] Doing    Packing your download.
+  [done   ] Result   All 11 tests passed. Your API is ready.
+--- /projects after building
+[{"id":"aa35c2616be5","name":"Bookshop API","status":"ready","created_at":"2026-11-03T23:15:24+00:00"}]
+--- download twice (as after a refresh)
+download 1: HTTP 200, 13707 bytes
+download 2: HTTP 200, 13707 bytes

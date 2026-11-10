@@ -1,0 +1,836 @@
+[
+ {
+  "request": "Keep track of my hair salon bookings: who is coming, which service and when",
+  "blueprint": {
+   "title": "Salon Bookings API",
+   "description": "Bookings at a hair salon.",
+   "resource_name": "booking",
+   "resource_plural": "bookings",
+   "fields": [
+    {
+     "name": "customer_name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "service",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "appointment_time",
+     "type": "datetime",
+     "required": true
+    },
+    {
+     "name": "price",
+     "type": "float",
+     "required": false,
+     "description": "Price in Ghana cedis (GHS)"
+    },
+    {
+     "name": "paid",
+     "type": "bool",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "An online shop where I list my products with prices and how many are left",
+  "blueprint": {
+   "title": "Products API",
+   "description": "Products the shop sells.",
+   "resource_name": "product",
+   "resource_plural": "products",
+   "fields": [
+    {
+     "name": "name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "price",
+     "type": "float",
+     "required": true,
+     "description": "Price in Ghana cedis (GHS)"
+    },
+    {
+     "name": "quantity_in_stock",
+     "type": "int",
+     "required": true
+    },
+    {
+     "name": "category",
+     "type": "str",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "Church members list with their phone numbers and the date they joined",
+  "blueprint": {
+   "title": "Church Members API",
+   "description": "Members of the church.",
+   "resource_name": "member",
+   "resource_plural": "members",
+   "fields": [
+    {
+     "name": "full_name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "phone_number",
+     "type": "str",
+     "required": false
+    },
+    {
+     "name": "date_joined",
+     "type": "datetime",
+     "required": false
+    },
+    {
+     "name": "is_active",
+     "type": "bool",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "Clinic appointments: patient, doctor, time and the reason for the visit",
+  "blueprint": {
+   "title": "Clinic Appointments API",
+   "description": "Appointments at a clinic.",
+   "resource_name": "appointment",
+   "resource_plural": "appointments",
+   "fields": [
+    {
+     "name": "patient_name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "doctor",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "appointment_time",
+     "type": "datetime",
+     "required": true
+    },
+    {
+     "name": "reason",
+     "type": "str",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "Orders of farm produce from buyers: what they want, how much, and where to deliver",
+  "blueprint": {
+   "title": "Produce Orders API",
+   "description": "Orders of farm produce.",
+   "resource_name": "order",
+   "resource_plural": "orders",
+   "fields": [
+    {
+     "name": "buyer_name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "produce",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "quantity_kg",
+     "type": "float",
+     "required": true
+    },
+    {
+     "name": "delivery_location",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "delivered",
+     "type": "bool",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "A list of books in my bookshop with author, price and whether it is in stock",
+  "blueprint": {
+   "title": "Bookshop API",
+   "description": "Books in the shop.",
+   "resource_name": "book",
+   "resource_plural": "books",
+   "fields": [
+    {
+     "name": "title",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "author",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "price",
+     "type": "float",
+     "required": false,
+     "description": "Price in Ghana cedis (GHS)"
+    },
+    {
+     "name": "in_stock",
+     "type": "bool",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "Students in my school with their class and their parent's contact",
+  "blueprint": {
+   "title": "Students API",
+   "description": "Students in the school.",
+   "resource_name": "student",
+   "resource_plural": "students",
+   "fields": [
+    {
+     "name": "full_name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "class_name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "parent_contact",
+     "type": "str",
+     "required": false
+    },
+    {
+     "name": "date_of_birth",
+     "type": "datetime",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "Track my business expenses: what I spent, how much and on which day",
+  "blueprint": {
+   "title": "Expenses API",
+   "description": "Money the business spent.",
+   "resource_name": "expense",
+   "resource_plural": "expenses",
+   "fields": [
+    {
+     "name": "description",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "amount",
+     "type": "float",
+     "required": true,
+     "description": "Amount in Ghana cedis (GHS)"
+    },
+    {
+     "name": "spent_on",
+     "type": "datetime",
+     "required": true
+    },
+    {
+     "name": "category",
+     "type": "str",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "Rooms in my guest house, the price per night and if each room is free",
+  "blueprint": {
+   "title": "Guest House Rooms API",
+   "description": "Rooms in the guest house.",
+   "resource_name": "room",
+   "resource_plural": "rooms",
+   "fields": [
+    {
+     "name": "room_number",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "price_per_night",
+     "type": "float",
+     "required": true,
+     "description": "Price in Ghana cedis (GHS)"
+    },
+    {
+     "name": "beds",
+     "type": "int",
+     "required": false
+    },
+    {
+     "name": "available",
+     "type": "bool",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "Events I organise: the name, the venue, the date and how many tickets are left",
+  "blueprint": {
+   "title": "Events API",
+   "description": "Events being organised.",
+   "resource_name": "event",
+   "resource_plural": "events",
+   "fields": [
+    {
+     "name": "name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "venue",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "event_date",
+     "type": "datetime",
+     "required": true
+    },
+    {
+     "name": "tickets_left",
+     "type": "int",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "My delivery riders and the motorbike each one uses",
+  "blueprint": {
+   "title": "Riders API",
+   "description": "Delivery riders.",
+   "resource_name": "rider",
+   "resource_plural": "riders",
+   "fields": [
+    {
+     "name": "full_name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "motorbike_number",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "phone_number",
+     "type": "str",
+     "required": false
+    },
+    {
+     "name": "on_duty",
+     "type": "bool",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "Restaurant menu with each dish, its price and whether it is spicy",
+  "blueprint": {
+   "title": "Menu API",
+   "description": "Dishes on the restaurant menu.",
+   "resource_name": "dish",
+   "resource_plural": "dishes",
+   "fields": [
+    {
+     "name": "name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "price",
+     "type": "float",
+     "required": true,
+     "description": "Price in Ghana cedis (GHS)"
+    },
+    {
+     "name": "is_spicy",
+     "type": "bool",
+     "required": false
+    },
+    {
+     "name": "available_today",
+     "type": "bool",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "Gym members, their plan and when their membership ends",
+  "blueprint": {
+   "title": "Gym Members API",
+   "description": "Members of the gym.",
+   "resource_name": "member",
+   "resource_plural": "members",
+   "fields": [
+    {
+     "name": "full_name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "plan",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "membership_ends",
+     "type": "datetime",
+     "required": true
+    },
+    {
+     "name": "visits",
+     "type": "int",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "Repairs at my phone repair shop: the customer, the phone model, the problem and the cost",
+  "blueprint": {
+   "title": "Phone Repairs API",
+   "description": "Phone repair jobs.",
+   "resource_name": "repair",
+   "resource_plural": "repairs",
+   "fields": [
+    {
+     "name": "customer_name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "phone_model",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "problem",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "cost",
+     "type": "float",
+     "required": false,
+     "description": "Cost in Ghana cedis (GHS)"
+    },
+    {
+     "name": "fixed",
+     "type": "bool",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "Donations to our charity: who gave, how much and when",
+  "blueprint": {
+   "title": "Donations API",
+   "description": "Donations received.",
+   "resource_name": "donation",
+   "resource_plural": "donations",
+   "fields": [
+    {
+     "name": "donor_name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "amount",
+     "type": "float",
+     "required": true,
+     "description": "Amount in Ghana cedis (GHS)"
+    },
+    {
+     "name": "donated_on",
+     "type": "datetime",
+     "required": true
+    },
+    {
+     "name": "anonymous",
+     "type": "bool",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "Cars for rent with the model, daily price and if each car is booked",
+  "blueprint": {
+   "title": "Car Rental API",
+   "description": "Cars available for rent.",
+   "resource_name": "car",
+   "resource_plural": "cars",
+   "fields": [
+    {
+     "name": "model",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "plate_number",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "price_per_day",
+     "type": "float",
+     "required": true,
+     "description": "Price in Ghana cedis (GHS)"
+    },
+    {
+     "name": "booked",
+     "type": "bool",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "Tasks for my team with a title, who it is for, a due date and if it is done",
+  "blueprint": {
+   "title": "Tasks API",
+   "description": "Tasks for the team.",
+   "resource_name": "task",
+   "resource_plural": "tasks",
+   "fields": [
+    {
+     "name": "title",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "assigned_to",
+     "type": "str",
+     "required": false
+    },
+    {
+     "name": "due_date",
+     "type": "datetime",
+     "required": false
+    },
+    {
+     "name": "done",
+     "type": "bool",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "Job applicants for my company: their name, the role and the interview date",
+  "blueprint": {
+   "title": "Applicants API",
+   "description": "People applying for jobs.",
+   "resource_name": "applicant",
+   "resource_plural": "applicants",
+   "fields": [
+    {
+     "name": "full_name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "role_applied_for",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "interview_date",
+     "type": "datetime",
+     "required": false
+    },
+    {
+     "name": "years_of_experience",
+     "type": "int",
+     "required": false
+    }
+   ]
+  }
+ },
+ {
+  "request": "Medicines in my pharmacy with the expiry date and how many boxes I have",
+  "blueprint": {
+   "title": "Pharmacy Stock API",
+   "description": "Medicines in the pharmacy.",
+   "resource_name": "medicine",
+   "resource_plural": "medicines",
+   "fields": [
+    {
+     "name": "name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "boxes_in_stock",
+     "type": "int",
+     "required": true
+    },
+    {
+     "name": "expiry_date",
+     "type": "datetime",
+     "required": true
+    },
+    {
+     "name": "price",
+     "type": "float",
+     "required": false,
+     "description": "Price in Ghana cedis (GHS)"
+    }
+   ]
+  }
+ },
+ {
+  "request": "Tailoring orders: the customer, the outfit, the measurements and the pickup date",
+  "blueprint": {
+   "title": "Tailoring Orders API",
+   "description": "Outfits ordered from the tailor.",
+   "resource_name": "outfit_order",
+   "resource_plural": "outfit_orders",
+   "fields": [
+    {
+     "name": "customer_name",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "outfit",
+     "type": "str",
+     "required": true
+    },
+    {
+     "name": "measurements",
+     "type": "str",
+     "required": false
+    },
+    {
+     "name": "pickup_date",
+     "type": "datetime",
+     "required": false
+    },
+    {
+     "name": "deposit_paid",
+     "type": "float",
+     "required": false,
+     "description": "Deposit in Ghana cedis (GHS)"
+    }
+   ]
+  }
+ },
+ {
+  "request": "School management: students, teachers, classes, subjects, tests and exams with results, and daily attendance",
+  "blueprint": {
+   "title": "School Management API",
+   "description": "Students, teachers, classrooms, subjects, exams, results and attendance.",
+   "resources": [
+    {
+     "name": "teacher",
+     "plural": "teachers",
+     "description": "A teacher at the school.",
+     "fields": [
+      {
+       "name": "full_name",
+       "type": "str",
+       "required": true
+      },
+      {
+       "name": "phone_number",
+       "type": "str",
+       "required": false
+      },
+      {
+       "name": "hired_on",
+       "type": "datetime",
+       "required": false
+      }
+     ]
+    },
+    {
+     "name": "classroom",
+     "plural": "classrooms",
+     "description": "A class, e.g. JHS 2 Gold.",
+     "fields": [
+      {
+       "name": "name",
+       "type": "str",
+       "required": true
+      },
+      {
+       "name": "year_group",
+       "type": "int",
+       "required": true
+      },
+      {
+       "name": "teacher_id",
+       "type": "link",
+       "required": false,
+       "links_to": "teacher",
+       "description": "The class teacher"
+      }
+     ]
+    },
+    {
+     "name": "student",
+     "plural": "students",
+     "description": "A pupil.",
+     "fields": [
+      {
+       "name": "full_name",
+       "type": "str",
+       "required": true
+      },
+      {
+       "name": "date_of_birth",
+       "type": "datetime",
+       "required": false
+      },
+      {
+       "name": "parent_contact",
+       "type": "str",
+       "required": false
+      },
+      {
+       "name": "classroom_id",
+       "type": "link",
+       "required": true,
+       "links_to": "classroom"
+      }
+     ]
+    },
+    {
+     "name": "subject",
+     "plural": "subjects",
+     "description": "A subject taught, e.g. Mathematics.",
+     "fields": [
+      {
+       "name": "name",
+       "type": "str",
+       "required": true
+      },
+      {
+       "name": "teacher_id",
+       "type": "link",
+       "required": false,
+       "links_to": "teacher"
+      }
+     ]
+    },
+    {
+     "name": "exam",
+     "plural": "exams",
+     "description": "A test or exam for one class in one subject.",
+     "fields": [
+      {
+       "name": "title",
+       "type": "str",
+       "required": true
+      },
+      {
+       "name": "exam_date",
+       "type": "datetime",
+       "required": true
+      },
+      {
+       "name": "max_score",
+       "type": "int",
+       "required": true
+      },
+      {
+       "name": "classroom_id",
+       "type": "link",
+       "required": true,
+       "links_to": "classroom"
+      },
+      {
+       "name": "subject_id",
+       "type": "link",
+       "required": true,
+       "links_to": "subject"
+      }
+     ]
+    },
+    {
+     "name": "exam_result",
+     "plural": "exam_results",
+     "description": "One student's score in one exam.",
+     "fields": [
+      {
+       "name": "score",
+       "type": "float",
+       "required": true
+      },
+      {
+       "name": "exam_id",
+       "type": "link",
+       "required": true,
+       "links_to": "exam"
+      },
+      {
+       "name": "student_id",
+       "type": "link",
+       "required": true,
+       "links_to": "student"
+      }
+     ]
+    },
+    {
+     "name": "attendance",
+     "plural": "attendances",
+     "description": "Whether a student was present on a day.",
+     "fields": [
+      {
+       "name": "day",
+       "type": "datetime",
+       "required": true
+      },
+      {
+       "name": "status",
+       "type": "str",
+       "required": true,
+       "description": "present, absent or late"
+      },
+      {
+       "name": "student_id",
+       "type": "link",
+       "required": true,
+       "links_to": "student"
+      }
+     ]
+    }
+   ]
+  }
+ }
+]
