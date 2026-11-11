@@ -93,3 +93,33 @@ def test_broken_json_gives_a_plain_sentence() -> None:
 
     assert response.status_code == 422
     assert response.json()["detail"] == "The request body is not valid JSON."
+
+def test_list_projects_shows_newest_first() -> None:
+    first = client.post("/projects", json={"request": "A to-do list API"}).json()["id"]
+    second = client.post("/projects", json={"request": "A bookshop API"}).json()["id"]
+
+    response = client.get("/projects")
+
+    assert response.status_code == 200
+    listed = [project["id"] for project in response.json()]
+    # The two we just made are the newest, so they come first, newest at the top.
+    assert listed[:2] == [second, first]
+
+
+def test_listed_project_has_the_contract_fields() -> None:
+    client.post("/projects", json={"request": "A recipe book API"})
+
+    newest = client.get("/projects").json()[0]
+
+    assert set(newest) == {"id", "name", "status", "updated_at"}
+    assert newest["name"] == "A recipe book API"  # until a plan gives it a real name
+
+def test_long_request_gets_a_short_name_in_the_list() -> None:
+    long_request = "A bookshop where I can add books, list them, change their prices and remove them"
+    client.post("/projects", json={"request": long_request})
+
+    newest = client.get("/projects").json()[0]
+
+    # Cut at a word (no half-words), about 40 characters, with "…" to show it was cut.
+    assert newest["name"] == "A bookshop where I can add books, list…"
+    assert len(newest["name"]) <= 41  # 40 characters plus the "…"
