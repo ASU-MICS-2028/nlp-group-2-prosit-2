@@ -2,6 +2,7 @@
 
 import asyncio
 from collections.abc import AsyncIterator
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.sse import EventSourceResponse
@@ -19,6 +20,9 @@ events: dict[str, list[dict[str, object]]] = {}
 
 # When a project reaches one of these, nothing more will happen, so the stream hangs up.
 FINAL_STATUSES = {"ready", "failed", "stopped"}
+
+# Until a plan gives a project its real name (F-2), the sidebar shows the start of the request, cut to this length.
+NAME_LENGTH = 40
 
 
 class StartRequest(BaseModel):
@@ -52,6 +56,28 @@ class ProjectResponse(BaseModel):
     status: str
 
 
+class ProjectSummary(BaseModel):
+    # One line in the sidebar (W-8). Same fields as the contract's GET /projects.
+    id: str
+    name: str
+    status: str
+    updated_at: str  # when the project last changed, as an ISO 8601 date and time, e.g. 2026-11-11T09:30:00+00:00
+
+
+def now() -> str:
+    # The current time as text. UTC (world time), so it means the same on every computer and server.
+    return datetime.now(timezone.utc).isoformat()
+
+
+def short_name(request: str) -> str:
+    # A stand-in name until F-2's plan gives a real one, e.g. "A bookshop where I can add…".
+    if len(request) <= NAME_LENGTH:
+        return request
+    cut = request[:NAME_LENGTH]
+    cut = cut.rsplit(" ", 1)[0]  # drop the last, half-cut word: split at the last space, keep the left part
+    return cut.rstrip(",.;:") + "…"  # tidy a trailing comma or full stop, and add "…" to show it was cut
+
+
 def find_project(project_id: str) -> dict[str, str]:
     # Shared by every endpoint that needs one project, so the "not found" rule lives in one place.
     project = projects.get(project_id)  # .get gives None instead of crashing when the id isn't there
@@ -69,14 +95,36 @@ def add_event(project_id: str, event: dict[str, object]) -> None:
     status = event.get("status")
     if isinstance(status, str):  # keep the project's current status up to date too
         projects[project_id]["status"] = status
+    projects[project_id]["updated_at"] = now()  # any new event counts as a change, so the sidebar moves it up
 
 
 @router.post("/projects", status_code=201, response_model=StartResponse)
 def start_project(body: StartRequest) -> StartResponse:
     project_id = f"p_{len(projects) + 1}"  # p_1, p_2, ...
-    projects[project_id] = {"id": project_id, "request": body.request, "status": "waiting"}
+    projects[project_id] = {
+        "id": project_id,
+        "request": body.request,
+        "status": "waiting",
+        "updated_at": now(),
+    }
     events[project_id] = [{"status": "waiting"}]  # the diary's first entry
     return StartResponse(id=project_id, status="waiting", questions=[])
+
+
+@router.get("/projects", response_model=list[ProjectSummary])
+def list_projects() -> list[ProjectSummary]:
+    # Newest first: sort by updated_at, biggest (latest) time first. This works on the text because
+    # ISO 8601 times are written biggest part first (year, month, day, hour...), so text order = time order.
+    newest_first = sorted(projects.values(), key=lambda project: project["updated_at"], reverse=True)
+    return [
+        ProjectSummary(
+            id=project["id"],
+            name=short_name(project["request"]),
+            status=project["status"],
+            updated_at=project["updated_at"],
+        )
+        for project in newest_first
+    ]
 
 
 # {project_id} in the path is a placeholder: FastAPI hands whatever is there to find_project.
