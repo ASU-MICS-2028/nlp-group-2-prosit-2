@@ -26,6 +26,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | Date | Task | From | To | Why | Hand back by |
 |---|---|---|---|---|---|
 | 2026-11-02 | S-5 FastAPI skeleton | Elise | Perfect | Owner unreachable; it blocked W-2, W-5, W-6, W-7, W-8 | Done. Elise: read `learnings/backend.md` |
+| 2026-11-11 | W-8 `GET /projects` | Perfect | Elise | It sits in Elise's `backend/projects.py`; Perfect can focus on W-6 and W-7, which block W-9 | Perfect can take it back any time; Elise walks Perfect through it before the teach-back |
 | 2026-11-02 | S-4 `agent/llm.py` | Opei | Perfect | Owner unreachable; it blocks W-1, W-3, W-4 | Code done; Opei can take over the live check and the rest of `agent/` |
 
 ## Scope
@@ -70,14 +71,14 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | W-5 | Endpoints: start project, get status, stream progress (SSE) | Elise | S-5 | ✅ | Visible in `/docs`; stream works with curl. Done 2026-11-09: `POST /projects`, `GET /projects/{id}`, `GET /projects/{id}/events`; no AI behind them yet; output in `evidence/backend/` |
 | W-6 | Generate typed API client from OpenAPI | Perfect | S-6, W-5 | 🟢 | `frontend/src/api` builds from the schema |
 | W-7 | Chat screen: send request, show live progress | Perfect | W-6 | ⛔ | Works against local backend |
-| W-8 | `GET /projects` endpoint (outside lane) | Perfect | S-5 | 🟢 | Returns list; has a test; Elise approves |
+| W-8 | `GET /projects` endpoint (outside lane) | Elise (from Perfect) | S-5 | 🟢 | Returns list; has a test; Elise approves |
 | W-9 | End-to-end: one request → one endpoint → test passes → shown in UI | Elise | W-3, W-4, W-5, W-7 | ⛔ | Screenshot + terminal output in `evidence/` |
 
 ## Phase 2: Features (Thu 29 Oct)
 
 | ID | Task | Owner | Blocked by | Status | Done when |
 |---|---|---|---|---|---|
-| F-1 | Clarifying-questions prompt (outside lane) | Elise | W-4 | ⛔ | Gives ≤3 sensible questions on 5 sample requests; Opei approves |
+| F-1 | Clarifying-questions prompt (outside lane) | Elise | W-4 | ✅ | Gives ≤3 sensible questions on 5 sample requests; Opei approves. Done 2026-11-11 (Opei approves in the PR): `agent/prompts/questions.md`, `agent/questions.py`, 7 tests; live check 5 of 5 sensible, `evidence/agent/outputs_f1_*` |
 | F-2 | Plan preview + approval step in backend | Elise | W-9, F-1 | ⛔ | Nothing is generated before approval |
 | F-3 | Plan preview + approve UI | Perfect | F-2 | ⛔ | Approve and reject both work |
 | F-4 | Retry / self-reflection loop (reads test failure, fixes) | Opei | W-9 | ⛔ | Fixes a seeded failing project within N tries |

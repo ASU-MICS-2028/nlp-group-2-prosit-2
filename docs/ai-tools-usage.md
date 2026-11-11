@@ -16,6 +16,7 @@ One line per use. Add a line in the same PR as the work. Say how you checked the
 | 2026-11-08 | Opei | Claude Code | Drafted the builder prompt `agent/prompts/builder.md` (W-4), its loader and 18 tests | Ran `pytest -q` (all pass); the prompt's example project is run through the sandbox runner in a test (9 passed); read the whole prompt. Live check: Gemini built a Bookshop API whose 8 tests passed when we re-ran them ourselves |
 | 2026-11-09 | Elise | Claude Code | Step-by-step help building the W-5 endpoints (start, status, live stream), the plain-sentence 422 handler, D-013 and the learnings note | Wrote each test first and watched it fail; ran `python -m pytest` after every step; tried every endpoint by hand in `/docs` and the stream with curl; read every line |
 | 2026-11-10 | Opei | Claude Code | Ran the D-4 model switch check on the laptop (4 other Gemini models, only `LLM_MODEL` changed) and wrote up the results | Read every output; checked no key or folder path is in the evidence file |
+| 2026-11-11 | Elise | Claude Code | Step-by-step help writing the F-1 clarifying-questions prompt (rules and examples drafted from Elise's own bakery questions), `agent/questions.py`, its 7 tests and the live check | Wrote each test first; ran `python -m pytest` (all pass); judged all 5 live answers by hand and changed the off-topic rule after reading them; read every line |
 
 ## Sign-off
 Each person confirms they understand and can explain everything they submitted.
