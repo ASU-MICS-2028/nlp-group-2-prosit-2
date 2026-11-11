@@ -17,6 +17,7 @@ One line per use. Add a line in the same PR as the work. Say how you checked the
 | 2026-11-09 | Elise | Claude Code | Step-by-step help building the W-5 endpoints (start, status, live stream), the plain-sentence 422 handler, D-013 and the learnings note | Wrote each test first and watched it fail; ran `python -m pytest` after every step; tried every endpoint by hand in `/docs` and the stream with curl; read every line |
 | 2026-11-10 | Nana | Claude Code | Looked up Vercel and Render free-tier limits; wrote `learnings/deployment.md`, `deploy/README.md` and D-014 (S-8, D-1 prep) | Read the official pages (linked in section 9); built the frontend from `main` (609 KB, under the 100 MB upload limit); accounts and the deploy are not done |
 | 2026-11-10 | Opei | Claude Code | Ran the D-4 model switch check on the laptop (4 other Gemini models, only `LLM_MODEL` changed) and wrote up the results | Read every output; checked no key or folder path is in the evidence file |
+| 2026-11-11 | Elise | Claude Code | Step-by-step help adding W-8 `GET /projects` (timestamps, stand-in names, newest first) and its 3 tests | Wrote the tests first and watched them fail; ran `python -m pytest` (all pass); read every line |
 
 ## Sign-off
 Each person confirms they understand and can explain everything they submitted.

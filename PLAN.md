@@ -26,6 +26,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | Date | Task | From | To | Why | Hand back by |
 |---|---|---|---|---|---|
 | 2026-11-02 | S-5 FastAPI skeleton | Elise | Perfect | Owner unreachable; it blocked W-2, W-5, W-6, W-7, W-8 | Done. Elise: read `learnings/backend.md` |
+| 2026-11-11 | W-8 `GET /projects` | Perfect | Elise | It sits in Elise's `backend/projects.py`; Perfect can focus on W-6 and W-7, which block W-9 | Perfect can take it back any time; Elise walks Perfect through it before the teach-back |
 | 2026-11-02 | S-4 `agent/llm.py` | Opei | Perfect | Owner unreachable; it blocks W-1, W-3, W-4 | Code done; Opei can take over the live check and the rest of `agent/` |
 
 ## Scope
@@ -70,7 +71,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | W-5 | Endpoints: start project, get status, stream progress (SSE) | Elise | S-5 | ✅ | Visible in `/docs`; stream works with curl. Done 2026-11-09: `POST /projects`, `GET /projects/{id}`, `GET /projects/{id}/events`; no AI behind them yet; output in `evidence/backend/` |
 | W-6 | Generate typed API client from OpenAPI | Perfect | S-6, W-5 | 🟢 | `frontend/src/api` builds from the schema |
 | W-7 | Chat screen: send request, show live progress | Perfect | W-6 | ⛔ | Works against local backend |
-| W-8 | `GET /projects` endpoint (outside lane) | Perfect | S-5 | 🟢 | Returns list; has a test; Elise approves |
+| W-8 | `GET /projects` endpoint (outside lane) | Elise (from Perfect) | S-5 | ✅ | Returns list; has a test; Elise approves. Done 2026-11-11: newest first, contract fields; `name` is the start of the request until F-2's plan names it; 3 tests; Perfect reviews the PR |
 | W-9 | End-to-end: one request → one endpoint → test passes → shown in UI | Elise | W-3, W-4, W-5, W-7 | ⛔ | Screenshot + terminal output in `evidence/` |
 
 ## Phase 2: Features (Thu 29 Oct)
