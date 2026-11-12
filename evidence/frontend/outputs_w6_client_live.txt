@@ -1,0 +1,23 @@
+W-6 live client tests, real backend on localhost:8000, 2026-11-12
+
+> api-builder-frontend@0.0.0 test
+> vitest --run client.live --reporter=verbose
+
+
+ RUN  v4.1.12 <repo>/frontend
+
+ ✓ src/api/client.live.test.ts > against a real backend > getHealth says the server is ok 32ms
+ ✓ src/api/client.live.test.ts > against a real backend > startProject creates a waiting project, and getProject finds it 5ms
+ ✓ src/api/client.live.test.ts > against a real backend > listProjects shows the newest project first 3ms
+ ✓ src/api/client.live.test.ts > against a real backend > an empty request is refused with a plain sentence (422) 1ms
+ ✓ src/api/client.live.test.ts > against a real backend > a request over 2000 characters is refused (422) 1ms
+ ✓ src/api/client.live.test.ts > against a real backend > an unknown project gives the 404 sentence 1ms
+ ✓ src/api/client.live.test.ts > against a real backend > an odd id cannot reach another address 1ms
+ ✓ src/api/client.live.test.ts > against a real backend > the events address really streams the first event 4ms
+ ✓ src/api/client.live.test.ts > against a real backend > says we could not reach the server when nothing is listening 1ms
+
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Start at  10:05:15
+   Duration  241ms (transform 28ms, setup 105ms, import 20ms, tests 50ms, environment 0ms)
+
