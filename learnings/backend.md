@@ -1,6 +1,6 @@
 # Backend
 
-Owner: Elise (S-5 picked up by Perfect, see Handovers in PLAN.md and D-009) · Last updated: 2026-11-10 · Status: partly working (skeleton, sandbox runner, project endpoints, agent loop)
+Owner: Elise (S-5 picked up by Perfect, see Handovers in PLAN.md and D-009) · Last updated: 2026-11-11 · Status: partly working (skeleton, sandbox runner, project endpoints, agent loop, project list)
 
 ## 1. In one sentence
 A small Python server (FastAPI) that the web UI will call; today it only answers "are you awake?" and publishes its own API description.
@@ -266,3 +266,49 @@ Saved: `evidence/backend/outputs_w3_builder_tests.txt`, `evidence/backend/output
 ## 8. Lines ready for the report
 - The agent loop uses Google ADK for the model ↔ tool cycle; our code adds live progress, five stop rules with plain reasons, and an independent re-run of the tests.
 - It was tested with a scripted fake model (free, deterministic) and confirmed with one real Gemini build that passed 5 of 5 tests in 106 seconds.
+
+---
+
+# W-8 List projects (Elise, taken from Perfect, 2026-11-11)
+
+## 1. In one sentence
+`GET /projects` in `backend/projects.py` returns every project, newest first, for the sidebar.
+
+## 2. What I did, step by step
+1. Each project now stores `updated_at`, set when it is created and again on every `add_event`, so an active project moves to the top.
+2. `ProjectSummary` has the contract's four fields: `id`, `name`, `status`, `updated_at`.
+3. `name` is a stand-in until F-2's plan names the project: the start of the request, cut at a word to about 40 characters, with "…".
+4. `list_projects` sorts by `updated_at`, latest first.
+5. Three tests: newest first, exactly the contract fields, and the long-name cut.
+
+## 3. Why we did it this way
+- **UTC times** mean the same on every computer and server.
+- **Sorting the time as text works** because ISO 8601 writes the biggest part first (year, month, day, hour…).
+- **A stand-in name, not an empty one**: an empty line in the sidebar is useless to the person.
+- **Cut at a word**: "list…" reads better than "list t…".
+
+## 4. How to check it works
+```
+python -m pytest -v backend/tests/test_projects.py     # 13 passed
+curl http://localhost:8000/projects                    # with the server running
+```
+Saved: `evidence/backend/outputs_w8_list_projects_tests.txt`.
+
+## 5. What is NOT done or is faked
+- `name` is not a real name yet (F-2).
+- No pagination: every project comes back at once. Fine for a demo; future work for many projects.
+- The list is lost when the server restarts (memory only, D-013).
+
+## 6. What will bite us
+- The tests share one in-memory list, so they check only the top of the list (the projects they just made), never the whole list.
+
+## 7. Terms used
+| Term | One-line meaning |
+|---|---|
+| UTC | World time, the same everywhere |
+| ISO 8601 | A standard way to write dates and times, biggest part first: `2026-11-11T09:30:00+00:00` |
+| `sorted(..., key=..., reverse=True)` | Put items in order by one part of each item, biggest first |
+| Pagination | Sending a long list a page at a time |
+
+## 8. Lines ready for the report
+- The sidebar list is sorted by last change, so a project the agent is working on rises to the top.

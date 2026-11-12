@@ -26,6 +26,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | Date | Task | From | To | Why | Hand back by |
 |---|---|---|---|---|---|
 | 2026-11-02 | S-5 FastAPI skeleton | Elise | Perfect | Owner unreachable; it blocked W-2, W-5, W-6, W-7, W-8 | Done. Elise: read `learnings/backend.md` |
+| 2026-11-11 | W-8 `GET /projects` | Perfect | Elise | It sits in Elise's `backend/projects.py`; Perfect can focus on W-6 and W-7, which block W-9 | Perfect can take it back any time; Elise walks Perfect through it before the teach-back |
 | 2026-11-02 | S-4 `agent/llm.py` | Opei | Perfect | Owner unreachable; it blocks W-1, W-3, W-4 | Code done; Opei can take over the live check and the rest of `agent/` |
 
 ## Scope
@@ -55,8 +56,8 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | S-4 | Gemini free API key in local `.env`; `agent/llm.py` hello world | Perfect (from Opei) | none | ✅ | `python -m agent.llm` prints a reply; key not in git. Done 2026-11-04 with `gemini-3.5-flash`; output in `evidence/agent/outputs_s4_llm_hello.txt` |
 | S-5 | FastAPI skeleton with `/health` and OpenAPI | Perfect (from Elise) | S-1 | ✅ | `/docs` opens locally |
 | S-6 | Vite + React + TS (strict) skeleton, oxlint, Prettier, Vitest; design tokens, 13 components, `/dev/gallery`, Start screen | Perfect | S-1 | ✅ | `npm run lint`, `tsc`, `npm test`, `npm run build` all pass |
-| S-7 | Draft the 20 plain-English test requests with expected endpoints | Nana | S-1 | 🟢 | `evaluation/requests.json` merged |
-| S-8 | Vercel and Render accounts, confirm free tier limits | Nana | none | 🟢 | Limits written in `learnings/deployment.md` |
+| S-7 | Draft the 20 plain-English test requests with expected endpoints | Nana | S-1 | ✅ | `evaluation/requests.json` merged (20 requests in 5 kinds; checked by `evaluation/tests/test_requests.py`) |
+| S-8 | Vercel and Render accounts, confirm free tier limits | Nana | none | 🔄 | Limits written in `learnings/deployment.md` (done 2026-11-10); accounts still to create; Render bandwidth/build minutes to read from its dashboard |
 
 ## Phase 1: Walking skeleton (Tue 27 – Wed 28 Oct)
 
@@ -70,7 +71,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | W-5 | Endpoints: start project, get status, stream progress (SSE) | Elise | S-5 | ✅ | Visible in `/docs`; stream works with curl. Done 2026-11-09: `POST /projects`, `GET /projects/{id}`, `GET /projects/{id}/events`; no AI behind them yet; output in `evidence/backend/` |
 | W-6 | Generate typed API client from OpenAPI | Perfect | S-6, W-5 | 🟢 | `frontend/src/api` builds from the schema |
 | W-7 | Chat screen: send request, show live progress | Perfect | W-6 | ⛔ | Works against local backend |
-| W-8 | `GET /projects` endpoint (outside lane) | Perfect | S-5 | 🟢 | Returns list; has a test; Elise approves |
+| W-8 | `GET /projects` endpoint (outside lane) | Elise (from Perfect) | S-5 | ✅ | Returns list; has a test; Elise approves. Done 2026-11-11: newest first, contract fields; `name` is the start of the request until F-2's plan names it; 3 tests; Perfect reviews the PR |
 | W-9 | End-to-end: one request → one endpoint → test passes → shown in UI | Elise | W-3, W-4, W-5, W-7 | ⛔ | Screenshot + terminal output in `evidence/` |
 
 ## Phase 2: Features (Thu 29 Oct)
@@ -101,7 +102,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | E-2 | Run evaluation on all 20 requests | Nana | E-1, F-4, F-5 | ⛔ | `evidence/evaluation/outputs_eval_run1.txt` saved |
 | E-3 | Fix the top failures (prompts: Opei; code: Elise) | Opei | E-2 | ⛔ | Fixes listed in `learnings/` |
 | E-4 | Re-run evaluation, compare to run 1 | Nana | E-3 | ⛔ | `outputs_eval_run2.txt` saved; numbers go into the report only now |
-| D-1 | Deploy frontend to Vercel | Nana | S-6 | 🟢 | Public URL loads |
+| D-1 | Deploy frontend to Vercel | Nana | S-6 | 🟢 | Public URL loads (steps ready in `deploy/README.md`; CLI deploy per D-014) |
 | D-2 | Deploy backend to Render (keys in host settings, not code) | Nana | W-9 | ⛔ | `/health` OK on public URL |
 | D-3 | Smoke test deployed frontend ↔ backend | Nana | D-1, D-2 | ⛔ | One full request works online |
 | D-4 | Prove the model switch: change `LLM_MODEL` (and the provider if ADK allows it), still works | Opei | W-4 | ✅ | Terminal output saved in `evidence/`; if only the model name can change, say so in the report. Done 2026-11-10: the model name switches by `.env` alone; no second model finished a build (flash-lite skipped tools, others refused or overloaded on the free tier); `evidence/agent/outputs_d4_model_switch.txt` |
