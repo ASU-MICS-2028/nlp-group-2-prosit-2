@@ -5,3 +5,4 @@ pytest==9.2.0
 httpx==0.28.1  # needed by FastAPI's TestClient
 google-genai==2.34.0  # Gemini, used only by agent/llm.py
 python-dotenv==1.2.4  # reads the local .env file
+google-adk==2.13.0  # Google's Agent Development Kit: runs the builder agent (D-010, W-3)

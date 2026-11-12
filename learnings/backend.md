@@ -1,6 +1,6 @@
 # Backend
 
-Owner: Elise (S-5 picked up by Perfect, see Handovers in PLAN.md and D-009) · Last updated: 2026-11-09 · Status: partly working (skeleton, sandbox runner, project endpoints)
+Owner: Elise (S-5 picked up by Perfect, see Handovers in PLAN.md and D-009) · Last updated: 2026-11-11 · Status: partly working (skeleton, sandbox runner, project endpoints, agent loop, project list)
 
 ## 1. In one sentence
 A small Python server (FastAPI) that the web UI will call; today it only answers "are you awake?" and publishes its own API description.
@@ -199,3 +199,116 @@ Saved output: `evidence/backend/outputs_w5_endpoint_tests.txt`, `evidence/backen
 - The backend exposes a small REST API (start, status) plus a Server-Sent Events stream, so the UI shows the agent's progress live instead of polling.
 - Every error, including invalid input, is one plain-English sentence, so a non-developer sees a readable message.
 - Projects are held in memory for now (D-013); the storage code is isolated so a database can replace it.
+
+---
+
+# W-3 Agent loop (Elise, 2026-11-10)
+
+## 1. In one sentence
+`build_project(...)` in `backend/builder.py` lets the AI build a project with its tools, reports each step live, stops it with a plain reason when things go wrong, and checks the result itself.
+
+## 2. What I did, step by step
+Each part: test first (with a fake AI), watch it fail, then the code.
+1. A `FakeModel` in `backend/tests/test_builder.py`: a pretend AI that reads a script of replies, so tests are free, quick and the same every time.
+2. Happy path: the AI writes a file, runs the tests, says it's done; we re-run the tests ourselves and answer `ready`.
+3. Live steps: each ADK event becomes a timeline step (`Thinking`, `Doing`, `Result`, as in the contract) sent to `report(...)`. The last event carries the final status, which also ends the W-5 stream.
+4. Five stop rules, each ending `failed` with a plain reason (table below).
+5. One real build with Gemini (`evidence/backend/w3_live_check.py`).
+
+| # | When | Reason the person sees |
+|---|---|---|
+| 1 | 3 test runs and still failing (`MAX_TEST_RUNS`) | "The tests still fail after 3 tries." |
+| 2 | The AI wrote no files | "The AI stopped without writing any files." |
+| 3 | The AI service errors (503 busy, 429, bad key) | "The AI service is busy or unavailable. Please try again in a few minutes." |
+| 4 | 40 AI moves in total (`MAX_AI_CALLS`, ADK's `max_llm_calls`) | "The AI took too many steps without finishing." |
+| 5 | 5 minutes in total (`TIME_LIMIT_SECONDS`) | "The build took too long and was stopped." |
+
+## 3. Why we did it this way
+- **Google ADK runs the back-and-forth (D-010)**; we own setup, reporting, stop rules and the verdict.
+- **Inputs, not imports**: `message`, `instruction`, `model` and `report` are passed in, so tests can pass fakes and W-3 didn't depend on unmerged work. W-9 connects the real pieces (`add_event`, the server).
+- **Fake AI in tests**: only the AI's replies are pretend. ADK, the tools, the runner and our rules are real. We test our manager code, not Gemini.
+- **Limits enforced in code, not only in the instructions**: instructions are a request, code is a rule.
+- **We re-run the tests ourselves**: the AI could claim success, change a file after its last run, or skip the tools.
+- **Always report a final status**: otherwise the live stream never ends and the Building screen spins forever.
+
+## 4. How to check it works
+```
+python -m pytest -v backend/tests/test_builder.py      # 7 passed, no key needed
+python -m evidence.backend.w3_live_check               # real Gemini build; needs GEMINI_API_KEY and LLM_MODEL in .env
+```
+Saved: `evidence/backend/outputs_w3_builder_tests.txt`, `evidence/backend/outputs_w3_live_check.txt` (model `gemini-3.5-flash`, `ready`, 5 of 5 tests, 106 s).
+
+## 5. What is NOT done or is faked
+- Not connected to the server yet: nothing calls `build_project` from an endpoint. That is W-9 (with `add_event` as `report`).
+- No retry: a busy AI service or a model that writes nothing ends the build. Waiting and retrying, and asking the AI again, is F-4.
+- The AI's final reply is JSON in a ```json fence and shows as a raw "Thinking" step. Hide or parse it in W-9.
+- The time limit can't interrupt a test run already in progress (that code doesn't pause), but the runner has its own 30-second limit.
+- One real build was tried, with one model. Larger plans and busy hours are untested.
+
+## 6. What will bite us
+- `LLM_MODEL` must be set in `.env`. If it's empty, ADK quietly uses its own default model. The live check refuses to run without it.
+- ADK reads the key as `GOOGLE_API_KEY`; our `.env` calls it `GEMINI_API_KEY`, so the live check copies it across.
+- Tests print yellow "missing token usage metadata" warnings: harmless, the fake AI doesn't report tokens.
+- Run the live check only on a branch with the F-11 runner fix, so AI-written code can't see the key.
+
+## 7. Terms used
+| Term | One-line meaning |
+|---|---|
+| Agent | An AI that can use tools in a loop, not just reply once |
+| Google ADK | Google's Agent Development Kit: runs the AI ↔ tools back-and-forth for us |
+| Event | One thing that happened in ADK: the AI wrote text, asked for a tool, or got a tool's result |
+| Fake model | A pretend AI that reads a script, used in tests |
+| Stop rule | A condition where we stop the AI ourselves and say why |
+| Token | A small piece of a word; AI services count usage in tokens |
+| `asyncio.timeout` | A stopwatch around async code; raises `TimeoutError` when it runs out |
+| `try / except / else` | Run this; if error X happens do that instead of crashing; `else` runs only if there was no error |
+
+## 8. Lines ready for the report
+- The agent loop uses Google ADK for the model ↔ tool cycle; our code adds live progress, five stop rules with plain reasons, and an independent re-run of the tests.
+- It was tested with a scripted fake model (free, deterministic) and confirmed with one real Gemini build that passed 5 of 5 tests in 106 seconds.
+
+---
+
+# W-8 List projects (Elise, taken from Perfect, 2026-11-11)
+
+## 1. In one sentence
+`GET /projects` in `backend/projects.py` returns every project, newest first, for the sidebar.
+
+## 2. What I did, step by step
+1. Each project now stores `updated_at`, set when it is created and again on every `add_event`, so an active project moves to the top.
+2. `ProjectSummary` has the contract's four fields: `id`, `name`, `status`, `updated_at`.
+3. `name` is a stand-in until F-2's plan names the project: the start of the request, cut at a word to about 40 characters, with "…".
+4. `list_projects` sorts by `updated_at`, latest first.
+5. Three tests: newest first, exactly the contract fields, and the long-name cut.
+
+## 3. Why we did it this way
+- **UTC times** mean the same on every computer and server.
+- **Sorting the time as text works** because ISO 8601 writes the biggest part first (year, month, day, hour…).
+- **A stand-in name, not an empty one**: an empty line in the sidebar is useless to the person.
+- **Cut at a word**: "list…" reads better than "list t…".
+
+## 4. How to check it works
+```
+python -m pytest -v backend/tests/test_projects.py     # 13 passed
+curl http://localhost:8000/projects                    # with the server running
+```
+Saved: `evidence/backend/outputs_w8_list_projects_tests.txt`.
+
+## 5. What is NOT done or is faked
+- `name` is not a real name yet (F-2).
+- No pagination: every project comes back at once. Fine for a demo; future work for many projects.
+- The list is lost when the server restarts (memory only, D-013).
+
+## 6. What will bite us
+- The tests share one in-memory list, so they check only the top of the list (the projects they just made), never the whole list.
+
+## 7. Terms used
+| Term | One-line meaning |
+|---|---|
+| UTC | World time, the same everywhere |
+| ISO 8601 | A standard way to write dates and times, biggest part first: `2026-11-11T09:30:00+00:00` |
+| `sorted(..., key=..., reverse=True)` | Put items in order by one part of each item, biggest first |
+| Pagination | Sending a long list a page at a time |
+
+## 8. Lines ready for the report
+- The sidebar list is sorted by last change, so a project the agent is working on rises to the top.

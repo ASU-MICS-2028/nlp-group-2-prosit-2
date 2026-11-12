@@ -93,3 +93,10 @@ Decision: For W-5, projects live in a Python dictionary inside `backend/projects
 Open question for the team: a shared, hosted database would let projects survive restarts. Options on free tiers: hosted Postgres (for example Neon or Supabase) or Firebase Firestore (NoSQL). Either needs a connection secret shared with everyone who runs the backend and in CI, and tests that don't touch the shared data. Check each free tier's current limits before choosing.
 Why: Building and testing the endpoints needs no database today. Adding one now means more setup, more secrets and more to explain in the viva.
 Gave up (for now): Projects are lost when the server restarts, so the sidebar empties after a restart.
+
+## D-014: The frontend is deployed to Vercel from a laptop with the Vercel CLI
+Date: 2026-11-10 · Status: Proposed (Nana; Perfect to confirm, as frontend owner)
+Affects: Nana (owns, D-1), Perfect (frontend changes need a redeploy)
+Decision: Deploy the built frontend with `npx vercel --prod` from a laptop (steps in `deploy/README.md`). Nana redeploys after any `frontend/` change is merged into `main`, and on the morning of every demo.
+Why: Vercel's free (Hobby) plan cannot connect a project to a repository owned by a Git organisation, and ours belongs to ASU-MICS-2028 (https://vercel.com/docs/limits, read 2026-11-10). The CLI upload is free and needs no secret in the repo.
+Gave up: Automatic deploys on every merge. Alternatives were the paid Pro plan, or a GitHub Action with a Vercel token stored in the organisation's settings (more secrets to manage and explain).

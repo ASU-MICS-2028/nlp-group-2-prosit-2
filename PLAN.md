@@ -56,8 +56,8 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | S-4 | Gemini free API key in local `.env`; `agent/llm.py` hello world | Perfect (from Opei) | none | ✅ | `python -m agent.llm` prints a reply; key not in git. Done 2026-11-04 with `gemini-3.5-flash`; output in `evidence/agent/outputs_s4_llm_hello.txt` |
 | S-5 | FastAPI skeleton with `/health` and OpenAPI | Perfect (from Elise) | S-1 | ✅ | `/docs` opens locally |
 | S-6 | Vite + React + TS (strict) skeleton, oxlint, Prettier, Vitest; design tokens, 13 components, `/dev/gallery`, Start screen | Perfect | S-1 | ✅ | `npm run lint`, `tsc`, `npm test`, `npm run build` all pass |
-| S-7 | Draft the 20 plain-English test requests with expected endpoints | Nana | S-1 | 🟢 | `evaluation/requests.json` merged |
-| S-8 | Vercel and Render accounts, confirm free tier limits | Nana | none | 🟢 | Limits written in `learnings/deployment.md` |
+| S-7 | Draft the 20 plain-English test requests with expected endpoints | Nana | S-1 | ✅ | `evaluation/requests.json` merged (20 requests in 5 kinds; checked by `evaluation/tests/test_requests.py`) |
+| S-8 | Vercel and Render accounts, confirm free tier limits | Nana | none | 🔄 | Limits written in `learnings/deployment.md` (done 2026-11-10); accounts still to create; Render bandwidth/build minutes to read from its dashboard |
 
 ## Phase 1: Walking skeleton (Tue 27 – Wed 28 Oct)
 
@@ -66,12 +66,12 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | W-10 | ADK spike: one tool and one Gemini call with Google ADK, run locally; write down what works, what the free tier allows, what its events look like, and what to keep of `agent/llm.py` (D-010) | Perfect | S-4 | ✅ | Done 2026-11-04: works; notes in `learnings/agent.md`; script and output in `evidence/agent/` |
 | W-1 | Tool functions for the ADK agent: write_file, read_file, run_tests (wraps `backend/runner.py`) | Opei | W-10 | ✅ | Each tool has a test. Done 2026-11-07: `agent/tools.py` (also `list_files`), 28 tests; output in `evidence/agent/outputs_w1_tools_tests_run2.txt` |
 | W-2 | Sandbox runner: run a generated project's pytest in a temp folder with timeout | Elise | S-5 | ✅ | A passing and a failing project give correct results (PR #3; the secrets leak and output cap are fixed under F-11) |
-| W-3 | Agent built with Google ADK: plans, calls the tools, loops until the tests pass or there is a clear stop reason | Elise | W-1, W-2, W-10 | 🟢 | Loop ends with success or a clear stop reason |
+| W-3 | Agent built with Google ADK: plans, calls the tools, loops until the tests pass or there is a clear stop reason | Elise | W-1, W-2, W-10 | ✅ | Loop ends with success or a clear stop reason. Done 2026-11-10: `backend/builder.py`, 5 stop rules, 7 tests with a fake model; one real Gemini build (`gemini-3.5-flash`) ended `ready`, 5 of 5 tests; `evidence/backend/outputs_w3_*` |
 | W-4 | Agent instructions (system prompt) for code generation | Opei | W-10 | ✅ | Prompt file reviewed; produces a valid endpoint by hand. Done 2026-11-08: `agent/prompts/builder.md`; live check with `gemini-3.5-flash` built a 4-endpoint Bookshop API whose 8 tests passed (`evidence/agent/outputs_w4_live_check.txt`) |
 | W-5 | Endpoints: start project, get status, stream progress (SSE) | Elise | S-5 | ✅ | Visible in `/docs`; stream works with curl. Done 2026-11-09: `POST /projects`, `GET /projects/{id}`, `GET /projects/{id}/events`; no AI behind them yet; output in `evidence/backend/` |
 | W-6 | Generate typed API client from OpenAPI | Perfect | S-6, W-5 | 🟢 | `frontend/src/api` builds from the schema |
 | W-7 | Chat screen: send request, show live progress | Perfect | W-6 | ⛔ | Works against local backend |
-| W-8 | `GET /projects` endpoint (outside lane) | Elise (from Perfect) | S-5 | 🟢 | Returns list; has a test; Elise approves |
+| W-8 | `GET /projects` endpoint (outside lane) | Elise (from Perfect) | S-5 | ✅ | Returns list; has a test; Elise approves. Done 2026-11-11: newest first, contract fields; `name` is the start of the request until F-2's plan names it; 3 tests; Perfect reviews the PR |
 | W-9 | End-to-end: one request → one endpoint → test passes → shown in UI | Elise | W-3, W-4, W-5, W-7 | ⛔ | Screenshot + terminal output in `evidence/` |
 
 ## Phase 2: Features (Thu 29 Oct)
@@ -102,7 +102,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | E-2 | Run evaluation on all 20 requests | Nana | E-1, F-4, F-5 | ⛔ | `evidence/evaluation/outputs_eval_run1.txt` saved |
 | E-3 | Fix the top failures (prompts: Opei; code: Elise) | Opei | E-2 | ⛔ | Fixes listed in `learnings/` |
 | E-4 | Re-run evaluation, compare to run 1 | Nana | E-3 | ⛔ | `outputs_eval_run2.txt` saved; numbers go into the report only now |
-| D-1 | Deploy frontend to Vercel | Nana | S-6 | 🟢 | Public URL loads |
+| D-1 | Deploy frontend to Vercel | Nana | S-6 | 🟢 | Public URL loads (steps ready in `deploy/README.md`; CLI deploy per D-014) |
 | D-2 | Deploy backend to Render (keys in host settings, not code) | Nana | W-9 | ⛔ | `/health` OK on public URL |
 | D-3 | Smoke test deployed frontend ↔ backend | Nana | D-1, D-2 | ⛔ | One full request works online |
 | D-4 | Prove the model switch: change `LLM_MODEL` (and the provider if ADK allows it), still works | Opei | W-4 | ✅ | Terminal output saved in `evidence/`; if only the model name can change, say so in the report. Done 2026-11-10: the model name switches by `.env` alone; no second model finished a build (flash-lite skipped tools, others refused or overloaded on the free tier); `evidence/agent/outputs_d4_model_switch.txt` |
