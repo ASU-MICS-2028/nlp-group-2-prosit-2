@@ -1,6 +1,6 @@
 # Agent (LLM wrapper and tools)
 
-Owner: Opei (S-4 picked up by Perfect, see Handovers in PLAN.md and D-009) · Last updated: 2026-11-02 · Status: partly working (wrapper run live once on 2026-11-04; ADK spike works; tools built 2026-11-07; prompts and agent loop not built yet)
+Owner: Opei (S-4 picked up by Perfect, see Handovers in PLAN.md and D-009) · Last updated: 2026-11-02 · Status: partly working (wrapper run live once on 2026-11-04; ADK spike works; tools built 2026-11-07; builder prompt 2026-11-08; retry loop F-4 2026-11-12; not yet wired into the server, W-9)
 
 ## 1. In one sentence
 One small file, `agent/llm.py`, is the only place that talks to the language model, so changing from Gemini to Claude later means changing two settings and not the code.
@@ -153,6 +153,51 @@ Live check (`gemini-3.5-flash`): 5 of 5 sensible, none over 3 questions: bakery 
 | System message | Standing instructions the AI follows for every request |
 | Prompt injection | Hiding instructions in the input ("ignore your rules…") to make the AI misbehave |
 | Code fence | The ```json ... ``` lines some AIs wrap around code or JSON |
+
+## Retry and self-reflection loop (task F-4, 2026-11-12)
+**In one sentence:** `build_with_retries(...)` in `agent/retry.py` runs Elise's `build_project` (W-3) up to 3 times, and each new try is told what went wrong last time.
+
+**How it works, step by step**
+1. Try 1 is a normal build. If it ends `ready`, we stop: that final event ends the live stream.
+2. If it fails, we look at *why*, using a new field on the result, `kind` (one fixed word, so we never compare sentences):
+   - `tests_failed`, `too_slow`, `too_many_steps`: the next try keeps the AI's files and gets `agent/prompts/reflection.md`: the reason, the file names, the end of pytest's output, the plan again, and "first say what went wrong, then fix it". That first sentence is the self-reflection.
+   - `no_files` (the flash-lite problem from D-4): the next try gets `agent/prompts/no_files.md`: "your very first reply must be a write_file call".
+   - `service_busy` (Gemini 503 or 429): if files exist, we first run the tests ourselves. If they pass, the build is `ready`. Otherwise we wait 30 seconds and send the same message again.
+3. Before each new try the timeline gets `{"status": "retrying", "attempt": 2, "max_attempts": 3}` and one plain sentence why (the contract's shape).
+4. A failed try's own final "failed" event is passed on as "working" (`hold_back_failure`), because "failed" ends the live stream. Only after the last try do we send one real "failed", with "Still not working after 3 tries. Last problem: ...".
+
+Two small additions to `backend/builder.py` (Elise's file, no behaviour change): `build_project(..., start_files=...)` starts from earlier files, and `BuildResult` now has `kind` and `test_output` (the end of our own final test run).
+
+**Why this way**
+- **Different problems need different answers.** Showing test output to an AI that wrote nothing doesn't help; waiting doesn't fix a bug.
+- **Keep the files** so the AI fixes its work instead of starting over (cheaper on the free tier).
+- **Explain before fixing**: asking the AI to name the cause first is the self-reflection idea (Section A topic p). It also gives the person a readable line on the timeline.
+- **Check ourselves after a busy error**: seen live: the AI fixed the bug, the tests passed, then Gemini said "503" on its last reply. Without the check we would throw a working fix away.
+- **3 tries x 3 test runs** keeps the worst case to 9 test runs per project.
+
+**How to check it**
+```
+python -m pytest -q agent/tests/test_retry.py    # 8 passed, fake AI
+python evidence/agent/f4_live_check.py           # needs GEMINI_API_KEY and LLM_MODEL in .env
+```
+Tests: works first time (no retry); a seeded failing project fixed on try 2, with the reflection message checked; the seeded files are not changed for the caller; gives up after 3 tries with only one "failed" event; no files gets the reminder; a busy service is waited for; busy after a fix is still `ready`; a service that stays busy ends `failed`.
+
+Live check (`gemini-3.5-flash`, a seeded Notes API whose "delete a missing note" wrongly answers 204; 1 of 4 tests failing):
+- Run 1 (`outputs_f4_live_check_run1.txt`): the AI fixed `app/main.py`, the tests passed, then Gemini said 503. Tries 2 and 3 rebuilt it; it ended `ready`, our own run 5 passed, 219 s. This run is why the "check ourselves after a busy error" rule exists; the rule was added after this run.
+- Run 2 (`outputs_f4_live_check_run2.txt`): Gemini was busy (503) on all 3 tries. It ended `failed` with one clear reason, as it should. 230 s.
+
+**Not done or not tested**
+- Not wired into the server yet: W-9 will call `build_with_retries` instead of `build_project`.
+- A try that ends `tests_failed` because the AI deleted or weakened a test is not detected; the prompt forbids it, nothing checks it.
+- The waits (30 s) and tries (3) are guesses for the free tier, not measured.
+- Each try is a new ADK session: the AI does not remember the earlier conversation, only what the reflection message tells it and the files.
+
+**Terms**
+| Term | One-line meaning |
+|---|---|
+| Self-reflection | Asking the AI to explain what went wrong before it tries again |
+| Retry | Running the whole build again, with a new message |
+| Seeded failing project | A project with a planted bug, used to test that the loop can fix it |
 
 ## 6. What will bite us
 - Free-tier limits change and can be low: the evaluation (20 requests, each several calls) may hit them. Pace requests.

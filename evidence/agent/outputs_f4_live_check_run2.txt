@@ -1,0 +1,747 @@
+Node execution failed with exception
+Traceback (most recent call last):
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 169, in run
+    await self._execute_node(ctx, node_input)
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 364, in _execute_node
+    await self._run_node_loop(ctx, node_input)
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 378, in _run_node_loop
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_base_node.py", line 202, in run
+    item = await anext(agen, _sentinel)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\llm_agent.py", line 690, in _run_impl
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_llm_agent_wrapper.py", line 527, in run_llm_agent_as_node
+    async for event in run_iter:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 381, in run_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 482, in _run_with_lifecycle
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 166, in stream_in_scope
+    item = await _drive(owned.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 154, in _drive
+    return await step
+           ^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 445, in _run
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\llm_agent.py", line 639, in _run_async_impl
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 299, in run_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 381, in _run_one_step_async
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 564, in _call_llm_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_model_call.py", line 322, in call_llm_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 166, in stream_in_scope
+    item = await _drive(owned.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 154, in _drive
+    return await step
+           ^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_model_call.py", line 283, in _call_llm_with_tracing
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 614, in _run_and_handle_error
+    async for response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 429, in run_and_handle_error
+    raise model_error
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 403, in run_and_handle_error
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\utils\_runner_utils.py", line 52, in _stream_in_caller_scope
+    item = await _InContext(ctx, agen.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\utils\_runner_utils.py", line 79, in __await__
+    waiting_on = self._ctx.run(coro.send, value)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 391, in _record_responses
+    async for llm_response in timed:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 1012, in time_model_awaits
+    async for response in responses:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\models\google_llm.py", line 365, in generate_content_async
+    response = await maybe_without_genai_instrumentation(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 8589, in generate_content
+    return await self._generate_content_with_continuation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 8428, in _generate_content_with_continuation
+    response = await self._generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 7026, in _generate_content
+    response = await self._api_client.async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2119, in async_request
+    result = await self._async_request(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2052, in _async_request
+    return await self._async_retry(  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 112, in __call__
+    do = await self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 157, in iter
+    result = await action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\_utils.py", line 111, in inner
+    return call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python>\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "<python>\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 116, in __call__
+    result = await fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2027, in _async_request_once
+    await errors.APIError.raise_for_async_response(client_response)
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\errors.py", line 279, in raise_for_async_response
+    await cls.raise_error_async(status_code, response_json, response)
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\errors.py", line 303, in raise_error_async
+    raise ServerError(status_code, response_json, response)
+google.genai.errors.ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+Root node builder failed.
+Traceback (most recent call last):
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner_utils.py", line 267, in _drive_root_node
+    await root_ctx._run_node_internal(  # pylint: disable=protected-access
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\context.py", line 520, in _run_node_internal
+    return await _dynamic_node_scheduler.run_node_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_dynamic_node_scheduler.py", line 840, in run_node_internal
+    raise DynamicNodeFailError(
+google.adk.workflow._errors.DynamicNodeFailError: Dynamic node builder failed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\runners.py", line 894, in _cleanup_root_task
+    await task
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner_utils.py", line 276, in _drive_root_node
+    raise e.error
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 169, in run
+    await self._execute_node(ctx, node_input)
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 364, in _execute_node
+    await self._run_node_loop(ctx, node_input)
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 378, in _run_node_loop
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_base_node.py", line 202, in run
+    item = await anext(agen, _sentinel)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\llm_agent.py", line 690, in _run_impl
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_llm_agent_wrapper.py", line 527, in run_llm_agent_as_node
+    async for event in run_iter:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 381, in run_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 482, in _run_with_lifecycle
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 166, in stream_in_scope
+    item = await _drive(owned.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 154, in _drive
+    return await step
+           ^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 445, in _run
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\llm_agent.py", line 639, in _run_async_impl
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 299, in run_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 381, in _run_one_step_async
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 564, in _call_llm_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_model_call.py", line 322, in call_llm_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 166, in stream_in_scope
+    item = await _drive(owned.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 154, in _drive
+    return await step
+           ^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_model_call.py", line 283, in _call_llm_with_tracing
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 614, in _run_and_handle_error
+    async for response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 429, in run_and_handle_error
+    raise model_error
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 403, in run_and_handle_error
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\utils\_runner_utils.py", line 52, in _stream_in_caller_scope
+    item = await _InContext(ctx, agen.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\utils\_runner_utils.py", line 79, in __await__
+    waiting_on = self._ctx.run(coro.send, value)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 391, in _record_responses
+    async for llm_response in timed:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 1012, in time_model_awaits
+    async for response in responses:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\models\google_llm.py", line 365, in generate_content_async
+    response = await maybe_without_genai_instrumentation(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 8589, in generate_content
+    return await self._generate_content_with_continuation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 8428, in _generate_content_with_continuation
+    response = await self._generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 7026, in _generate_content
+    response = await self._api_client.async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2119, in async_request
+    result = await self._async_request(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2052, in _async_request
+    return await self._async_retry(  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 112, in __call__
+    do = await self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 157, in iter
+    result = await action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\_utils.py", line 111, in inner
+    return call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python>\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "<python>\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 116, in __call__
+    result = await fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2027, in _async_request_once
+    await errors.APIError.raise_for_async_response(client_response)
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\errors.py", line 279, in raise_for_async_response
+    await cls.raise_error_async(status_code, response_json, response)
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\errors.py", line 303, in raise_error_async
+    raise ServerError(status_code, response_json, response)
+google.genai.errors.ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+Node execution failed with exception
+Traceback (most recent call last):
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\models\google_llm.py", line 365, in generate_content_async
+    response = await maybe_without_genai_instrumentation(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 8589, in generate_content
+    return await self._generate_content_with_continuation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 8428, in _generate_content_with_continuation
+    response = await self._generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 7026, in _generate_content
+    response = await self._api_client.async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2119, in async_request
+    result = await self._async_request(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2052, in _async_request
+    return await self._async_retry(  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 112, in __call__
+    do = await self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 157, in iter
+    result = await action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\_utils.py", line 111, in inner
+    return call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python>\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "<python>\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 116, in __call__
+    result = await fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2027, in _async_request_once
+    await errors.APIError.raise_for_async_response(client_response)
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\errors.py", line 279, in raise_for_async_response
+    await cls.raise_error_async(status_code, response_json, response)
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\errors.py", line 301, in raise_error_async
+    raise ClientError(status_code, response_json, response)
+google.genai.errors.ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash, description: Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.\nPlease retry in 17h51m27.334725698s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://aistudio.google.com/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'description': 'Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.', 'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.6-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '64287s'}]}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 169, in run
+    await self._execute_node(ctx, node_input)
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 364, in _execute_node
+    await self._run_node_loop(ctx, node_input)
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 378, in _run_node_loop
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_base_node.py", line 202, in run
+    item = await anext(agen, _sentinel)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\llm_agent.py", line 690, in _run_impl
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_llm_agent_wrapper.py", line 527, in run_llm_agent_as_node
+    async for event in run_iter:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 381, in run_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 482, in _run_with_lifecycle
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 166, in stream_in_scope
+    item = await _drive(owned.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 154, in _drive
+    return await step
+           ^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 445, in _run
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\llm_agent.py", line 639, in _run_async_impl
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 299, in run_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 381, in _run_one_step_async
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 564, in _call_llm_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_model_call.py", line 322, in call_llm_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 166, in stream_in_scope
+    item = await _drive(owned.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 154, in _drive
+    return await step
+           ^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_model_call.py", line 283, in _call_llm_with_tracing
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 614, in _run_and_handle_error
+    async for response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 429, in run_and_handle_error
+    raise model_error
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 403, in run_and_handle_error
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\utils\_runner_utils.py", line 52, in _stream_in_caller_scope
+    item = await _InContext(ctx, agen.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\utils\_runner_utils.py", line 79, in __await__
+    waiting_on = self._ctx.run(coro.send, value)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 391, in _record_responses
+    async for llm_response in timed:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 1012, in time_model_awaits
+    async for response in responses:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\models\google_llm.py", line 393, in generate_content_async
+    raise _ResourceExhaustedError(ce) from ce
+google.adk.models.google_llm._ResourceExhaustedError: 
+On how to mitigate this issue, please refer to:
+
+https://google.github.io/adk-docs/agents/models/google-gemini/#error-code-429-resource_exhausted
+
+
+429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash, description: Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.\nPlease retry in 17h51m27.334725698s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://aistudio.google.com/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'description': 'Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.', 'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.6-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '64287s'}]}}
+Root node builder failed.
+Traceback (most recent call last):
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\models\google_llm.py", line 365, in generate_content_async
+    response = await maybe_without_genai_instrumentation(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 8589, in generate_content
+    return await self._generate_content_with_continuation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 8428, in _generate_content_with_continuation
+    response = await self._generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 7026, in _generate_content
+    response = await self._api_client.async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2119, in async_request
+    result = await self._async_request(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2052, in _async_request
+    return await self._async_retry(  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 112, in __call__
+    do = await self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 157, in iter
+    result = await action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\_utils.py", line 111, in inner
+    return call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python>\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "<python>\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 116, in __call__
+    result = await fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2027, in _async_request_once
+    await errors.APIError.raise_for_async_response(client_response)
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\errors.py", line 279, in raise_for_async_response
+    await cls.raise_error_async(status_code, response_json, response)
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\errors.py", line 301, in raise_error_async
+    raise ClientError(status_code, response_json, response)
+google.genai.errors.ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash, description: Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.\nPlease retry in 17h51m27.334725698s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://aistudio.google.com/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'description': 'Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.', 'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.6-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '64287s'}]}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\runners.py", line 894, in _cleanup_root_task
+    await task
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner_utils.py", line 276, in _drive_root_node
+    raise e.error
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 169, in run
+    await self._execute_node(ctx, node_input)
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 364, in _execute_node
+    await self._run_node_loop(ctx, node_input)
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 378, in _run_node_loop
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_base_node.py", line 202, in run
+    item = await anext(agen, _sentinel)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\llm_agent.py", line 690, in _run_impl
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_llm_agent_wrapper.py", line 527, in run_llm_agent_as_node
+    async for event in run_iter:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 381, in run_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 482, in _run_with_lifecycle
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 166, in stream_in_scope
+    item = await _drive(owned.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 154, in _drive
+    return await step
+           ^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 445, in _run
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\llm_agent.py", line 639, in _run_async_impl
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 299, in run_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 381, in _run_one_step_async
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 564, in _call_llm_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_model_call.py", line 322, in call_llm_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 166, in stream_in_scope
+    item = await _drive(owned.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 154, in _drive
+    return await step
+           ^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_model_call.py", line 283, in _call_llm_with_tracing
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 614, in _run_and_handle_error
+    async for response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 429, in run_and_handle_error
+    raise model_error
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 403, in run_and_handle_error
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\utils\_runner_utils.py", line 52, in _stream_in_caller_scope
+    item = await _InContext(ctx, agen.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\utils\_runner_utils.py", line 79, in __await__
+    waiting_on = self._ctx.run(coro.send, value)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 391, in _record_responses
+    async for llm_response in timed:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 1012, in time_model_awaits
+    async for response in responses:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\models\google_llm.py", line 393, in generate_content_async
+    raise _ResourceExhaustedError(ce) from ce
+google.adk.models.google_llm._ResourceExhaustedError: 
+On how to mitigate this issue, please refer to:
+
+https://google.github.io/adk-docs/agents/models/google-gemini/#error-code-429-resource_exhausted
+
+
+429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash, description: Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.\nPlease retry in 17h51m27.334725698s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://aistudio.google.com/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'description': 'Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.', 'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.6-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '64287s'}]}}
+Node execution failed with exception
+Traceback (most recent call last):
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\models\google_llm.py", line 365, in generate_content_async
+    response = await maybe_without_genai_instrumentation(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 8589, in generate_content
+    return await self._generate_content_with_continuation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 8428, in _generate_content_with_continuation
+    response = await self._generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 7026, in _generate_content
+    response = await self._api_client.async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2119, in async_request
+    result = await self._async_request(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2052, in _async_request
+    return await self._async_retry(  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 112, in __call__
+    do = await self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 157, in iter
+    result = await action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\_utils.py", line 111, in inner
+    return call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python>\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "<python>\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 116, in __call__
+    result = await fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2027, in _async_request_once
+    await errors.APIError.raise_for_async_response(client_response)
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\errors.py", line 279, in raise_for_async_response
+    await cls.raise_error_async(status_code, response_json, response)
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\errors.py", line 301, in raise_error_async
+    raise ClientError(status_code, response_json, response)
+google.genai.errors.ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash, description: Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.\nPlease retry in 17h50m51.027979188s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://aistudio.google.com/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'description': 'Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.', 'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.6-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '64251s'}]}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 169, in run
+    await self._execute_node(ctx, node_input)
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 364, in _execute_node
+    await self._run_node_loop(ctx, node_input)
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 378, in _run_node_loop
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_base_node.py", line 202, in run
+    item = await anext(agen, _sentinel)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\llm_agent.py", line 690, in _run_impl
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_llm_agent_wrapper.py", line 527, in run_llm_agent_as_node
+    async for event in run_iter:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 381, in run_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 482, in _run_with_lifecycle
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 166, in stream_in_scope
+    item = await _drive(owned.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 154, in _drive
+    return await step
+           ^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 445, in _run
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\llm_agent.py", line 639, in _run_async_impl
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 299, in run_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 381, in _run_one_step_async
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 564, in _call_llm_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_model_call.py", line 322, in call_llm_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 166, in stream_in_scope
+    item = await _drive(owned.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 154, in _drive
+    return await step
+           ^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_model_call.py", line 283, in _call_llm_with_tracing
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 614, in _run_and_handle_error
+    async for response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 429, in run_and_handle_error
+    raise model_error
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 403, in run_and_handle_error
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\utils\_runner_utils.py", line 52, in _stream_in_caller_scope
+    item = await _InContext(ctx, agen.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\utils\_runner_utils.py", line 79, in __await__
+    waiting_on = self._ctx.run(coro.send, value)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 391, in _record_responses
+    async for llm_response in timed:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 1012, in time_model_awaits
+    async for response in responses:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\models\google_llm.py", line 393, in generate_content_async
+    raise _ResourceExhaustedError(ce) from ce
+google.adk.models.google_llm._ResourceExhaustedError: 
+On how to mitigate this issue, please refer to:
+
+https://google.github.io/adk-docs/agents/models/google-gemini/#error-code-429-resource_exhausted
+
+
+429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash, description: Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.\nPlease retry in 17h50m51.027979188s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://aistudio.google.com/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'description': 'Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.', 'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.6-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '64251s'}]}}
+Root node builder failed.
+Traceback (most recent call last):
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\models\google_llm.py", line 365, in generate_content_async
+    response = await maybe_without_genai_instrumentation(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 8589, in generate_content
+    return await self._generate_content_with_continuation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 8428, in _generate_content_with_continuation
+    response = await self._generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\models.py", line 7026, in _generate_content
+    response = await self._api_client.async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2119, in async_request
+    result = await self._async_request(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2052, in _async_request
+    return await self._async_retry(  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 112, in __call__
+    do = await self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 157, in iter
+    result = await action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\_utils.py", line 111, in inner
+    return call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<python>\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "<python>\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "<repo>\backend\.venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 116, in __call__
+    result = await fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\_api_client.py", line 2027, in _async_request_once
+    await errors.APIError.raise_for_async_response(client_response)
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\errors.py", line 279, in raise_for_async_response
+    await cls.raise_error_async(status_code, response_json, response)
+  File "<repo>\backend\.venv\Lib\site-packages\google\genai\errors.py", line 301, in raise_error_async
+    raise ClientError(status_code, response_json, response)
+google.genai.errors.ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash, description: Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.\nPlease retry in 17h50m51.027979188s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://aistudio.google.com/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'description': 'Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.', 'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.6-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '64251s'}]}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\runners.py", line 894, in _cleanup_root_task
+    await task
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner_utils.py", line 276, in _drive_root_node
+    raise e.error
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 169, in run
+    await self._execute_node(ctx, node_input)
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 364, in _execute_node
+    await self._run_node_loop(ctx, node_input)
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_node_runner.py", line 378, in _run_node_loop
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_base_node.py", line 202, in run
+    item = await anext(agen, _sentinel)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\llm_agent.py", line 690, in _run_impl
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\workflow\_llm_agent_wrapper.py", line 527, in run_llm_agent_as_node
+    async for event in run_iter:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 381, in run_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 482, in _run_with_lifecycle
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 166, in stream_in_scope
+    item = await _drive(owned.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 154, in _drive
+    return await step
+           ^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\base_agent.py", line 445, in _run
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\agents\llm_agent.py", line 639, in _run_async_impl
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 299, in run_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 381, in _run_one_step_async
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 564, in _call_llm_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_model_call.py", line 322, in call_llm_async
+    async for event in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 166, in stream_in_scope
+    item = await _drive(owned.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 154, in _drive
+    return await step
+           ^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_model_call.py", line 283, in _call_llm_with_tracing
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py", line 614, in _run_and_handle_error
+    async for response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 429, in run_and_handle_error
+    raise model_error
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 403, in run_and_handle_error
+    async for llm_response in agen:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\utils\_runner_utils.py", line 52, in _stream_in_caller_scope
+    item = await _InContext(ctx, agen.__anext__())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\utils\_runner_utils.py", line 79, in __await__
+    waiting_on = self._ctx.run(coro.send, value)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\flows\llm_flows\core\_finalizer.py", line 391, in _record_responses
+    async for llm_response in timed:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\telemetry\_instrumentation.py", line 1012, in time_model_awaits
+    async for response in responses:
+  File "<repo>\backend\.venv\Lib\site-packages\google\adk\models\google_llm.py", line 393, in generate_content_async
+    raise _ResourceExhaustedError(ce) from ce
+google.adk.models.google_llm._ResourceExhaustedError: 
+On how to mitigate this issue, please refer to:
+
+https://google.github.io/adk-docs/agents/models/google-gemini/#error-code-429-resource_exhausted
+
+
+429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash, description: Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.\nPlease retry in 17h50m51.027979188s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://aistudio.google.com/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'description': 'Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.', 'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.6-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '64251s'}]}}
+Model: gemini-3.5-flash
+Seeded project before the loop: passed=False; 1 failed, 3 passed, 1 warning in 1.24s
+working   attempt 1/3          
+working   Thinking Building a Notes API with a notes table and 3 endpoints.
+working   Doing    Writing requirements.txt
+working   Result   Wrote requirements.txt
+working   Result   The AI service is busy or unavailable. Please try again in a few minutes.
+retrying  Thinking The AI service was busy. Waited 30 seconds; trying again.
+retrying  attempt 2/3          
+working   Result   The AI service is busy or unavailable. Please try again in a few minutes.
+retrying  Thinking The AI service was busy. Waited 30 seconds; trying again.
+retrying  attempt 3/3          
+working   Result   The AI service is busy or unavailable. Please try again in a few minutes.
+failed    Result   Still not working after 3 tries. Last problem: The AI service is busy or unavailable. Please try again in a few minutes.
+
+Took 230s. Final: failed (service_busy): Still not working after 3 tries. Last problem: The AI service is busy or unavailable. Please try again in a few minutes.
+Our own test run on the final files: passed=False; 1 failed, 3 passed, 1 warning in 0.77s

@@ -36,12 +36,20 @@ MAX_AI_CALLS = 40
 # A real build took 44 seconds in Opei's W-4 trial; 5 minutes leaves plenty of room.
 TIME_LIMIT_SECONDS = 300
 
+# How much of our own final test run's output we keep in the result (its end, where pytest's summary is).
+# The same size the tools send the AI (agent/tools.py MAX_RESULT_CHARACTERS), to save free-tier quota.
+MAX_KEPT_OUTPUT = 4_000
+
 
 @dataclass
 class BuildResult:
     status: str  # "ready" or "failed"
     reason: str  # one plain sentence: why the build stopped
     files: dict[str, str]  # the project the AI wrote: {file name: file text}
+    # Why it stopped, as one fixed word, so the retry loop (F-4, agent/retry.py) can decide what to do
+    # without comparing sentences: "passed", "tests_failed", "no_files", "service_busy", "too_slow", "too_many_steps".
+    kind: str = "passed"
+    test_output: str = ""  # the end of pytest's output from our own final test run (empty if it never ran)
 
 
 async def build_project(
@@ -49,8 +57,10 @@ async def build_project(
     instruction: str | Callable[..., str],  # the AI's standing instructions (agent/prompts builder_instruction)
     model: str | BaseLlm,  # a Gemini model name, or a FakeModel in tests
     report: Report,
+    start_files: dict[str, str] | None = None,  # files from an earlier try (F-4), so the AI fixes them, not starts over
 ) -> BuildResult:
-    workspace = Workspace()  # this project's files, kept in memory (agent/tools.py)
+    # This project's files, kept in memory (agent/tools.py). dict(...) makes a copy, so the caller's files stay as they were.
+    workspace = Workspace(files=dict(start_files or {}))
     agent = Agent(name="builder", model=model, instruction=instruction, tools=make_tools(workspace))
 
     # InMemoryRunner is ADK's engine: it keeps the conversation in memory and runs the loop.
@@ -84,16 +94,17 @@ async def build_project(
                     break
     except TimeoutError:
         # Stop rule 5: the stopwatch ran out.
-        result = BuildResult(status="failed", reason="The build took too long and was stopped.", files=workspace.files)
+        reason = "The build took too long and was stopped."
+        result = BuildResult(status="failed", reason=reason, files=workspace.files, kind="too_slow")
     except LlmCallsLimitExceededError:
         # Stop rule 4: the AI used up its moves without finishing (for example, going round in circles).
         reason = "The AI took too many steps without finishing."
-        result = BuildResult(status="failed", reason=reason, files=workspace.files)
+        result = BuildResult(status="failed", reason=reason, files=workspace.files, kind="too_many_steps")
     except errors.APIError:
         # Stop rule 3: the AI service said no (503 busy, 429 too many requests, a wrong key, ...).
         # Without this, the error would crash the build and no final status would ever reach the live stream.
         reason = "The AI service is busy or unavailable. Please try again in a few minutes."
-        result = BuildResult(status="failed", reason=reason, files=workspace.files)
+        result = BuildResult(status="failed", reason=reason, files=workspace.files, kind="service_busy")
     else:
         # "else" runs only when the try block finished WITHOUT an error: then we check the work ourselves.
         result = check_result(workspace, failed_reason)
@@ -147,10 +158,14 @@ def check_result(workspace: Workspace, failed_reason: str) -> BuildResult:
     # Stop rule 2: nothing was written (Opei's D-4 check saw a smaller model do this).
     # Say so plainly, instead of the misleading "the tests still fail" when there are no tests at all.
     if not workspace.files:
-        return BuildResult(status="failed", reason="The AI stopped without writing any files.", files={})
+        return BuildResult(status="failed", reason="The AI stopped without writing any files.", files={}, kind="no_files")
 
     # Don't trust the AI saying "done": run the tests ourselves on the files it wrote.
     result = run_tests(workspace.files)
+    # Keep the end of pytest's output: the retry loop (F-4) shows it to the AI so it can see what failed.
+    output = result.output[-MAX_KEPT_OUTPUT:]
     if result.passed:
-        return BuildResult(status="ready", reason="All tests pass.", files=workspace.files)
-    return BuildResult(status="failed", reason=failed_reason, files=workspace.files)
+        return BuildResult(status="ready", reason="All tests pass.", files=workspace.files, test_output=output)
+    return BuildResult(
+        status="failed", reason=failed_reason, files=workspace.files, kind="tests_failed", test_output=output
+    )
