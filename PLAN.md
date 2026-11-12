@@ -81,7 +81,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | F-1 | Clarifying-questions prompt (outside lane) | Elise | W-4 | ✅ | Gives ≤3 sensible questions on 5 sample requests; Opei approves. Done 2026-11-11 (Opei approves in the PR): `agent/prompts/questions.md`, `agent/questions.py`, 7 tests; live check 5 of 5 sensible, `evidence/agent/outputs_f1_*` |
 | F-2 | Plan preview + approval step in backend | Elise | W-9, F-1 | ⛔ | Nothing is generated before approval |
 | F-3 | Plan preview + approve UI | Perfect | F-2 | ⛔ | Approve and reject both work |
-| F-4 | Retry / self-reflection loop (reads test failure, fixes) | Opei | W-9 | ⛔ | Fixes a seeded failing project within N tries |
+| F-4 | Retry / self-reflection loop (reads test failure, fixes) | Opei | W-3 (was W-9: the loop needs the agent, not the UI) | ✅ | Fixes a seeded failing project within N tries. Done 2026-11-12: `agent/retry.py` (up to 3 tries; reflection prompt `agent/prompts/reflection.md`), 8 tests with a fake AI; live with `gemini-3.5-flash` a seeded Notes API with one failing test ended `ready`, 5 of 5 (`evidence/agent/outputs_f4_live_check_run1.txt`). Not wired into the server yet (W-9) |
 | F-5 | Zip export endpoint | Elise | W-9 | ⛔ | Unzipped project runs with `pytest` |
 | F-6 | Dockerfile + run instructions for the zip (outside lane) | Opei | F-5 | ⛔ | Nana can run the zip by following the text |
 | F-7 | Download button; loading, error and empty states; accessibility pass | Perfect | F-5 | ⛔ | Keyboard-only walkthrough works |
