@@ -18,6 +18,7 @@ One line per use. Add a line in the same PR as the work. Say how you checked the
 | 2026-11-10 | Nana | Claude Code | Drafted the 20-request evaluation set `evaluation/requests.json` (S-7), its 6 format checks and `learnings/evaluation.md` | Read every request against the builder prompt's endpoint shape; ran `pytest evaluation` (6 passed); all requests are synthetic |
 | 2026-11-10 | Nana | Claude Code | Looked up Vercel and Render free-tier limits; wrote `learnings/deployment.md`, `deploy/README.md` and D-014 (S-8, D-1 prep) | Read the official pages (linked in section 9); built the frontend from `main` (609 KB, under the 100 MB upload limit); accounts and the deploy are not done |
 | 2026-11-10 | Opei | Claude Code | Ran the D-4 model switch check on the laptop (4 other Gemini models, only `LLM_MODEL` changed) and wrote up the results | Read every output; checked no key or folder path is in the evidence file |
+| 2026-11-10 | Elise | Claude Code | Step-by-step help building the W-3 agent loop (`backend/builder.py`), its fake-model tests and five stop rules, the live check script, and the W-5/F-11 review fixes | Wrote each test first and watched it fail; ran `python -m pytest` after every step (99 passed); one real Gemini build ended `ready` and our own test run confirmed it; read every line |
 | 2026-11-11 | Elise | Claude Code | Step-by-step help adding W-8 `GET /projects` (timestamps, stand-in names, newest first) and its 3 tests | Wrote the tests first and watched them fail; ran `python -m pytest` (all pass); read every line |
 
 ## Sign-off
