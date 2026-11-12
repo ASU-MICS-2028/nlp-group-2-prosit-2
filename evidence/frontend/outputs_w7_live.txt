@@ -1,0 +1,29 @@
+W-7 live tests (client + page), real backend on localhost:8000, 2026-11-12
+
+> api-builder-frontend@0.0.0 test
+> vitest --run client.live App.live --reporter=verbose
+
+
+ RUN  v4.1.12 <repo>/frontend
+
+ ✓ src/api/client.live.test.ts > against a real backend > getHealth says the server is ok 42ms
+ ✓ src/api/client.live.test.ts > against a real backend > startProject creates a waiting project, and getProject finds it 7ms
+ ✓ src/api/client.live.test.ts > against a real backend > listProjects shows the newest project first 4ms
+ ✓ src/api/client.live.test.ts > against a real backend > an empty request is refused with a plain sentence (422) 2ms
+ ✓ src/api/client.live.test.ts > against a real backend > a request over 2000 characters is refused (422) 2ms
+ ✓ src/api/client.live.test.ts > against a real backend > an unknown project gives the 404 sentence 1ms
+ ✓ src/api/client.live.test.ts > against a real backend > an odd id cannot reach another address 1ms
+ ✓ src/api/client.live.test.ts > against a real backend > the events address really streams the first event 7ms
+ ✓ src/api/client.live.test.ts > against a real backend > streamEvents delivers the real first event, then stops when we hang up 5ms
+ ✓ src/api/client.live.test.ts > against a real backend > streamEvents gives the 404 sentence for an unknown project 1ms
+ ✓ src/api/client.live.test.ts > against a real backend > streamEvents hanging up before any event is not an error 1ms
+ ✓ src/api/client.live.test.ts > against a real backend > says we could not reach the server when nothing is listening 1ms
+ ✓ src/App.live.test.tsx > the page against a real backend > sends a request and shows the new project waiting, in the timeline and the sidebar 169ms
+ ✓ src/App.live.test.tsx > the page against a real backend > a double click creates only one project 46ms
+ ✓ src/App.live.test.tsx > the page against a real backend > "New project" then picking the project again replays its timeline 104ms
+
+ Test Files  2 passed (2)
+      Tests  15 passed (15)
+   Start at  13:39:20
+   Duration  1.21s (transform 99ms, setup 237ms, import 173ms, tests 394ms, environment 600ms)
+

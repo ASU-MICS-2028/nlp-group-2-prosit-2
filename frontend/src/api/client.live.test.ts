@@ -16,6 +16,7 @@ import {
   getProject,
   listProjects,
   startProject,
+  streamEvents,
 } from './client'
 
 // Runs the call and returns the ApiError it threw, so a test can check the message.
@@ -109,6 +110,46 @@ describe.skipIf(!import.meta.env.VITE_LIVE_API)(
 
       expect(response.status).toBe(200)
       expect(new TextDecoder().decode(value)).toContain('"status":"waiting"')
+    })
+
+    it('streamEvents delivers the real first event, then stops when we hang up', async () => {
+      const started = await startProject('A recipe book API')
+      const controller = new AbortController()
+      const received: string[] = []
+
+      await streamEvents(
+        started.id,
+        (event) => {
+          received.push(event.status)
+          controller.abort() // a waiting project never ends by itself, so we hang up
+        },
+        controller.signal,
+      )
+
+      expect(received).toEqual(['waiting'])
+    })
+
+    it('streamEvents gives the 404 sentence for an unknown project', async () => {
+      const error = await failureOf(
+        streamEvents(
+          'p_does_not_exist',
+          () => {},
+          new AbortController().signal,
+        ),
+      )
+
+      expect(error.status).toBe(404)
+      expect(error.message).toBe('Project not found.')
+    })
+
+    it('streamEvents hanging up before any event is not an error', async () => {
+      const started = await startProject('A garden planner API')
+      const controller = new AbortController()
+      controller.abort()
+
+      await expect(
+        streamEvents(started.id, () => {}, controller.signal),
+      ).resolves.toBeUndefined()
     })
 
     it('says we could not reach the server when nothing is listening', async () => {

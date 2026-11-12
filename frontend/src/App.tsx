@@ -1,71 +1,53 @@
-import { useState } from 'react'
 import { AppShell } from './components/AppShell'
-import { Chip } from './components/Chip'
 import { Notice } from './components/Notice'
-import { RequestCard } from './components/RequestCard'
 import { Sidebar } from './components/Sidebar'
+import { useBuild } from './hooks/useBuild'
+import { useProjectList } from './hooks/useProjectList'
+import { BuildScreen } from './screens/BuildScreen'
+import { StartScreen } from './screens/StartScreen'
 
-const EXAMPLES = [
-  {
-    label: 'Bookshop API',
-    text: 'A bookshop where I can add books and see which ones are in stock.',
-  },
-  {
-    label: 'Clinic appointments',
-    text: 'A clinic where patients can book, change and cancel appointments.',
-  },
-  {
-    label: 'Farm produce orders',
-    text: 'A farm where buyers can order produce and I can see what to deliver.',
-  },
-]
-
-// The Start screen. Planning is not connected to the backend yet (tasks W-5 to W-7),
-// so sending shows a clear notice instead of pretending to work.
+// The page: the project list on the left; on the right either the Start screen
+// (no project open) or the project's live timeline.
 function App() {
-  const [request, setRequest] = useState('')
-  const [sent, setSent] = useState(false)
+  const { state, start, open, reset } = useBuild()
+
+  // Fetch the list again when a project opens or its status changes, so the sidebar stays current.
+  const { projects, error: listError } = useProjectList(
+    `${state.projectId ?? 'none'}:${state.build.status}`,
+  )
+
+  const openProject = projects.find((project) => project.id === state.projectId)
 
   return (
     <AppShell
       sidebar={
         <Sidebar
-          projects={[]}
-          activeId={null}
-          onNewProject={() => {
-            setRequest('')
-            setSent(false)
-          }}
-          onSelect={() => {}}
+          projects={projects}
+          activeId={state.projectId}
+          onNewProject={reset}
+          onSelect={open}
         />
       }
     >
-      <div className="start">
-        <h1 className="t-display start__title">What should your API do?</h1>
-        <RequestCard
-          value={request}
-          onChange={(value) => {
-            setRequest(value)
-            setSent(false)
-          }}
-          onSubmit={() => setSent(true)}
+      {listError && (
+        <Notice tone="warning" title="We could not load your projects">
+          {listError}
+        </Notice>
+      )}
+      {state.projectId === null ? (
+        <StartScreen
+          loading={state.starting}
+          error={state.error}
+          onSubmit={start}
         />
-        <div className="start__chips" aria-label="Example requests">
-          {EXAMPLES.map((example) => (
-            <Chip
-              key={example.label}
-              label={example.label}
-              onClick={() => setRequest(example.text)}
-            />
-          ))}
-        </div>
-        {sent && (
-          <Notice tone="info" title="Planning is not connected yet">
-            The planning step arrives when the backend is ready. Your request
-            was not sent anywhere.
-          </Notice>
-        )}
-      </div>
+      ) : (
+        <BuildScreen
+          title={openProject?.name ?? 'Your API'}
+          build={state.build}
+          error={state.error}
+          onReopen={() => open(state.projectId ?? '')}
+        />
+      )}
     </AppShell>
   )
 }
