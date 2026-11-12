@@ -21,6 +21,7 @@ One line per use. Add a line in the same PR as the work. Say how you checked the
 | 2026-11-10 | Elise | Claude Code | Step-by-step help building the W-3 agent loop (`backend/builder.py`), its fake-model tests and five stop rules, the live check script, and the W-5/F-11 review fixes | Wrote each test first and watched it fail; ran `python -m pytest` after every step (99 passed); one real Gemini build ended `ready` and our own test run confirmed it; read every line |
 | 2026-11-11 | Elise | Claude Code | Step-by-step help adding W-8 `GET /projects` (timestamps, stand-in names, newest first) and its 3 tests | Wrote the tests first and watched them fail; ran `python -m pytest` (all pass); read every line |
 | 2026-11-11 | Elise | Claude Code | Step-by-step help writing the F-1 clarifying-questions prompt (rules and examples drafted from Elise's own bakery questions), `agent/questions.py`, its 7 tests and the live check | Wrote each test first; ran `python -m pytest` (all pass); judged all 5 live answers by hand and changed the off-topic rule after reading them; read every line |
+| 2026-11-12 | Perfect | Claude Code | Step-by-step help adding W-6: schema export script, generated API types, the `fetch` client with plain error sentences, and 9 live tests against the real backend | Chose live tests over a fake after the first plan; ran the tests with the backend up and with it down; ran typecheck, lint and format; read every line |
 
 ## Sign-off
 Each person confirms they understand and can explain everything they submitted.
