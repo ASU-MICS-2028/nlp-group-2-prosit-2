@@ -100,6 +100,24 @@ def test_a_seeded_failing_project_is_fixed_on_the_second_try() -> None:
     assert "Build the calculator." in reflection  # the plan is repeated
 
 
+def test_every_step_of_a_later_try_says_retrying() -> None:
+    # The UI's status badge follows each event's status, so try 2 must not flip back to "working".
+    model = FakeModel(
+        model="fake",
+        replies=[call("run_tests"), call("run_tests"), call("run_tests"),
+                 call("write_file", path="calc.py", content=FIXED_APP),
+                 call("run_tests"), say("Done.")],
+    )
+
+    _, steps = run(model, start_files=SEEDED_PROJECT)
+
+    second_try = steps[steps.index({"status": "retrying", "attempt": 2, "max_attempts": 3}):]
+    assert statuses(second_try)[:-1] == ["retrying"] * (len(second_try) - 1)  # every step until the end
+    assert second_try[-1]["status"] == "ready"
+    first_try = steps[: steps.index({"status": "retrying", "attempt": 2, "max_attempts": 3})]
+    assert "working" in statuses(first_try)  # try 1 still says "working"
+
+
 def test_the_seeded_project_is_not_changed_for_the_caller() -> None:
     model = FakeModel(model="fake", replies=[call("write_file", path="calc.py", content=FIXED_APP),
                                              call("run_tests"), say("Done.")])

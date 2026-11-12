@@ -164,7 +164,7 @@ Live check (`gemini-3.5-flash`): 5 of 5 sensible, none over 3 questions: bakery 
    - `no_files` (the flash-lite problem from D-4): the next try gets `agent/prompts/no_files.md`: "your very first reply must be a write_file call".
    - `service_busy` (Gemini 503 or 429): if files exist, we first run the tests ourselves. If they pass, the build is `ready`. Otherwise we wait 30 seconds and send the same message again.
 3. Before each new try the timeline gets `{"status": "retrying", "attempt": 2, "max_attempts": 3}` and one plain sentence why (the contract's shape).
-4. A failed try's own final "failed" event is passed on as "working" (`hold_back_failure`), because "failed" ends the live stream. Only after the last try do we send one real "failed", with "Still not working after 3 tries. Last problem: ...".
+4. A failed try's own final "failed" event is passed on as "working" (try 1) or "retrying" (tries 2 and 3) by `hold_back_failure`, because "failed" ends the live stream. From try 2 on, every step is sent as "retrying", so the UI's status badge (W-7) stays on "retrying" for the whole try (found in the W-7 review, 2026-11-12). Only after the last try do we send one real "failed", with "Still not working after 3 tries. Last problem: ...".
 
 Two small additions to `backend/builder.py` (Elise's file, no behaviour change): `build_project(..., start_files=...)` starts from earlier files, and `BuildResult` now has `kind` and `test_output` (the end of our own final test run).
 

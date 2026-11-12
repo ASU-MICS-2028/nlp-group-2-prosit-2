@@ -44,7 +44,7 @@ async def build_with_retries(
         status = "working" if attempt == 1 else "retrying"
         report({"status": status, "attempt": attempt, "max_attempts": MAX_ATTEMPTS})
 
-        result = await build_project(message, instruction, model, hold_back_failure(report), start_files=files)
+        result = await build_project(message, instruction, model, hold_back_failure(report, status), start_files=files)
         if result.status == "ready":
             return result  # build_project already sent the final "ready" event, which ends the live stream
 
@@ -80,16 +80,18 @@ async def build_with_retries(
     return BuildResult(status="failed", reason=reason, files=result.files, kind=result.kind, test_output=result.test_output)
 
 
-def hold_back_failure(report: Report) -> Report:
-    """Pass every step on, except a try's own final "failed" event, which would end the live stream too early.
+def hold_back_failure(report: Report, status: str) -> Report:
+    """Pass every step on with this try's status, except a try's own final "failed", which would end the stream.
 
-    build_project always ends with a final event ("ready" or "failed"). A "failed" try is not the end
-    while we still have tries left, so it is sent on as "working" instead (the step itself is kept).
+    build_project calls every step "working" and ends with "ready" or "failed". From try 2 on, the timeline
+    should keep saying "retrying" (the status badge in the UI), so "working" becomes `status`.
+    A "failed" try is not the end while we still have tries left, so it is sent on as `status` too
+    (the step itself is kept). "ready" is passed on as it is: it really is the end.
     """
 
     def report_step(event: dict[str, object]) -> None:
-        if event.get("status") == "failed":
-            event = {**event, "status": "working"}  # a copy with a new status; the original is left alone
+        if event.get("status") in ("working", "failed"):
+            event = {**event, "status": status}  # a copy with a new status; the original is left alone
         report(event)
 
     return report_step
