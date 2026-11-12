@@ -69,8 +69,8 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | W-3 | Agent built with Google ADK: plans, calls the tools, loops until the tests pass or there is a clear stop reason | Elise | W-1, W-2, W-10 | ✅ | Loop ends with success or a clear stop reason. Done 2026-11-10: `backend/builder.py`, 5 stop rules, 7 tests with a fake model; one real Gemini build (`gemini-3.5-flash`) ended `ready`, 5 of 5 tests; `evidence/backend/outputs_w3_*` |
 | W-4 | Agent instructions (system prompt) for code generation | Opei | W-10 | ✅ | Prompt file reviewed; produces a valid endpoint by hand. Done 2026-11-08: `agent/prompts/builder.md`; live check with `gemini-3.5-flash` built a 4-endpoint Bookshop API whose 8 tests passed (`evidence/agent/outputs_w4_live_check.txt`) |
 | W-5 | Endpoints: start project, get status, stream progress (SSE) | Elise | S-5 | ✅ | Visible in `/docs`; stream works with curl. Done 2026-11-09: `POST /projects`, `GET /projects/{id}`, `GET /projects/{id}/events`; no AI behind them yet; output in `evidence/backend/` |
-| W-6 | Generate typed API client from OpenAPI | Perfect | S-6, W-5 | 🟢 | `frontend/src/api` builds from the schema |
-| W-7 | Chat screen: send request, show live progress | Perfect | W-6 | ⛔ | Works against local backend |
+| W-6 | Generate typed API client from OpenAPI | Perfect | S-6, W-5 | ✅ | `frontend/src/api` builds from the schema. Done 2026-11-12: `npm run api:generate` (D-015); `client.ts` with plain error sentences; 9 live tests against the real backend; `evidence/frontend/outputs_w6_client_live.txt` |
+| W-7 | Chat screen: send request, show live progress | Perfect | W-6 | 🟢 | Works against local backend |
 | W-8 | `GET /projects` endpoint (outside lane) | Elise (from Perfect) | S-5 | ✅ | Returns list; has a test; Elise approves. Done 2026-11-11: newest first, contract fields; `name` is the start of the request until F-2's plan names it; 3 tests; Perfect reviews the PR |
 | W-9 | End-to-end: one request → one endpoint → test passes → shown in UI | Elise | W-3, W-4, W-5, W-7 | ⛔ | Screenshot + terminal output in `evidence/` |
 
