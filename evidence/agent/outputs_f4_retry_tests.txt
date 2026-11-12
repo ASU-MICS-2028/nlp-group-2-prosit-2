@@ -1,0 +1,18 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.7, pytest-9.2.0, pluggy-1.7.0 -- <repo>\backend\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: <repo>
+configfile: pytest.ini
+plugins: anyio-4.16.0
+collecting ... collected 8 items
+
+agent/tests/test_retry.py::test_a_build_that_works_first_time_is_not_retried PASSED [ 12%]
+agent/tests/test_retry.py::test_a_seeded_failing_project_is_fixed_on_the_second_try PASSED [ 25%]
+agent/tests/test_retry.py::test_the_seeded_project_is_not_changed_for_the_caller PASSED [ 37%]
+agent/tests/test_retry.py::test_it_gives_up_after_three_tries_with_a_clear_reason PASSED [ 50%]
+agent/tests/test_retry.py::test_no_files_gets_a_firm_reminder_then_works PASSED [ 62%]
+agent/tests/test_retry.py::test_a_busy_service_is_waited_for_and_tried_again PASSED [ 75%]
+agent/tests/test_retry.py::test_busy_after_a_fix_is_still_ready_without_a_new_try PASSED [ 87%]
+agent/tests/test_retry.py::test_a_service_that_stays_busy_ends_failed PASSED [100%]
+
+======================== 8 passed in 86.60s (0:01:26) =========================
