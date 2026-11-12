@@ -70,9 +70,9 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | W-4 | Agent instructions (system prompt) for code generation | Opei | W-10 | ✅ | Prompt file reviewed; produces a valid endpoint by hand. Done 2026-11-08: `agent/prompts/builder.md`; live check with `gemini-3.5-flash` built a 4-endpoint Bookshop API whose 8 tests passed (`evidence/agent/outputs_w4_live_check.txt`) |
 | W-5 | Endpoints: start project, get status, stream progress (SSE) | Elise | S-5 | ✅ | Visible in `/docs`; stream works with curl. Done 2026-11-09: `POST /projects`, `GET /projects/{id}`, `GET /projects/{id}/events`; no AI behind them yet; output in `evidence/backend/` |
 | W-6 | Generate typed API client from OpenAPI | Perfect | S-6, W-5 | ✅ | `frontend/src/api` builds from the schema. Done 2026-11-12: `npm run api:generate` (D-015); `client.ts` with plain error sentences; 9 live tests against the real backend; `evidence/frontend/outputs_w6_client_live.txt` |
-| W-7 | Chat screen: send request, show live progress | Perfect | W-6 | 🟢 | Works against local backend |
+| W-7 | Chat screen: send request, show live progress | Perfect | W-6 | ✅ | Works against local backend. Done 2026-11-12: Start screen sends `POST /projects`, reads the live stream, shows the timeline, loads the sidebar from `GET /projects` (D-016); 48 tests without a server plus 15 live tests; `evidence/frontend/outputs_w7_live.txt`. A real build cannot show yet: the agent is connected to the server in W-9 |
 | W-8 | `GET /projects` endpoint (outside lane) | Elise (from Perfect) | S-5 | ✅ | Returns list; has a test; Elise approves. Done 2026-11-11: newest first, contract fields; `name` is the start of the request until F-2's plan names it; 3 tests; Perfect reviews the PR |
-| W-9 | End-to-end: one request → one endpoint → test passes → shown in UI | Elise | W-3, W-4, W-5, W-7 | ⛔ | Screenshot + terminal output in `evidence/` |
+| W-9 | End-to-end: one request → one endpoint → test passes → shown in UI | Elise | W-3, W-4, W-5, W-7 | 🟢 | Screenshot + terminal output in `evidence/` |
 
 ## Phase 2: Features (Thu 29 Oct)
 

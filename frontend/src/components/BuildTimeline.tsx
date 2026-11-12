@@ -11,10 +11,12 @@ export type BuildStep = {
 
 type Props = {
   title: string
-  attempt: number
-  maxAttempts: number
+  // The server does not always know these yet, so they are optional. When missing, we show
+  // nothing, instead of a made-up "Attempt 1 of 3".
+  attempt?: number
+  maxAttempts?: number
   status: Status
-  tests: TestResult[]
+  tests?: TestResult[]
   steps: BuildStep[]
 }
 
@@ -28,7 +30,7 @@ export function BuildTimeline({
   attempt,
   maxAttempts,
   status,
-  tests,
+  tests = [],
   steps,
 }: Props) {
   return (
@@ -38,9 +40,11 @@ export function BuildTimeline({
           <h2 className="t-title" style={{ margin: 0 }}>
             {title}
           </h2>
-          <span className="t-caption muted">
-            Attempt {attempt} of {maxAttempts}
-          </span>
+          {attempt !== undefined && maxAttempts !== undefined && (
+            <span className="t-caption muted">
+              Attempt {attempt} of {maxAttempts}
+            </span>
+          )}
         </div>
         {/* role="status" so screen readers hear changes politely */}
         <span role="status">
@@ -48,20 +52,22 @@ export function BuildTimeline({
         </span>
       </div>
 
-      <div>
-        <div className="tests-bar" aria-hidden>
-          {tests.map((result, index) => (
-            <span
-              key={index}
-              className={`tests-bar__segment tests-bar__segment--${result}`}
-            />
-          ))}
+      {tests.length > 0 && (
+        <div>
+          <div className="tests-bar" aria-hidden>
+            {tests.map((result, index) => (
+              <span
+                key={index}
+                className={`tests-bar__segment tests-bar__segment--${result}`}
+              />
+            ))}
+          </div>
+          <span className="t-caption muted">
+            {countOf(tests, 'pass')} passing · {countOf(tests, 'fail')} failing
+            · {tests.length} tests
+          </span>
         </div>
-        <span className="t-caption muted">
-          {countOf(tests, 'pass')} passing · {countOf(tests, 'fail')} failing ·{' '}
-          {tests.length} tests
-        </span>
-      </div>
+      )}
 
       <ol className="steps">
         {steps.map((step, index) => (

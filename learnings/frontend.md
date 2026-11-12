@@ -1,6 +1,6 @@
 # Frontend
 
-Owner: Perfect · Last updated: 2026-11-12 · Status: partly working (skeleton, design components, Start screen and typed API client done; no screen calls the backend yet)
+Owner: Perfect · Last updated: 2026-11-12 · Status: partly working (skeleton, design components, typed API client and the chat screen done; questions, plan, approve and Ready screens not connected)
 
 ## 1. In one sentence
 A React + TypeScript web page where a non-developer types what API they want; it is built from small reusable pieces styled by one set of design tokens.
@@ -130,3 +130,73 @@ Saved output: `evidence/frontend/outputs_w6_client_live.txt`. I also ran the liv
 - The frontend's API types are generated from the backend's OpenAPI schema, so a backend change that breaks the UI shows up as a build error.
 - Every failure (validation, not found, offline, slow, a broken answer) reaches the user as one plain sentence.
 - The client is tested against a real running backend, including a refused connection, not against a simulated one.
+
+---
+
+# W-7 Chat screen (Perfect, 2026-11-12)
+
+## 1. In one sentence
+The Start screen now really talks to the backend: it sends the request, follows the project's live progress on a timeline, and keeps the sidebar's project list up to date.
+
+## 2. What I did, step by step
+1. `src/api/events.ts`: `splitMessages` cuts the live stream's text into finished messages, and `parseEvent` turns one message into an event. A message it cannot read gives `null`, so one odd message never breaks the timeline. Both are plain functions with no network.
+2. `src/build/buildState.ts`: `applyEvent` takes the current state and one event and gives the new state (status, steps, tests, attempt). Unknown words are handled (an unknown status shows as "working"; an unknown step kind is skipped).
+3. `src/build/sidebar.ts`: turns the API's project row into the sidebar's row, with "just now" / "5 min ago" / "3 h ago" instead of a raw time.
+4. `streamEvents` in `src/api/client.ts` opens the stream with `fetch` and reads it piece by piece (D-016).
+5. `src/hooks/useBuild.ts`: `start(text)` creates the project and then watches it; `open(id)` watches an existing one; `reset()` goes back to the Start screen.
+6. `src/hooks/useProjectList.ts`: loads the sidebar list, and loads it again when the open project or its status changes.
+7. `src/screens/StartScreen.tsx` and `BuildScreen.tsx`, put together in `src/App.tsx`. `BuildTimeline` now hides the attempt count and tests bar when the server has not sent them.
+
+## 3. Why we did it this way
+- **Pure functions for the rules:** reading messages, changing the state, and formatting times need no server and no screen, so they are tested directly and are easy to explain.
+- **`fetch` instead of `EventSource` (D-016):** `EventSource` cannot be tested for real in our test setup, and it reconnects forever by itself, even after the server hangs up on purpose.
+- **Nothing invented:** the events do not carry the attempt number or the test list yet. The screen shows only what the server said.
+- **A double click makes one project:** `useBuild` ignores a second `start` while the first is still running.
+- **The page going away stops the stream:** when you leave, the stream is cancelled, and a late answer is ignored.
+- **Picking an old project replays its history:** the server sends everything that happened, then new events, so the timeline is always complete.
+- **Every state has words:** starting (with a note that a sleeping server can take half a minute), waiting to start, ready, failed or stopped (with the last reason), live connection lost (with a button), and sidebar could not load.
+
+## 4. How to check it works
+```
+cd frontend
+npm test -- --run          # 48 passed, 15 skipped (the live ones)
+npm run typecheck && npm run lint && npm run format:check && npm run build
+```
+With a real backend (Terminal 1, repo root: `source backend/.venv/bin/activate && uvicorn backend.main:app`):
+```
+cd frontend
+VITE_LIVE_API=1 npm test -- --run client.live App.live      # 15 passed
+npm run dev        # open the address it prints; type a request and press "Plan my API"
+```
+Saved output: `evidence/frontend/outputs_w7_live.txt`. With the backend stopped, the 3 page tests fail, as they should. The tests in `App.test.tsx` point at a port where nothing listens, so the connection really is refused, and they need no server.
+
+## 5. What is NOT done or is faked
+- **A real build does not show yet.** Elise's builder is not connected to the server until W-9, so a project stays on `waiting`. The timeline, steps, retries and the tests bar are tested with the exact event shapes from the contract, but not with a real build.
+- **"The server hangs up after `ready`" is not tested against a real server.** Nothing can send a final event until W-9. The code path exists and its pure parts are tested.
+- **No questions, plan, approve, Ready or download screens.** They need Elise's F-2, F-5 and F-13.
+- **Not tested:** a slow server (the 30-second limit), a stream that drops in the middle, and a keyboard-only walk through the sidebar. I did not look at the page in a browser or take a screenshot. Please open it once and look.
+- **The AI's final JSON reply** will show as a raw "Thinking" step once builds run (Elise noted this for W-9).
+- **A project is only in the sidebar while the backend runs** (D-013: memory only).
+
+## 6. What will bite us
+- The live tests share one backend, so rows from earlier runs stay in the sidebar until it restarts.
+- `localhost:8000` must be where the backend runs, or set `VITE_API_URL` in `frontend/.env.local`.
+- If a stream is open and you close the tab, the server notices on its next check, so wait a moment before stopping it.
+- Changing `BuildTimeline` props touches `src/dev/Gallery.tsx` too: it must keep compiling.
+
+## 7. Terms used
+| Term | One-line meaning |
+|---|---|
+| Hook | A function (name starts with `use`) that gives a screen state and actions; ours call the backend |
+| State | The values a screen remembers, such as "which project is open" |
+| Ref (`useRef`) | A box that keeps a value between renders without causing a new render |
+| `useEffect` | Code that runs when the page appears or a value changes; its returned function cleans up |
+| SSE (Server-Sent Events) | The server keeps one connection open and writes a message each time something happens |
+| Abort | Cancelling a request or stream that is still running |
+| Pure function | A function that only uses its inputs and has no side effects, so it is easy to test |
+| Replay | The server sends the whole history first, so a late visitor sees the full timeline |
+
+## 8. Lines ready for the report
+- The UI follows a build live through Server-Sent Events, and every state (starting, waiting, ready, failed, connection lost) has a plain-English message.
+- The rules for reading events and updating the timeline are plain functions, tested on their own; the page is tested against a real running backend, not a simulation.
+- The timeline shows only what the server reported: when attempt counts are not available, it shows none.

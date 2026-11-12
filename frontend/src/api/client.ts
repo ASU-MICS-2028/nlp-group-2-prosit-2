@@ -4,6 +4,7 @@
 // TypeScript points at every line that no longer fits.
 
 import { API_URL } from '../config'
+import { parseEvent, splitMessages, type BuildEvent } from './events'
 import type { components } from './schema'
 
 export type StartResponse = components['schemas']['StartResponse']
@@ -31,6 +32,11 @@ const OFFLINE_MESSAGE =
 const SLOW_MESSAGE =
   'The server is taking too long. It may be waking up, so please try again in a moment.'
 const GENERIC_MESSAGE = 'Something went wrong on our side. Please try again.'
+
+// For any error caught by a screen: our own sentence if it is an ApiError, a generic one otherwise.
+export function errorMessage(error: unknown): string {
+  return error instanceof ApiError ? error.message : GENERIC_MESSAGE
+}
 
 // Our backend answers errors as {"detail": "a plain sentence"}. Use that sentence when it is there.
 // Anything else (an HTML error page from the host, an empty body) gets the generic sentence.
@@ -102,8 +108,52 @@ export function getProject(projectId: string): Promise<ProjectResponse> {
   return request<ProjectResponse>(`/projects/${encodeURIComponent(projectId)}`)
 }
 
-// The live progress stream is not a normal request: the browser's EventSource keeps it open.
-// This only builds its address; the hook that reads it comes in W-7.
 export function eventsUrl(projectId: string): string {
   return `${API_URL}/projects/${encodeURIComponent(projectId)}/events`
+}
+
+const LOST_MESSAGE =
+  'The live connection to the server was lost. Open the project again to see where it got to.'
+
+// The live progress stream. It is not a normal request: the server keeps it open and writes
+// a message each time something happens, so we read it piece by piece (D-016).
+// `onEvent` is called once for every event, oldest first: the server first sends everything
+// that happened so far, then new events as they happen. Returns when the server hangs up
+// (after a final status) or when `signal` is used to cancel it.
+export async function streamEvents(
+  projectId: string,
+  onEvent: (event: BuildEvent) => void,
+  signal: AbortSignal,
+): Promise<void> {
+  let connected = false
+  try {
+    const response = await fetch(eventsUrl(projectId), {
+      signal,
+      headers: { Accept: 'text/event-stream' },
+    })
+    if (!response.ok || response.body === null) {
+      throw new ApiError(await messageFromResponse(response), response.status)
+    }
+    connected = true
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder() // turns the raw bytes into text
+    let received = '' // text that has arrived but is not a finished message yet
+    while (true) {
+      const { done, value } = await reader.read() // waits until something arrives
+      if (done) return // the server hung up
+      // stream: true keeps a character that arrives in two pieces together
+      received += decoder.decode(value, { stream: true })
+      const { messages, rest } = splitMessages(received)
+      received = rest
+      for (const message of messages) {
+        const event = parseEvent(message)
+        if (event) onEvent(event)
+      }
+    }
+  } catch (error) {
+    if (signal.aborted) return // we hung up on purpose, so it is not a failure
+    if (error instanceof ApiError) throw error
+    throw new ApiError(connected ? LOST_MESSAGE : OFFLINE_MESSAGE, null)
+  }
 }
