@@ -102,7 +102,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | E-2 | Run evaluation on all 20 requests | Nana | E-1, F-4, F-5 | ⛔ | `evidence/evaluation/outputs_eval_run1.txt` saved |
 | E-3 | Fix the top failures (prompts: Opei; code: Elise) | Opei | E-2 | ⛔ | Fixes listed in `learnings/` |
 | E-4 | Re-run evaluation, compare to run 1 | Nana | E-3 | ⛔ | `outputs_eval_run2.txt` saved; numbers go into the report only now |
-| D-1 | Deploy frontend to Vercel | Nana | S-6 | 🟢 | Public URL loads (steps ready in `deploy/README.md`; CLI deploy per D-014) |
+| D-1 | Deploy frontend to Vercel | Nana | S-6 | ✅ | Public URL loads (done 2026-11-13: https://mesora-api-builder.vercel.app; CLI deploy per D-014; evidence in `evidence/deploy/`) |
 | D-2 | Deploy backend to Render (keys in host settings, not code) | Nana | W-9 | ⛔ | `/health` OK on public URL |
 | D-3 | Smoke test deployed frontend ↔ backend | Nana | D-1, D-2 | ⛔ | One full request works online |
 | D-4 | Prove the model switch: change `LLM_MODEL` (and the provider if ADK allows it), still works | Opei | W-4 | ✅ | Terminal output saved in `evidence/`; if only the model name can change, say so in the report. Done 2026-11-10: the model name switches by `.env` alone; no second model finished a build (flash-lite skipped tools, others refused or overloaded on the free tier); `evidence/agent/outputs_d4_model_switch.txt` |

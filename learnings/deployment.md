@@ -1,6 +1,6 @@
 # Deployment
 
-Owner: Nana · Last updated: 2026-11-10 · Status: partly working (limits checked; accounts and the first deploy still to do)
+Owner: Nana · Last updated: 2026-11-13 · Status: partly working (frontend live; backend waits for W-9)
 
 ## 1. In one sentence
 The frontend is a set of static files hosted free on Vercel; the backend is a long-running Python server hosted free on Render (D-003, D-011).
@@ -9,7 +9,10 @@ The frontend is a set of static files hosted free on Vercel; the backend is a lo
 1. Read the official free-tier pages on 2026-11-10 (links in section 9) and wrote the limits below.
 2. Found two things that change how we deploy (section 6): Vercel's free plan cannot auto-deploy from an organisation's repository, and Render's free server is small (512 MB RAM).
 3. Wrote the deploy steps in `deploy/README.md`.
-4. Still to do by Nana: create the accounts (S-8), deploy the frontend (D-1), and fill in the two "check after sign-up" lines.
+4. 2026-11-13: created the Vercel account (Hobby, signed in with GitHub) and deployed the frontend (D-1) from my laptop
+   with `npx vercel deploy --prod --yes`. Live at **https://mesora-api-builder.vercel.app**. Checked it with curl (200, page title
+   "API Builder") and searched the published JavaScript for keys (none). Evidence: `evidence/deploy/outputs_frontend_url.txt`, `evidence/deploy/ui-online.png`.
+5. Still to do by Nana: the Render account (S-8) and its two "check after sign-up" numbers; the backend (D-2, needs W-9).
 
 ## 3. Free-tier limits (checked 2026-11-10)
 
@@ -39,7 +42,7 @@ The frontend is a set of static files hosted free on Vercel; the backend is a lo
 ## 4. How to check it works
 After D-1 (see `deploy/README.md`):
 ```
-$ curl -s -o /dev/null -w "%{http_code}\n" https://<our-project>.vercel.app/
+$ curl -s -o /dev/null -w "%{http_code}\n" https://mesora-api-builder.vercel.app/
 200
 ```
 After D-2 (later, needs W-9):
@@ -49,8 +52,9 @@ $ curl -s https://<our-backend>.onrender.com/health
 ```
 
 ## 5. What is NOT done or is faked
-- No account exists yet; nothing is deployed. Live URLs: none yet.
-- The frontend still shows the Start screen only (it talks to no backend until W-7).
+- Frontend is live: https://mesora-api-builder.vercel.app. Backend: not deployed (no Render account yet).
+- The live frontend shows "We could not reach the server" on the Start screen. That is expected: the build uses the
+  default backend address `http://localhost:8000` until D-2 gives us a real one and we set `VITE_API_URL` in Vercel and redeploy.
 - Render bandwidth and build-minute numbers are not on Render's public pages; fill them in from the dashboard.
 
 ## 6. What will bite us
@@ -60,6 +64,11 @@ $ curl -s https://<our-backend>.onrender.com/health
 - **Data does not last.** No persistent disk: projects in memory (D-013) and every generated API's data reset on each restart or sleep. The report must say so (D-011 already does).
 - **CORS.** When the backend is deployed, its allowed origins must be set to the Vercel URL only (`deploy/AGENTS.md`).
 - **Secrets.** The Gemini key goes in Render's environment settings page, never in the repo.
+- **`vercel link` writes a token to `frontend/.env.local`.** It is a login token for our Vercel account. It is git-ignored
+  (`.env.*`) and kept out of uploads by `frontend/.vercelignore`. Never commit or share it.
+- **`vercel build` fails on Windows** with `EPERM` (it needs permission to make symlinks). Use `vercel deploy --prod --yes`
+  instead: Vercel builds the code on its own servers.
+- **`VITE_API_URL` is baked in at build time.** Changing it in the Vercel dashboard does nothing until we redeploy.
 
 ## 7. Terms used
 | Term | One-line meaning |
@@ -70,6 +79,9 @@ $ curl -s https://<our-backend>.onrender.com/health
 | Persistent disk | Storage that survives restarts; Render's free tier has none |
 | CORS | The browser rule that lets a page call a server only if the server allows that page's address |
 | Instance hours | Hours a server is awake and running; free hours are counted per month |
+| `.vercelignore` | A list of files the Vercel CLI must not upload, like `.gitignore` but for deploys |
+| Symlink | A file that points to another file; Windows only lets some users create them, which breaks `vercel build` |
+| Build time (for `VITE_` values) | The moment `npm run build` runs; `VITE_` values are copied into the JavaScript then, not read later |
 
 ## 8. Lines ready for the report
 - The frontend is hosted on Vercel's free plan and the backend on Render's free plan, so the whole system costs nothing to run.
