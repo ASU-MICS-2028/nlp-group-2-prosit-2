@@ -12,7 +12,18 @@ The frontend is a set of static files hosted free on Vercel; the backend is a lo
 4. 2026-11-13: created the Vercel account (Hobby, signed in with GitHub) and deployed the frontend (D-1) from my laptop
    with `npx vercel deploy --prod --yes`. Live at **https://mesora-api-builder.vercel.app**. Checked it with curl (200, page title
    "API Builder") and searched the published JavaScript for keys (none). Evidence: `evidence/deploy/outputs_frontend_url.txt`, `evidence/deploy/ui-online.png`.
-5. Still to do by Nana: the Render account (S-8) and its two "check after sign-up" numbers; the backend (D-2, needs W-9).
+5. 2026-11-13: created the Render account (S-8) and read its bandwidth and build-minute limits (section 3).
+   Wrote the backend steps in `deploy/README.md`. Dry run on the laptop with Render's start command: `/health` OK,
+   CORS lets in only the Vercel address, idle memory about 51 MB (`evidence/deploy/outputs_backend_dryrun.txt`).
+6. 2026-11-13: the organisation owner approved Render's app (issue #25). Nana created the Render web service in the
+   dashboard (settings in `deploy/README.md`; Gemini key typed into Render only). **Early run**: live at
+   **https://nlp-group-2-prosit-2.onrender.com** with today's `main`. Checked: `/health` 200, CORS allows only the Vercel site,
+   `/projects` answers (`evidence/deploy/outputs_backend_url.txt`).
+7. Set `VITE_API_URL` in Vercel to the Render address and redeployed the frontend. The first try was **blocked** (see section 6).
+   Redeployed from a clean copy without git history: the live JavaScript now has the Render address and no keys, and the Start
+   screen loads "No projects yet" from the backend (`evidence/deploy/ui-online-with-backend.png`).
+8. Still to do: after W-9 is merged, redeploy the backend and run the remaining checks (one full build online, key missing,
+   wake-up time after sleep, memory during a build). Then D-2 ✅ and D-3.
 
 ## 3. Free-tier limits (checked 2026-11-10)
 
@@ -36,7 +47,8 @@ The frontend is a set of static files hosted free on Vercel; the backend is a lo
 | Disk | No persistent disk. Files written while running are lost on redeploy, restart or sleep |
 | Restarts | Render may restart a free service at any time |
 | Outgoing traffic | Suspended if unusually high; email ports 25, 465, 587 blocked |
-| Bandwidth, build minutes | Count against the workspace's monthly allowance: **check the numbers on the billing page after sign-up** |
+| Outbound bandwidth | **5 GB per month** on the Hobby workspace (checked 2026-11-13). With no card on file, Render stops the services until the next month if we go over |
+| Build minutes | **500 per month** on Hobby (checked 2026-11-13). With no card on file, builds stop for the rest of the month if we run out |
 | Free databases | One free Postgres and one free Key Value per workspace (see D-013 before using them) |
 
 ## 4. How to check it works
@@ -52,22 +64,29 @@ $ curl -s https://<our-backend>.onrender.com/health
 ```
 
 ## 5. What is NOT done or is faked
-- Frontend is live: https://mesora-api-builder.vercel.app. Backend: not deployed (no Render account yet).
-- The live frontend shows "We could not reach the server" on the Start screen. That is expected: the build uses the
-  default backend address `http://localhost:8000` until D-2 gives us a real one and we set `VITE_API_URL` in Vercel and redeploy.
-- Render bandwidth and build-minute numbers are not on Render's public pages; fill them in from the dashboard.
+- Frontend live: https://mesora-api-builder.vercel.app. Backend live (early run): https://nlp-group-2-prosit-2.onrender.com.
+- **Building an API online does not work yet.** The backend runs `main` before W-9, so a new project stays "waiting".
+- Not tested online yet: a full build, the missing-key error, the wake-up time after 15 idle minutes, memory during a build.
+- Render account created 2026-11-13 (Nana, GitHub sign-in). The 5 GB and 500-minute numbers come from Render's docs; nobody has yet confirmed them on the account's billing page.
 
 ## 6. What will bite us
 - **No auto-deploy for the frontend.** Because the repo belongs to an organisation, Vercel's free plan cannot watch it. The frontend is deployed from a laptop with the Vercel command-line tool. **Who redeploys:** Nana, after any change to `frontend/` is merged into `main`, and always on the morning of a demo. Other options cost money (Pro plan) or add secrets (a GitHub Action with a Vercel token in the organisation's settings).
 - **The backend sleeps.** The first request after 15 quiet minutes takes about a minute. Open `/health` a few minutes before any demo; the frontend should show a "waking up" notice (it has a Notice component for this).
 - **Small server for D-011.** D-011 runs up to 3 generated APIs live inside our backend, plus the agent and pytest runs, all in 512 MB RAM. That may run out of memory. Elise and Perfect should measure memory with 3 live APIs before the demo; the limit of 3 may need to drop to 1 on the free tier.
 - **Data does not last.** No persistent disk: projects in memory (D-013) and every generated API's data reset on each restart or sleep. The report must say so (D-011 already does).
+- **Do not add a card to Render.** With no card, going over a limit pauses the service instead of charging us (free tiers only). 5 GB is plenty for a demo; each redeploy uses build minutes, so don't redeploy in a loop.
+- **The agent runs inside the backend.** `backend/builder.py` imports `agent/`, so the agent, Gemini calls and the pytest runs of generated code all happen on the same 512 MB Render server. There is no separate agent deploy.
 - **CORS.** When the backend is deployed, its allowed origins must be set to the Vercel URL only (`deploy/AGENTS.md`).
 - **Secrets.** The Gemini key goes in Render's environment settings page, never in the repo.
 - **`vercel link` writes a token to `frontend/.env.local`.** It is a login token for our Vercel account. It is git-ignored
   (`.env.*`) and kept out of uploads by `frontend/.vercelignore`. Never commit or share it.
 - **`vercel build` fails on Windows** with `EPERM` (it needs permission to make symlinks). Use `vercel deploy --prod --yes`
   instead: Vercel builds the code on its own servers.
+- **Vercel blocks a deploy if the last commit's author is not the account owner.** Our Vercel account is iamITHub's;
+  a deploy from a branch whose last commit was by isanamoa was "Blocked". Fix: deploy from a clean copy of `main`'s
+  `frontend/` with no `.git` folder (`deploy/README.md` shows how).
+- **Render chose the service name** `nlp-group-2-prosit-2`, not the planned `mesora-api-builder-api`. The name is only
+  part of the address; it does not matter.
 - **`VITE_API_URL` is baked in at build time.** Changing it in the Vercel dashboard does nothing until we redeploy.
 
 ## 7. Terms used
@@ -89,6 +108,8 @@ $ curl -s https://<our-backend>.onrender.com/health
 
 ## 9. Sources (read 2026-11-10)
 - Render: https://render.com/docs/free
+- Render bandwidth (Hobby 5 GB): https://render.com/docs/outbound-bandwidth (read 2026-11-13)
+- Render build minutes (Hobby 500): https://render.com/docs/build-pipeline (read 2026-11-13)
 - Render free instance size (512 MB RAM, 0.1 CPU): https://render.com/docs/compute-plans
 - Vercel limits (Git organisations, deployments, upload size): https://vercel.com/docs/limits
 - Vercel Hobby allowances and non-commercial rule: https://vercel.com/docs/limits/fair-use-guidelines
