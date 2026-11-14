@@ -1,7 +1,9 @@
 """Project endpoints (W-5). The shapes follow docs/api-contract.md."""
 
 import asyncio
+import math
 import os
+import re
 from collections.abc import AsyncIterator
 from datetime import datetime, timezone
 
@@ -11,6 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from agent.prompts import builder_instruction
 from agent.retry import build_with_retries
+from backend.builder import BuildResult
 
 # A router is a group of endpoints; main.py plugs it into the app.
 router = APIRouter(tags=["projects"])
@@ -21,6 +24,9 @@ projects: dict[str, dict[str, str]] = {}
 # Each project's diary: every event that happened to it, in order.
 # The agent (W-3) will add to it with add_event(); the live stream reads from it.
 events: dict[str, list[dict[str, object]]] = {}
+
+# What each finished build handed back (its files and our own test output), for GET /projects/{id}.
+results: dict[str, BuildResult] = {}
 
 # When a project reaches one of these, nothing more will happen, so the stream hangs up.
 FINAL_STATUSES = {"ready", "failed", "stopped"}
@@ -54,10 +60,15 @@ class StartResponse(BaseModel):
 
 
 class ProjectResponse(BaseModel):
-    # Only what exists today. The contract's other fields (name, file_count, api_url, ...)
-    # are added once the agent can actually fill them in.
+    # The contract's fields that exist today. run_command, api_url and live_status come with F-5 and F-13.
     id: str
+    name: str
     status: str
+    # None (null in JSON) until a build has finished: the page hides what it doesn't have.
+    file_count: int | None = None
+    size_kb: int | None = None
+    tests_passed: int | None = None
+    tests_total: int | None = None
 
 
 class ProjectSummary(BaseModel):
@@ -118,7 +129,7 @@ async def run_build(project_id: str, request: str) -> None:
     message = f"There is no plan yet. Build a small API for this request:\n\n{request}"
     try:
         # Opei's retry loop (F-4) around the builder (W-3). Every step it reports goes into this project's diary.
-        await build_with_retries(
+        results[project_id] = await build_with_retries(
             message, builder_instruction(), model, report=lambda event: add_event(project_id, event)
         )
     except Exception:
@@ -163,7 +174,23 @@ def list_projects() -> list[ProjectSummary]:
 # Depends(find_project) means "run find_project first and give me its answer" (or stop with 404).
 @router.get("/projects/{project_id}", response_model=ProjectResponse)
 def get_project(project: dict[str, str] = Depends(find_project)) -> ProjectResponse:
-    return ProjectResponse(id=project["id"], status=project["status"])
+    answer = ProjectResponse(id=project["id"], name=short_name(project["request"]), status=project["status"])
+    result = results.get(project["id"])  # None while the build is still going
+    if result is not None:
+        answer.file_count = len(result.files)
+        # Size of all files together, rounded UP to whole kilobytes (1 KB = 1024 bytes), so a tiny project shows 1, not 0.
+        answer.size_kb = math.ceil(sum(len(text.encode()) for text in result.files.values()) / 1024)
+        answer.tests_passed, answer.tests_total = count_tests(result.test_output)
+    return answer
+
+
+def count_tests(output: str) -> tuple[int, int]:
+    # pytest's last line looks like "1 failed, 4 passed in 0.31s". Read the number in front of each word.
+    lines = output.strip().splitlines()
+    last = lines[-1] if lines else ""  # no output at all: the tests never ran
+    passed = sum(int(number) for number in re.findall(r"(\d+) passed", last))
+    not_passed = sum(int(number) for number in re.findall(r"(\d+) (?:failed|errors?)", last))
+    return passed, passed + not_passed
 
 
 # The live stream (SSE). Each `yield` sends one message to the browser straight away.

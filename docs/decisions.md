@@ -1,5 +1,7 @@
 # Decisions
 
+From D-017 on, each decision also records **when** (date and time, GMT) and **who made the call**, so we can trace it later. Older entries are not rewritten.
+
 ## D-001: Frontend and backend are separate programs that talk only through an API
 Date: 2026-10-26 · Status: Proposed
 Affects: Elise, Perfect
@@ -114,3 +116,11 @@ Affects: Perfect (owns), Elise (the events her builder reports)
 Decision: `streamEvents` in `frontend/src/api/client.ts` opens `GET /projects/{id}/events` with `fetch`, reads the body piece by piece, and cuts it into SSE messages with `splitMessages` (`frontend/src/api/events.ts`). The server still speaks SSE, as in D-004 and `docs/api-contract.md`. Only the reader on our side differs.
 Why: `EventSource` does not exist in the test environments we use (jsdom and Node), so testing it would need a pretend one, and we agreed to test against a real server. A `fetch` reader runs the same in tests and in the browser. We also control when it stops: `EventSource` reconnects by itself forever, even after the server hangs up on purpose.
 Gave up: Automatic reconnect. If the connection drops, the screen shows "Live progress stopped" with a button that opens the project again, and the server replays the whole history (as the contract says). We also wrote about 30 lines of parsing that `EventSource` would have done for us.
+
+## D-017: Until the approve step exists, `POST /projects` starts the build at once, and the server reads `.env` at start-up
+Date: 2026-11-14 05:55 GMT · Decided by: Elise (backend owner) · Status: Accepted (Perfect agreed in the W-7 review, 2026-11-12)
+Affects: Elise (owns), Perfect (the chat screen only calls `POST /projects`), Opei (his retry loop is what runs)
+Decision: `POST /projects` answers `201` straight away and then runs the build in FastAPI's `BackgroundTasks` (`run_build` in `backend/projects.py`). The AI gets the request as written, because there is no plan yet. The build is Opei's `build_with_retries`, with `add_event` as the reporter. The server is started with `uvicorn backend.main:app --env-file .env`, so it gets `GEMINI_API_KEY` and `LLM_MODEL` without any code reading the file.
+Why: W-9 needs one request to become a tested API on screen, and the approve endpoint is F-2 (which waits on W-9). Building in the background lets the page get the id at once and watch the live stream. `BackgroundTasks` is built into FastAPI, so there is no new library. `--env-file` is a uvicorn option, so there is no new code and the key stays out of the repo.
+Gave up: The plan and approval before building (comes with F-2, which moves the build start to `POST /projects/{id}/approve`). A real job queue: a build is lost if the server restarts. The AI builds from the raw request, which is less precise than an approved plan.
+

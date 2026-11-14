@@ -47,6 +47,7 @@ Response `201`:
 }
 ```
 At most 3 questions. If the request is already clear, `questions` is `[]` and the plan is available right away.
+Today (W-9, 2026-11-14): there are no questions or approve step yet, so this call **starts the build at once** in the background, with the request as written. F-2 moves the build start behind `POST /projects/{id}/approve`. `GET /projects/{id}` now also returns `name`, `file_count`, `size_kb`, `tests_passed` and `tests_total` (the last four are `null` until the build ends).
 
 ### `POST /projects/{id}/answers`
 Request: `{ "answers": [{ "question_id": "q1", "answer": "Yes, with a price" }] }`

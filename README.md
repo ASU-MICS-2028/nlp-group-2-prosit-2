@@ -20,7 +20,7 @@ Code is kept short and plain on purpose. See [CONTRIBUTING.md](CONTRIBUTING.md) 
 
 ## Pending now
 
-Last updated: 2026-11-12. Stage: **Phase 1, Walking skeleton** (frontend, backend skeleton, sandbox runner and LLM wrapper are on `main`).
+Last updated: 2026-11-14. Stage: **Phase 1, Walking skeleton** (frontend, backend skeleton, sandbox runner and LLM wrapper are on `main`).
 Gemini key and ADK spike are done (S-4, W-10). Critical path: W-1 tools + W-4 instructions → W-3 agent → W-5 endpoints → W-9 first end-to-end → live API (F-12, F-13) → evaluation → report.
 New decisions (D-010 to D-012): agent built with Google ADK; each generated API runs live at a stable link; follow-ups only after a build.
 Runner security fixes are done (F-11), so the live runner (F-12) can start.
@@ -31,7 +31,7 @@ Deadline for the prosit deliverables (code, report, slides): **Sun 1 Nov 2026**.
 |---|---|---|
 | **Perfect** | S-2 branch protection, S-3 collaborators, A-3 Section A draft (W-6 and W-7 done 2026-11-12) | F-3 plan screen (F-2), F-14 live Ready screen |
 | **Opei** | A-2 Section A draft (W-4 done 2026-11-08, D-4 done 2026-11-10) | F-4 (W-9; builds on `backend/builder.py`), F-6 (F-5) |
-| **Elise** | A-1 Section A draft; **W-9 end-to-end (the chat screen W-7 is done: connect `build_project` to the server with `add_event`)**; F-12 live runner (W-3 done 2026-11-10; W-8 and F-1 done 2026-11-11) | F-2 plan + approval (W-9, F-1), F-13 live API (F-12) |
+| **Elise** | A-1 Section A draft; W-9 end-to-end done 2026-11-14 (first Ready build from the chat screen); F-12 live runner (W-3 done 2026-11-10; W-8 and F-1 done 2026-11-11) | F-2 plan + approval (W-9, F-1), F-13 live API (F-12) |
 | **Nana** | S-8 create the Vercel and Render accounts (limits done), D-1 deploy frontend to Vercel (steps in `deploy/README.md`), A-4 Section A draft | E-1 scoring script (W-9; the 20-request set S-7 is ready) |
 
 Full task list, owners and blockers: [PLAN.md](PLAN.md). Rows leave this table once they are finished.

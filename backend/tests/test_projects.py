@@ -7,7 +7,8 @@ from fastapi.testclient import TestClient
 
 from backend import projects
 from backend.main import app
-from backend.projects import add_event
+from backend.builder import BuildResult
+from backend.projects import add_event, count_tests
 
 client = TestClient(app)
 
@@ -46,10 +47,13 @@ def test_build_reports_go_into_the_projects_diary(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setenv("LLM_MODEL", "fake-model")
     asked: list[str] = []
 
-    # A pretend retry loop: notes the AI's first message and reports one final step, like the real one.
+    # A pretend retry loop: notes the AI's first message, reports one final step and hands back
+    # two files (2 KB together) and pytest's last line, like the real one.
     async def fake_build(message, instruction, model, report):
         asked.append(message)
         report({"status": "ready", "attempt": 1, "max_attempts": 3})
+        files = {"app/main.py": "x" * 1024, "tests/test_main.py": "y" * 1024}
+        return BuildResult(status="ready", reason="All tests pass.", files=files, test_output="5 passed in 0.12s")
 
     monkeypatch.setattr(projects, "build_with_retries", fake_build)
     project_id = new_project_id()
@@ -58,7 +62,27 @@ def test_build_reports_go_into_the_projects_diary(monkeypatch: pytest.MonkeyPatc
 
     assert "A notes API" in asked[0]  # the AI got the person's request
     assert projects.events[project_id][-1] == {"status": "ready", "attempt": 1, "max_attempts": 3}
-    assert projects.projects[project_id]["status"] == "ready"
+    # The project page now shows what was built.
+    body = client.get(f"/projects/{project_id}").json()
+    assert body["status"] == "ready"
+    assert body["name"] == "A notes API"
+    assert (body["file_count"], body["size_kb"]) == (2, 2)
+    assert (body["tests_passed"], body["tests_total"]) == (5, 5)
+
+
+def test_build_numbers_are_empty_until_the_build_ends() -> None:
+    body = client.get(f"/projects/{new_project_id()}").json()
+
+    # null, not 0: "we don't know yet" is different from "zero files".
+    assert body["file_count"] is None
+    assert body["tests_total"] is None
+
+
+def test_count_tests_reads_pytests_last_line() -> None:
+    assert count_tests("....F\n1 failed, 4 passed in 0.31s") == (4, 5)
+    assert count_tests("5 passed in 0.12s") == (5, 5)
+    assert count_tests("1 passed, 2 errors in 0.5s") == (1, 3)
+    assert count_tests("") == (0, 0)  # the tests never ran
 
 
 def test_build_without_a_model_fails_with_a_reason(monkeypatch: pytest.MonkeyPatch) -> None:

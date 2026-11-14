@@ -1,6 +1,6 @@
 # Backend
 
-Owner: Elise (S-5 picked up by Perfect, see Handovers in PLAN.md and D-009) · Last updated: 2026-11-11 · Status: partly working (skeleton, sandbox runner, project endpoints, agent loop, project list)
+Owner: Elise (S-5 picked up by Perfect, see Handovers in PLAN.md and D-009) · Last updated: 2026-11-14 · Status: partly working (skeleton, sandbox runner, project endpoints, agent loop, project list, end-to-end build)
 
 ## 1. In one sentence
 A small Python server (FastAPI) that the web UI will call; today it only answers "are you awake?" and publishes its own API description.
@@ -312,3 +312,64 @@ Saved: `evidence/backend/outputs_w8_list_projects_tests.txt`.
 
 ## 8. Lines ready for the report
 - The sidebar list is sorted by last change, so a project the agent is working on rises to the top.
+
+---
+
+# W-9 End-to-end (Elise, 2026-11-14)
+
+## 1. In one sentence
+Sending a request on the chat screen now starts a real build: `POST /projects` starts `run_build` in the background, which runs Opei's retry loop around our builder and writes every step into the project's diary, so the screen shows it live.
+
+## 2. What I did, step by step
+1. A test fixture swaps the build job for a fake in every project test, so no test ever calls the real AI.
+2. `POST /projects` adds `run_build` to FastAPI's `BackgroundTasks`: it answers first, then builds.
+3. `run_build` gives the AI the request as written (until F-2's plan), calls `build_with_retries` with `add_event` as the reporter, and keeps the result.
+4. Two safety stops: no `LLM_MODEL` → `failed` with a reason; any unexpected error → `failed` with "Something went wrong on our side", so the screen never spins forever.
+5. `GET /projects/{id}` now returns `name`, `file_count`, `size_kb`, `tests_passed`, `tests_total` (null until the build ends).
+6. Live runs from the chat screen (evidence below).
+
+## 3. Why we did it this way
+- **Background, not waiting**: a build takes minutes. The page needs the id at once to open the live stream.
+- **`BackgroundTasks`, not threads or a job queue**: built into FastAPI, no new library, enough for a demo.
+- **Call the retry loop, not the builder directly**: Opei's loop already retries and sends `attempt` and `max_attempts`, which Perfect's screen shows.
+- **The server reads `.env` with `uvicorn --env-file .env`**: no new code; the key stays out of the repo. Google's library reads `GEMINI_API_KEY` by itself.
+- **Test counts from our own test run**, not from what the AI says.
+- **null, not 0, before the end**: "not known yet" is different from "zero".
+
+## 4. How to check it works
+```
+python -m pytest -q                                    # 130 passed, no key needed
+uvicorn backend.main:app --reload --env-file .env      # terminal 1
+cd frontend && npm run dev                             # terminal 2, then open http://localhost:5173
+```
+Saved:
+- `evidence/backend/outputs_w9_run1_too_slow.txt`: run 1. Gemini was busy, then too slow; all 3 tries stopped with plain reasons and the stream ended.
+- `evidence/backend/outputs_w9_run2_ready.txt` and the screenshots `evidence/backend/w9_run2_ready_*.png`: run 2, "an api for note book". Ready on try 1: 6 files, 7 KB, 10 of 10 tests. Gemini said "busy" after the last file, and the retry loop ran the tests itself instead of starting again.
+
+## 5. What is NOT done or is faked
+- No questions or plan yet: the AI builds from the raw request. F-2 adds them.
+- No link to the finished API yet (F-12, F-13, F-14).
+- `tests` (one pass/fail per test) is not sent yet; the page hides it.
+- Results are in memory and lost on restart (D-013).
+
+## 6. What will bite us
+- Saving a backend file while a build runs restarts the server (`--reload`) and the build is lost.
+- `run_tests` uses `subprocess.run`, which blocks: while the generated tests run (up to 30 s), the server answers nobody and the live stream pauses.
+- On a busy free tier one AI reply can take a minute, so a build hits the 5-minute limit. Run again later or try another Gemini model.
+- The request goes to the builder as written; a person could try to give it other instructions (prompt injection). The sandbox (F-11) limits the damage.
+
+## 7. Terms used
+| Term | One-line meaning |
+|---|---|
+| End-to-end | The whole path works: from the screen, through the server and AI, back to the screen |
+| `BackgroundTasks` | FastAPI's "do this after you have replied" list |
+| `lambda` | A tiny one-line function without a name |
+| Fixture (`autouse=True`) | Set-up code pytest runs before every test in the file, without being asked |
+| `--env-file` | Tells uvicorn to read settings from a file such as `.env` |
+| `re.findall` | Find every piece of text that matches a pattern, e.g. a number before "passed" |
+
+## 8. Lines ready for the report
+- The platform answers a request at once and builds in the background; every agent step is pushed to the browser as it happens.
+- The first live run met a busy free tier: the system retried, stopped each try with a plain reason, and ended cleanly instead of hanging.
+- The second live run built a Notebook API from one sentence: 6 files and 10 passing tests, shown live in the browser.
+
