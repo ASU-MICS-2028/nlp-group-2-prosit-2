@@ -1,3 +1,8 @@
+import json
+import threading
+import time
+from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
+
 import pytest
 
 from agent import llm
@@ -208,3 +213,112 @@ def test_gemini_reply_without_text_is_an_error(monkeypatch):
 
     with pytest.raises(llm.LLMError, match="empty reply"):
         llm.generate("hi")
+
+
+def test_gemini_503_busy_is_retried_like_429(monkeypatch):
+    # The free tier often answers "503 overloaded" (W-9, Render). That is worth a retry too.
+    use_gemini(monkeypatch, llm.genai.errors.APIError(503, {"error": {"message": "overloaded"}}))
+
+    with pytest.raises(llm.RateLimited):
+        llm.generate("hi")
+
+
+# --- The builder's model (W-9 fix): each busy reply is retried inside the build ---
+
+
+def test_builder_model_retries_busy_replies():
+    model = llm.builder_model("gemini-3.5-flash")
+
+    assert model.model == "gemini-3.5-flash"
+    assert model.retry_options.attempts == 5
+    for code in (429, 503):
+        assert code in model.retry_options.http_status_codes
+    assert 400 not in model.retry_options.http_status_codes  # a bad request never gets better by waiting
+
+
+class BusyThenOkServer(BaseHTTPRequestHandler):
+    """A pretend Gemini server: says "503 busy" twice, then answers. Counts the calls it got."""
+
+    calls = 0
+
+    def do_POST(self):
+        type(self).calls += 1
+        self.rfile.read(int(self.headers.get("Content-Length", 0)))  # read the request so the line is clean
+        if type(self).calls <= 2:
+            body, status = {"error": {"code": 503, "message": "overloaded", "status": "UNAVAILABLE"}}, 503
+        else:
+            reply = {"content": {"role": "model", "parts": [{"text": "hello"}]}, "finishReason": "STOP"}
+            body, status = {"candidates": [reply]}, 200
+        data = json.dumps(body).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def log_message(self, *args):  # keep the test output quiet
+        pass
+
+
+def test_builder_model_really_resends_after_503(monkeypatch):
+    # The real google-genai client against a pretend server on this computer: no key, no internet.
+    monkeypatch.setenv("GEMINI_API_KEY", "not-a-real-key")
+    monkeypatch.setattr(llm, "BUILDER_RETRY", llm.BUILDER_RETRY.model_copy(update={"initial_delay": 0.01, "max_delay": 0.02}))
+    BusyThenOkServer.calls = 0
+    server = HTTPServer(("127.0.0.1", 0), BusyThenOkServer)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        model = llm.builder_model("gemini-3.5-flash")
+        model.base_url = f"http://127.0.0.1:{server.server_port}"
+        reply = model.api_client.models.generate_content(model="gemini-3.5-flash", contents="hi")
+    finally:
+        server.shutdown()
+
+    assert reply.text == "hello"
+    assert BusyThenOkServer.calls == 3  # busy, busy, then the answer: the build would have carried on
+
+
+class HangsThenOkServer(BaseHTTPRequestHandler):
+    """A pretend Gemini server whose first answer never comes in time (seen live), then answers."""
+
+    calls = 0
+
+    def do_POST(self):
+        type(self).calls += 1
+        self.rfile.read(int(self.headers.get("Content-Length", 0)))
+        if type(self).calls == 1:
+            time.sleep(2)  # far longer than the test's time limit below: the client gives up first
+        reply = {"content": {"role": "model", "parts": [{"text": "hello"}]}, "finishReason": "STOP"}
+        data = json.dumps({"candidates": [reply]}).encode()
+        try:
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+        except OSError:  # the client already hung up on the slow first call
+            pass
+
+    def log_message(self, *args):
+        pass
+
+
+def test_builder_model_cuts_a_hanging_call_and_sends_it_again(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "not-a-real-key")
+    monkeypatch.setattr(llm, "CALL_TIMEOUT_SECONDS", 0.5)
+    monkeypatch.setattr(llm, "BUILDER_RETRY", llm.BUILDER_RETRY.model_copy(update={"initial_delay": 0.01, "max_delay": 0.02}))
+    HangsThenOkServer.calls = 0
+    server = ThreadingHTTPServer(("127.0.0.1", 0), HangsThenOkServer)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        model = llm.builder_model("gemini-3.5-flash")
+        model.base_url = f"http://127.0.0.1:{server.server_port}"
+        started = time.monotonic()
+        reply = model.api_client.models.generate_content(model="gemini-3.5-flash", contents="hi")
+        seconds = time.monotonic() - started
+    finally:
+        server.shutdown()
+
+    assert reply.text == "hello"
+    assert HangsThenOkServer.calls == 2  # the hanging call, then the one sent again
+    assert seconds < 1.9  # we did not wait for the hanging call to finish
