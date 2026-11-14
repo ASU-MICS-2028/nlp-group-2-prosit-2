@@ -37,6 +37,11 @@ BUILDER_RETRY = types.HttpRetryOptions(
     http_status_codes=BUSY_CODES,
 )
 
+# Longest we wait for ONE answer from Gemini in a build. A call that hangs (seen live: no answer for the
+# whole 5-minute try) is cut after this and sent again by BUILDER_RETRY, instead of eating the whole try.
+# A normal answer, even writing a whole app/main.py, takes well under a minute.
+CALL_TIMEOUT_SECONDS = 90
+
 # Tests replace this with a fake so they do not really wait.
 _sleep = time.sleep
 
@@ -78,8 +83,12 @@ def builder_model(name: str) -> Gemini:
     Without retry_options, ADK sends each request once, so ONE "503 busy" from the free tier
     ended a whole build try (W-9 run 1, and the online runs on Render). With it, the google-genai
     library waits and sends that same request again, and the build carries on where it was.
+    A call that hangs is cut after CALL_TIMEOUT_SECONDS and sent again the same way.
     """
-    return Gemini(model=name, retry_options=BUILDER_RETRY)
+    # timeout is in milliseconds. A call cut by it counts as a retryable error, like a busy reply.
+    # ADK fills in the rest (retry_options, its own headers) around these http_options.
+    http_options = types.HttpOptions(timeout=int(CALL_TIMEOUT_SECONDS * 1000))
+    return Gemini(model=name, retry_options=BUILDER_RETRY, client_kwargs={"http_options": http_options})
 
 
 def _call_claude(prompt: str, system: str | None, model: str) -> str:
