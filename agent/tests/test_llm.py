@@ -208,3 +208,13 @@ def test_gemini_reply_without_text_is_an_error(monkeypatch):
 
     with pytest.raises(llm.LLMError, match="empty reply"):
         llm.generate("hi")
+
+
+def test_backup_model_is_read_from_the_settings(monkeypatch):
+    monkeypatch.setenv("LLM_BACKUP_MODEL", " gemini-3-flash-preview ")
+    assert llm.backup_model() == "gemini-3-flash-preview"  # spaces around it are ignored
+
+
+def test_no_backup_model_gives_none(monkeypatch):
+    monkeypatch.setenv("LLM_BACKUP_MODEL", "")
+    assert llm.backup_model() is None

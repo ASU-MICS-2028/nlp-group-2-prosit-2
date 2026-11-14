@@ -93,6 +93,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | F-13 | Pass-through endpoint `/apis/{id}/...`; reopen restarts the API from stored files; `api_url` and `live_status` on the project (D-011) | Elise | F-12, W-5 | ⛔ | `/apis/{id}/docs` opens and "Try it out" works through our backend |
 | F-14 | Ready screen: live link, the API's Swagger page, "Wake it up" when sleeping, zip as take-home | Perfect | F-13, F-7 | ⛔ | Keyboard-only walkthrough works; screenshot in `evidence/live/` |
 | F-15 | Follow-up request after a build: a new round on the existing files (D-012) | Perfect | F-13 | ⚪ | Optional; only if there is time |
+| F-16 | Backup model when Gemini is busy: 3 tries on the main model, a 4th on `LLM_BACKUP_MODEL` (D-018) (outside lane) | Elise | F-4 | 🔄 | A main model that is busy on every try still ends `ready` via the backup (test with fake models); Opei approves. 2026-11-14: built, 134 tests pass; waiting for Opei |
 
 ## Phase 3: Evaluation and deployment (Fri 30 – Sat 31 Oct)
 
