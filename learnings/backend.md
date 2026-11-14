@@ -344,7 +344,7 @@ cd frontend && npm run dev                             # terminal 2, then open h
 ```
 Saved:
 - `evidence/backend/outputs_w9_run1_too_slow.txt`: run 1. Gemini was busy, then too slow; all 3 tries stopped with plain reasons and the stream ended.
-- `evidence/backend/outputs_w9_run2_ready.txt` and the screenshots `evidence/backend/w9_run2_ready_*.png`: run 2, "an api for note book". Ready on try 1: 6 files, 7 KB, 10 of 10 tests. Gemini said "busy" after the last file, and the retry loop ran the tests itself instead of starting again.
+- `evidence/backend/outputs_w9_run2_ready.txt` and the screenshots `evidence/backend/w9_run2_ready_end.png` and `w9_run2_ready_scroll_fix.png` (the same end, after the timeline was made to scroll inside its panel): run 2, "an api for note book". Ready on try 1: 6 files, 7 KB, 10 of 10 tests. Gemini said "busy" after the last file, and the retry loop ran the tests itself instead of starting again.
 
 ## 5. What is NOT done or is faked
 - No questions or plan yet: the AI builds from the raw request. F-2 adds them.
