@@ -96,7 +96,7 @@ One Render web service runs the whole backend: the FastAPI server, the builder a
 | `GEMINI_API_KEY` | the team's Gemini key | **Yes** |
 | `ALLOWED_ORIGINS` | `https://mesora-api-builder.vercel.app` | No |
 | `PYTHON_VERSION` | `3.12.8` (CI uses 3.12) | No |
-| `LLM_MODEL` | only if we want a model other than the default in `agent/llm.py` | No |
+| `LLM_MODEL` | `gemini-3.5-flash` (**required**: with no model every build fails at once with "The server has no AI model set (LLM_MODEL)") | No |
 
 **Then connect the frontend**
 1. Vercel → mesora-api-builder → Settings → Environment Variables: `VITE_API_URL` = `https://nlp-group-2-prosit-2.onrender.com`.

@@ -22,8 +22,12 @@ The frontend is a set of static files hosted free on Vercel; the backend is a lo
 7. Set `VITE_API_URL` in Vercel to the Render address and redeployed the frontend. The first try was **blocked** (see section 6).
    Redeployed from a clean copy without git history: the live JavaScript now has the Render address and no keys, and the Start
    screen loads "No projects yet" from the backend (`evidence/deploy/ui-online-with-backend.png`).
-8. Still to do: after W-9 is merged, redeploy the backend and run the remaining checks (one full build online, key missing,
-   wake-up time after sleep, memory during a build). Then D-2 ✅ and D-3.
+8. 2026-11-14: W-9 merged; redeployed the backend (Manual Deploy). The first build failed at once: "The server has no AI
+   model set (LLM_MODEL)". My deploy steps had wrongly called `LLM_MODEL` optional. That was a clear message, not a crash
+   (`evidence/deploy/outputs_backend_no_model.txt`). Nana added `LLM_MODEL=gemini-3.5-flash` in Render. The next two builds
+   ran, then failed because Gemini's free tier was "busy" on every retry. One build wrote a file first, so the key works
+   (`evidence/deploy/outputs_backend_first_builds.txt`).
+9. Still to do: one build that ends "ready" online, the wake-up time after sleep, memory during a build. Then D-2 ✅ and D-3.
 
 ## 3. Free-tier limits (checked 2026-11-10)
 
@@ -87,6 +91,9 @@ $ curl -s https://<our-backend>.onrender.com/health
   `frontend/` with no `.git` folder (`deploy/README.md` shows how).
 - **Render chose the service name** `nlp-group-2-prosit-2`, not the planned `mesora-api-builder-api`. The name is only
   part of the address; it does not matter.
+- **`LLM_MODEL` is required on Render**, not optional: without it every build fails at once. We use `gemini-3.5-flash`.
+- **Gemini's free tier is often "busy".** Builds then fail after 3 tries with a plain message. Before a demo, run one
+  build a few minutes early; if Gemini is busy, wait and try again.
 - **`VITE_API_URL` is baked in at build time.** Changing it in the Vercel dashboard does nothing until we redeploy.
 
 ## 7. Terms used

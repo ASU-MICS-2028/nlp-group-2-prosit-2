@@ -1,0 +1,18 @@
+# D-2 check "a missing setting gives a clear error, not a crash", 2026-11-14T08:00Z
+# Live backend after the W-9 redeploy, before LLM_MODEL was set in Render.
+
+$ curl -s -X POST https://nlp-group-2-prosit-2.onrender.com/projects -H "Content-Type: application/json" \
+    -d '{"request":"A simple API to store books with a title and an author"}'
+{"id":"p_2","status":"waiting","questions":[]}
+
+# 2 seconds later:
+$ curl -s https://nlp-group-2-prosit-2.onrender.com/projects/p_2/events
+data: {"status":"waiting"}
+
+data: {"status":"failed","step":{"kind":"Result","text":"The server has no AI model set (LLM_MODEL).","state":"failed"}}
+
+$ curl -s https://nlp-group-2-prosit-2.onrender.com/health
+{"status":"ok"}
+
+Result: the build stops at once with a plain sentence, and the server keeps running.
+Cause: our own deploy steps wrongly said LLM_MODEL was optional; fixed in deploy/README.md (gemini-3.5-flash).
