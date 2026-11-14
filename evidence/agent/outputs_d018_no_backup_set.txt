@@ -1,0 +1,21 @@
+D-018 check 1 (2026-11-14, about 06:36 GMT): 'a simple notebook api' from the chat screen, LLM_MODEL=gemini-3.5-flash, LLM_BACKUP_MODEL NOT set in .env.
+Expected: 4 tries, all on the main model, with no switch. Gemini was busy throughout.
+
+Timeline (status, attempt, step kind, step text):
+
+waiting                
+working   1            
+working      Result    The AI service is busy or unavailable. Please try again in a few minutes.
+retrying     Thinking  The AI service was busy. Waited 30 seconds; trying again.
+retrying  2            
+retrying     Thinking  Building a simple Notebook API with a notes table and 5 endpoints.
+retrying     Doing     Writing requirements.txt
+retrying     Result    Wrote requirements.txt
+retrying     Result    The AI service is busy or unavailable. Please try again in a few minutes.
+retrying     Thinking  The AI service was busy. Waited 30 seconds; trying again.
+retrying  3            
+retrying     Result    The AI service is busy or unavailable. Please try again in a few minutes.
+retrying     Thinking  The AI service was busy. Waited 30 seconds; trying again.
+retrying  4            
+retrying     Result    The AI service is busy or unavailable. Please try again in a few minutes.
+failed       Result    Still not working after 4 tries. Last problem: The AI service is busy or unavailable. Please try again in a few minutes.

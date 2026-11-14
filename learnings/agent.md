@@ -232,14 +232,20 @@ Live check (`gemini-3.5-flash`, a seeded Notes API whose "delete a missing note"
 - `backend/projects.py`: `run_build` passes `backup_model=llm.backup_model()`.
 - Tests: busy 3 times → the backup builds it (`ready`); busy twice → the backup is never called; the setting is read; the tests that said "3 tries" now use `retry.MAX_ATTEMPTS`.
 
-**How to check:** `python -m pytest -q` (134 passed). Put `LLM_BACKUP_MODEL=gemini-3-flash-preview` in `.env`.
+**How to check:** `python -m pytest -q` (135 passed). Put `LLM_BACKUP_MODEL=gemini-3-flash-preview` in `.env`.
 
-**Which backup:** a one-call tool check on 2026-11-14 (your key): `gemini-3-flash-preview` called the tool in 1.5 s, `gemini-3.1-flash-lite` in 1.2 s, `gemini-flash-latest` took 398 s, `gemini-3.6-flash` had no free quota (429), `gemma-4-31b-it` gave a 500 error. A full build with the backup alone was run from the chat screen (start the server with `LLM_MODEL=gemini-3-flash-preview uvicorn ...` to override `.env` for one run).
+**Which backup:** a one-call tool check on 2026-11-14 (your key): `gemini-3-flash-preview` called the tool in 1.5 s, `gemini-3.1-flash-lite` in 1.2 s, `gemini-flash-latest` took 398 s, `gemini-3.6-flash` had no free quota (429), `gemma-4-31b-it` gave a 500 error. **Live checks (2026-11-14, chat screen, "a simple notebook api"):**
+- No backup set: Gemini 3.5 was busy on all 4 tries, so it ended `failed` with a plain reason, and no switch (`evidence/agent/outputs_d018_no_backup_set.txt`, `d018_no_backup_set.png`).
+- Backup set: busy on tries 1 to 3, then "Switching to the backup model for one last try"; `gemini-3-flash-preview` wrote 6 files and ended `ready`, 9 of 9 tests (`evidence/agent/outputs_d018_backup_used_ready.txt`, `d018_backup_used_ready_*.png`).
+- After changing `.env`, restart the server fully (Ctrl+C): `--reload` does not reread `.env`.
 
 **What will bite us:**
 - A 4th try for every failing build: up to about 20 minutes and 160 AI calls.
 - The backup is also a Google model, so if all of Google is busy it doesn't help. A second provider is future work.
 - The screen and the contract now say 4 tries, not 3.
+
+- The backup asked for all its tool calls at once (6 writes and the test run), so the timeline showed every "Doing" before the "Results". It still worked.
+- The AI's final JSON reply showed as a raw "Thinking" step (known since W-3). Fixed on the same branch: `is_json_report` in `backend/builder.py` leaves it out of the timeline (test: `test_the_ais_json_report_is_not_shown_in_the_timeline`).
 
 **Terms:** *Backup (fallback) model*: a second model used only when the first can't answer. *429*: "too many requests". *503*: "busy, try later".
 

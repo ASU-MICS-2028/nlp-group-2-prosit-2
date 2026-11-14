@@ -6,6 +6,8 @@
 
 **What we decided (Elise):** the main model keeps 3 tries; if all 3 were busy, a 4th "last shot" runs on `LLM_BACKUP_MODEL`. `MAX_ATTEMPTS` is now 4. Written in our retry loop, not with `FallbackModel`.
 
-**What changed:** `agent/llm.py`, `agent/retry.py`, `backend/projects.py`, tests in `agent/tests/` and `backend/tests/`, `.env.example`, D-018, PLAN F-16, `learnings/agent.md`.
+**What changed:** `agent/llm.py`, `agent/retry.py`, `backend/projects.py`, `backend/builder.py` (the AI's JSON report is no longer shown in the timeline), tests in `agent/tests/` and `backend/tests/`, `.env.example`, D-018, PLAN F-16, `learnings/agent.md`.
+
+**Result:** live, Gemini 3.5 was busy on tries 1 to 3; the backup built it on try 4: `ready`, 9 of 9 tests. Without a backup set, the same busy spell ended `failed` after 4 tries.
 
 **Open questions / next steps:** Opei to confirm D-018 (his loop). Perfect: the screen now says "of 4". A second provider (Groq or OpenRouter) as a backup outside Google is future work.

@@ -123,8 +123,17 @@ def step_from_part(part: types.Part) -> dict[str, object] | None:
     if part.function_response:  # a tool's answer comes back
         return result_step(part.function_response.name or "", part.function_response.response or {})
     if part.text and part.text.strip():  # the AI writes some text
-        return {"kind": "Thinking", "text": part.text.strip(), "state": "done"}
+        text = part.text.strip()
+        if is_json_report(text):
+            return None  # the AI's closing JSON report is for code, not for the person (see below)
+        return {"kind": "Thinking", "text": text, "state": "done"}
     return None  # anything else isn't worth showing
+
+
+def is_json_report(text: str) -> bool:
+    # The builder prompt asks the AI to end with a JSON report, e.g. ```json {"status": "done", ...} ```.
+    # A person can't read it, and we don't rely on it: we run the tests ourselves (check_result).
+    return text.startswith("```json") or (text.startswith("{") and text.endswith("}"))
 
 
 def doing_text(tool: str, arguments: dict[str, object]) -> str:
