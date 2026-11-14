@@ -200,3 +200,71 @@ Saved output: `evidence/frontend/outputs_w7_live.txt`. With the backend stopped,
 - The UI follows a build live through Server-Sent Events, and every state (starting, waiting, ready, failed, connection lost) has a plain-English message.
 - The rules for reading events and updating the timeline are plain functions, tested on their own; the page is tested against a real running backend, not a simulation.
 - The timeline shows only what the server reported: when attempt counts are not available, it shows none.
+
+---
+
+# F-17 Plain build timeline (Perfect, 2026-11-14)
+
+## 1. In one sentence
+The timeline now tells a non-developer what is happening in plain words ("Putting your plan into action…", "Testing your API…", "Finalizing your API…") and keeps every exact step folded under "Show details".
+
+## 2. What I did, step by step
+1. A teammate (Nana) pointed out that lines like "Writing app/database.py" mean nothing to someone who cannot code.
+2. The backend now sends a fixed `phase` with every step: `planning`, `writing`, `testing`, `fixing` or `finishing` (D-019, `backend/builder.py`). The page reads only this word, never the sentence.
+3. `src/build/phases.ts` holds the list. `src/build/plainSteps.ts` (`toPlainSteps`) turns the steps into short lines: file steps join into one line, each test run is its own line, a file problem gets its own red line, and a "finishing" step only counts if nothing comes after it (so a failed try does not say "Finalizing" in the middle of a build).
+4. `BuildTimeline` has a new optional `details` list, shown in a native `<details>` element ("Show details"), closed by default.
+5. `BuildScreen` passes the plain lines as the main list and the raw steps as the details.
+
+## 3. Why we did it this way
+- **A fixed `phase`, not the sentence:** the page cannot read a changed sentence by mistake. The live stream is not in the OpenAPI schema, so TypeScript cannot warn us about it. A backend test now fails if a step has no `phase`.
+- **A safe fallback:** a step with no phase (an older server) becomes "Working on your API…", and its text is still in the details. It never shows blank or wrong.
+- **The detail is folded away, not deleted:** useful for debugging, and for showing the real steps in the demo or viva.
+- **The AI's own opening sentence is kept:** "Building a Bookshop API with 4 endpoints." is already plain.
+- **Native `<details>`:** it works with the keyboard and needs no code of ours.
+
+## 4. How to check it works
+```
+cd frontend
+npm test -- --run plainSteps BuildScreen        # the plain lines and the folded details
+npm test -- --run                               # 69 passed, 15 skipped (live ones)
+npm run typecheck && npm run lint && npm run format:check
+```
+`src/build/realBuildEvents.json` is a real event sequence made by running the backend's retry loop with the pretend AI (three tries, a fix, then success). To make it again, from the repo root with the backend venv on:
+```
+python - <<'PY'
+import asyncio, json
+from agent.retry import build_with_retries
+from agent.tests.test_retry import FakeModel, call, say, SEEDED_PROJECT, FIXED_APP
+model = FakeModel(model="fake", replies=[call("run_tests"), call("run_tests"), call("run_tests"),
+    say("The add function subtracts. I will change - to +."),
+    call("write_file", path="calc.py", content=FIXED_APP), call("run_tests"), say("Done.")])
+events = []
+asyncio.run(build_with_retries("Build the calculator.", "You are a builder.", model, events.append, dict(SEEDED_PROJECT)))
+json.dump(events, open("frontend/src/build/realBuildEvents.json", "w"), indent=2)
+PY
+```
+Saved: `evidence/frontend/outputs_f17_tests.txt`.
+
+## 5. What is NOT done or is faked
+- **I have not seen a real Gemini build with the new timeline.** The tests use a real event sequence from the backend's own loop with a pretend AI. Please run one real build and look at it, then save a screenshot.
+- **The wording is mine plus Nana's ideas.** Nana should read it.
+- **The page does not show how many files were written** or how far along the build is. That would need a total from the server.
+- **Two lists of phases must stay in step:** `PHASES` in `backend/builder.py` and `phases.ts`. An unknown phase is dropped by the page and becomes "Working on your API…".
+- **"Finalizing your API…" can appear for a moment** between a failed try and the next one, until the "Fixing…" line arrives.
+
+## 6. What will bite us
+- Adding a new kind of step in the backend without a `phase` fails a backend test. That is on purpose.
+- If you change a phase word, change `docs/api-contract.md`, `backend/builder.py` and `phases.ts` together.
+
+## 7. Terms used
+| Term | One-line meaning |
+|---|---|
+| Phase | A fixed word saying what a step is about (planning, writing, testing, fixing, finishing) |
+| Plain steps | The short, non-technical lines shown by default |
+| Details | The exact steps, folded away under "Show details" |
+| Fixture | A saved piece of real data a test reads (`realBuildEvents.json`) |
+| Fallback | What the page does when data is missing, so nothing breaks |
+
+## 8. Lines ready for the report
+- The build timeline speaks plain language to non-developers and keeps the exact steps one click away.
+- Every step carries a fixed `phase`, enforced by a backend test, so the page never depends on the wording of a sentence.

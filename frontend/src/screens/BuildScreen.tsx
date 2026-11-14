@@ -1,5 +1,6 @@
 import type { BuildState } from '../build/buildState'
 import { isFinal } from '../build/buildState'
+import { toPlainSteps } from '../build/plainSteps'
 import { BuildTimeline } from '../components/BuildTimeline'
 import { Button } from '../components/Button'
 import { Notice } from '../components/Notice'
@@ -21,7 +22,8 @@ export function BuildScreen({ title, build, error, onReopen }: Props) {
       <BuildTimeline
         title={title}
         status={build.status}
-        steps={build.steps}
+        steps={toPlainSteps(build.steps, build.status)}
+        details={build.steps}
         tests={build.tests}
         attempt={build.attempt ?? undefined}
         maxAttempts={build.maxAttempts ?? undefined}

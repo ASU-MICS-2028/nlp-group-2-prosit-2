@@ -9,6 +9,7 @@ from google.genai import errors, types
 
 from agent import retry
 from agent.retry import build_with_retries
+from backend.builder import PHASES
 
 # A "seeded failing project": a small app with a bug, and a test that catches it.
 BUGGY_APP = "def add(a, b):\n    return a - b\n"  # the bug: minus instead of plus
@@ -209,3 +210,23 @@ def test_a_service_that_stays_busy_ends_failed(monkeypatch: pytest.MonkeyPatch) 
     assert result.kind == "service_busy"
     assert "busy" in result.reason
     assert statuses(steps).count("failed") == 1
+
+
+def test_every_step_of_a_retried_build_has_a_known_phase() -> None:
+    # The same story as the seeded-project test: try 1 fails, the retry text is sent, try 2 fixes it.
+    model = FakeModel(
+        model="fake",
+        replies=[call("run_tests"), call("run_tests"), call("run_tests"),
+                 say("The add function subtracts. I will change - to +."),
+                 call("write_file", path="calc.py", content=FIXED_APP),
+                 call("run_tests"), say("Done.")],
+    )
+
+    result, steps = run(model, start_files=SEEDED_PROJECT)
+
+    phases = [event["step"]["phase"] for event in steps if "step" in event]
+    assert result.status == "ready"
+    assert phases and all(phase in PHASES for phase in phases)
+    assert "fixing" in phases  # the sentence that says we are trying again
+    assert phases[-1] == "finishing"
+

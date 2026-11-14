@@ -1,0 +1,173 @@
+[
+  {
+    "status": "working",
+    "attempt": 1,
+    "max_attempts": 3
+  },
+  {
+    "status": "working",
+    "step": {
+      "kind": "Doing",
+      "text": "Running the tests",
+      "state": "done",
+      "phase": "testing"
+    }
+  },
+  {
+    "status": "working",
+    "step": {
+      "kind": "Result",
+      "text": "Tests failed",
+      "output": "F                                                                        [100%]\n=================================== FAILURES ===================================\n___________________________________ test_add ___________________________________\n\n    def test_add():\n>       assert add(2, 3) == 5\nE       assert -1 == 5\nE        +  where -1 = add(2, 3)\n\ntest_calc.py:5: AssertionError\n=========================== short test summary info ============================\nFAILED test_calc.py::test_add - assert -1 == 5\n1 failed in 0.01s\n",
+      "state": "failed",
+      "phase": "testing"
+    }
+  },
+  {
+    "status": "working",
+    "step": {
+      "kind": "Doing",
+      "text": "Running the tests",
+      "state": "done",
+      "phase": "testing"
+    }
+  },
+  {
+    "status": "working",
+    "step": {
+      "kind": "Result",
+      "text": "Tests failed",
+      "output": "F                                                                        [100%]\n=================================== FAILURES ===================================\n___________________________________ test_add ___________________________________\n\n    def test_add():\n>       assert add(2, 3) == 5\nE       assert -1 == 5\nE        +  where -1 = add(2, 3)\n\ntest_calc.py:5: AssertionError\n=========================== short test summary info ============================\nFAILED test_calc.py::test_add - assert -1 == 5\n1 failed in 0.01s\n",
+      "state": "failed",
+      "phase": "testing"
+    }
+  },
+  {
+    "status": "working",
+    "step": {
+      "kind": "Doing",
+      "text": "Running the tests",
+      "state": "done",
+      "phase": "testing"
+    }
+  },
+  {
+    "status": "working",
+    "step": {
+      "kind": "Result",
+      "text": "Tests failed",
+      "output": "F                                                                        [100%]\n=================================== FAILURES ===================================\n___________________________________ test_add ___________________________________\n\n    def test_add():\n>       assert add(2, 3) == 5\nE       assert -1 == 5\nE        +  where -1 = add(2, 3)\n\ntest_calc.py:5: AssertionError\n=========================== short test summary info ============================\nFAILED test_calc.py::test_add - assert -1 == 5\n1 failed in 0.01s\n",
+      "state": "failed",
+      "phase": "testing"
+    }
+  },
+  {
+    "status": "working",
+    "step": {
+      "kind": "Result",
+      "text": "The tests still fail after 3 tries.",
+      "state": "failed",
+      "phase": "finishing"
+    }
+  },
+  {
+    "status": "retrying",
+    "step": {
+      "kind": "Thinking",
+      "text": "The tests still fail after 3 tries. Asking the AI to explain what went wrong and fix it.",
+      "state": "done",
+      "phase": "fixing"
+    }
+  },
+  {
+    "status": "retrying",
+    "attempt": 2,
+    "max_attempts": 3
+  },
+  {
+    "status": "retrying",
+    "step": {
+      "kind": "Thinking",
+      "text": "The add function subtracts. I will change - to +.",
+      "state": "done",
+      "phase": "finishing"
+    }
+  },
+  {
+    "status": "retrying",
+    "step": {
+      "kind": "Result",
+      "text": "The tests still fail.",
+      "state": "failed",
+      "phase": "finishing"
+    }
+  },
+  {
+    "status": "retrying",
+    "step": {
+      "kind": "Thinking",
+      "text": "The tests still fail. Asking the AI to explain what went wrong and fix it.",
+      "state": "done",
+      "phase": "fixing"
+    }
+  },
+  {
+    "status": "retrying",
+    "attempt": 3,
+    "max_attempts": 3
+  },
+  {
+    "status": "retrying",
+    "step": {
+      "kind": "Doing",
+      "text": "Writing calc.py",
+      "state": "done",
+      "phase": "writing"
+    }
+  },
+  {
+    "status": "retrying",
+    "step": {
+      "kind": "Result",
+      "text": "Wrote calc.py",
+      "state": "done",
+      "phase": "writing"
+    }
+  },
+  {
+    "status": "retrying",
+    "step": {
+      "kind": "Doing",
+      "text": "Running the tests",
+      "state": "done",
+      "phase": "testing"
+    }
+  },
+  {
+    "status": "retrying",
+    "step": {
+      "kind": "Result",
+      "text": "Tests passed",
+      "state": "done",
+      "phase": "testing"
+    }
+  },
+  {
+    "status": "retrying",
+    "step": {
+      "kind": "Thinking",
+      "text": "Done.",
+      "state": "done",
+      "phase": "finishing"
+    }
+  },
+  {
+    "status": "ready",
+    "step": {
+      "kind": "Result",
+      "text": "All tests pass.",
+      "state": "done",
+      "phase": "finishing"
+    }
+  }
+]

@@ -81,6 +81,7 @@ One event per change. Each event's data is JSON:
 }
 ```
 - `kind`: `Thinking`, `Doing` or `Result`. `state`: `done`, `current` or `failed`.
+- `phase` (every step has one, D-019): a fixed word for what the step is about: `planning` (the AI's opening sentence), `writing` (reading, writing or listing files), `testing` (running the tests and their result), `fixing` (the AI explaining a problem and what it will change), `finishing` (the AI's closing reply and the build's final result). The page decides what to show from `phase`, never from `text`, so a sentence in `text` can be reworded freely. A step without a `phase` is shown as a neutral "Working on your API…". The list is `PHASES` in `backend/builder.py` and `frontend/src/build/phases.ts`; change both together.
 - `tests` has one entry per test: `pass`, `fail` or `pending`.
 - `step` is optional on events that only change status or tests.
 - The last event has `status` of `ready`, `failed` or `stopped`, and then the server closes the stream.
