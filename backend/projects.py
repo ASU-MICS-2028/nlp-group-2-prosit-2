@@ -1,12 +1,19 @@
 """Project endpoints (W-5). The shapes follow docs/api-contract.md."""
 
 import asyncio
+import math
+import os
+import re
 from collections.abc import AsyncIterator
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.sse import EventSourceResponse
 from pydantic import BaseModel, ConfigDict, Field
+
+from agent.prompts import builder_instruction
+from agent.retry import build_with_retries
+from backend.builder import BuildResult
 
 # A router is a group of endpoints; main.py plugs it into the app.
 router = APIRouter(tags=["projects"])
@@ -17,6 +24,9 @@ projects: dict[str, dict[str, str]] = {}
 # Each project's diary: every event that happened to it, in order.
 # The agent (W-3) will add to it with add_event(); the live stream reads from it.
 events: dict[str, list[dict[str, object]]] = {}
+
+# What each finished build handed back (its files and our own test output), for GET /projects/{id}.
+results: dict[str, BuildResult] = {}
 
 # When a project reaches one of these, nothing more will happen, so the stream hangs up.
 FINAL_STATUSES = {"ready", "failed", "stopped"}
@@ -50,10 +60,15 @@ class StartResponse(BaseModel):
 
 
 class ProjectResponse(BaseModel):
-    # Only what exists today. The contract's other fields (name, file_count, api_url, ...)
-    # are added once the agent can actually fill them in.
+    # The contract's fields that exist today. run_command, api_url and live_status come with F-5 and F-13.
     id: str
+    name: str
     status: str
+    # None (null in JSON) until a build has finished: the page hides what it doesn't have.
+    file_count: int | None = None
+    size_kb: int | None = None
+    tests_passed: int | None = None
+    tests_total: int | None = None
 
 
 class ProjectSummary(BaseModel):
@@ -98,8 +113,33 @@ def add_event(project_id: str, event: dict[str, object]) -> None:
     projects[project_id]["updated_at"] = now()  # any new event counts as a change, so the sidebar moves it up
 
 
+def failed(project_id: str, reason: str) -> None:
+    # End the build with one plain sentence. A final status also ends the live stream.
+    add_event(project_id, {"status": "failed", "step": {"kind": "Result", "text": reason, "state": "failed"}})
+
+
+async def run_build(project_id: str, request: str) -> None:
+    # The build job (W-9): runs after POST /projects has already answered.
+    model = os.environ.get("LLM_MODEL", "")
+    if not model:
+        # With no model name, ADK quietly picks its own default, so we stop and say so instead.
+        failed(project_id, "The server has no AI model set (LLM_MODEL).")
+        return
+    # Until F-2 adds a plan the person approves, the AI gets the request in the person's own words.
+    message = f"There is no plan yet. Build a small API for this request:\n\n{request}"
+    try:
+        # Opei's retry loop (F-4) around the builder (W-3). Every step it reports goes into this project's diary.
+        results[project_id] = await build_with_retries(
+            message, builder_instruction(), model, report=lambda event: add_event(project_id, event)
+        )
+    except Exception:
+        # Last safety net: an error we didn't expect (e.g. no API key). Without this the project stays
+        # "working" forever and the screen spins. A plain sentence is better than a spinner.
+        failed(project_id, "Something went wrong on our side. Please try again.")
+
+
 @router.post("/projects", status_code=201, response_model=StartResponse)
-def start_project(body: StartRequest) -> StartResponse:
+def start_project(body: StartRequest, background: BackgroundTasks) -> StartResponse:
     project_id = f"p_{len(projects) + 1}"  # p_1, p_2, ...
     projects[project_id] = {
         "id": project_id,
@@ -108,6 +148,9 @@ def start_project(body: StartRequest) -> StartResponse:
         "updated_at": now(),
     }
     events[project_id] = [{"status": "waiting"}]  # the diary's first entry
+    # Start the build AFTER this reply is sent: the page gets the id at once and opens the live stream,
+    # instead of waiting minutes for an answer. Until F-2 adds approve, sending a request starts the build.
+    background.add_task(run_build, project_id, body.request)
     return StartResponse(id=project_id, status="waiting", questions=[])
 
 
@@ -131,7 +174,23 @@ def list_projects() -> list[ProjectSummary]:
 # Depends(find_project) means "run find_project first and give me its answer" (or stop with 404).
 @router.get("/projects/{project_id}", response_model=ProjectResponse)
 def get_project(project: dict[str, str] = Depends(find_project)) -> ProjectResponse:
-    return ProjectResponse(id=project["id"], status=project["status"])
+    answer = ProjectResponse(id=project["id"], name=short_name(project["request"]), status=project["status"])
+    result = results.get(project["id"])  # None while the build is still going
+    if result is not None:
+        answer.file_count = len(result.files)
+        # Size of all files together, rounded UP to whole kilobytes (1 KB = 1024 bytes), so a tiny project shows 1, not 0.
+        answer.size_kb = math.ceil(sum(len(text.encode()) for text in result.files.values()) / 1024)
+        answer.tests_passed, answer.tests_total = count_tests(result.test_output)
+    return answer
+
+
+def count_tests(output: str) -> tuple[int, int]:
+    # pytest's last line looks like "1 failed, 4 passed in 0.31s". Read the number in front of each word.
+    lines = output.strip().splitlines()
+    last = lines[-1] if lines else ""  # no output at all: the tests never ran
+    passed = sum(int(number) for number in re.findall(r"(\d+) passed", last))
+    not_passed = sum(int(number) for number in re.findall(r"(\d+) (?:failed|errors?)", last))
+    return passed, passed + not_passed
 
 
 # The live stream (SSE). Each `yield` sends one message to the browser straight away.

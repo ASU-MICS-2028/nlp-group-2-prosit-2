@@ -72,7 +72,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | W-6 | Generate typed API client from OpenAPI | Perfect | S-6, W-5 | ✅ | `frontend/src/api` builds from the schema. Done 2026-11-12: `npm run api:generate` (D-015); `client.ts` with plain error sentences; 9 live tests against the real backend; `evidence/frontend/outputs_w6_client_live.txt` |
 | W-7 | Chat screen: send request, show live progress | Perfect | W-6 | ✅ | Works against local backend. Done 2026-11-12: Start screen sends `POST /projects`, reads the live stream, shows the timeline, loads the sidebar from `GET /projects` (D-016); 48 tests without a server plus 15 live tests; `evidence/frontend/outputs_w7_live.txt`. A real build cannot show yet: the agent is connected to the server in W-9 |
 | W-8 | `GET /projects` endpoint (outside lane) | Elise (from Perfect) | S-5 | ✅ | Returns list; has a test; Elise approves. Done 2026-11-11: newest first, contract fields; `name` is the start of the request until F-2's plan names it; 3 tests; Perfect reviews the PR |
-| W-9 | End-to-end: one request → one endpoint → test passes → shown in UI | Elise | W-3, W-4, W-5, W-7 | 🟢 | Screenshot + terminal output in `evidence/` |
+| W-9 | End-to-end: one request → one endpoint → test passes → shown in UI | Elise | W-3, W-4, W-5, W-7 | ✅ | Screenshot + terminal output in `evidence/`. Done 2026-11-14: `POST /projects` starts `run_build` in the background → `build_with_retries` → `add_event` (D-017); `GET /projects/{id}` has name, file_count, size_kb, tests_passed, tests_total; 130 tests pass. Run 1 failed cleanly (busy, then too slow); run 2 from the chat screen ended `ready`, 10 of 10 tests (`evidence/backend/outputs_w9_*`) |
 
 ## Phase 2: Features (Thu 29 Oct)
 
