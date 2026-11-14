@@ -68,15 +68,22 @@ Facts to use (replace with your paragraph):
 - Tests: 130 passing on 2026-11-14 (Elise's AI-use log line); count again before the report.
 - Not done yet (check before writing): plan + approval step (F-2), zip export (F-5), live generated API at a link (F-12, F-13).
 
-### 3.2 Agent, prompts and the LLM ✍️ (B-2, Opei)
-Facts to use (replace with your paragraph):
-- `agent/llm.py` is the only door to the model (D-002); settings `LLM_PROVIDER`, `LLM_MODEL`; model `gemini-3.5-flash`.
-- Tools in `agent/tools.py` (W-1), described to ADK as plain Python functions; path checks refuse `..` and drive letters.
-- Builder prompt `agent/prompts/builder.md` (W-4): the five endpoints per table, tests required. Live check: a Bookshop API, 8 tests passed.
-- Clarifying questions (F-1, Elise): at most 3 questions; 5 of 5 live answers judged sensible.
-- Retry + self-reflection loop `agent/retry.py` (F-4): up to 3 tries, each reading the last test output.
-- Model switch check (D-4): only the model name can change; other free models were busy (503) or unavailable (404).
-- Busy-reply retry inside a build (#29): up to 5 attempts per call, about 30 s of waiting, 90 s timeout per call.
+### 3.2 Agent, prompts and the LLM (B-2, Opei)
+A language model can only write text, so the agent works through four tools in `agent/tools.py` (W-1): write a file,
+read a file, list the files, and run the tests. They are plain Python functions; ADK reads their names, type hints and
+docstrings to tell the model how to call them. Each project's files live in memory, and unsafe names (absolute paths,
+`..`, `./`, drive letters, backslashes) are refused. The tools never crash: a mistake comes back as a message the model can read
+and fix. The model's instructions are a Markdown file, `agent/prompts/builder.md` (W-4), so the whole team can review them:
+a fixed FastAPI + SQLite layout, safe SQL, plain-English endpoint summaries, a complete worked example, and the rule to build
+exactly the approved endpoints with tests. In a live check, Gemini built a Bookshop API whose 8 tests passed when we re-ran them.
+
+Free models fail in ordinary ways, so the agent is built to recover. The retry loop in `agent/retry.py` (F-4) allows up to three
+tries. After failing tests, the next try gets the test output and must first explain what went wrong, then fix it
+(self-reflection). A try that writes no files gets a firm reminder, and after a "busy" error we run the tests ourselves before
+starting over. On a project with a planted bug, the loop ended `ready`. Inside each try, a busy or hanging Gemini call is now
+retried up to five times, with a 90-second limit per call (#29). All model access goes through `agent/llm.py` (D-002), so the
+model is a setting: switching `LLM_MODEL` needed no code change (D-4), but other free models were busy, unavailable to new users,
+or, in one case, answered without using the tools at all.
 
 ### 3.3 Frontend ✍️ (B-3, Perfect)
 Facts to use (replace with your paragraph):
