@@ -17,6 +17,7 @@ from google.adk.models import BaseLlm
 from google.adk.runners import InMemoryRunner
 from google.genai import errors, types
 
+from agent.llm import builder_model
 from agent.tools import Workspace, make_tools
 from backend.runner import run_tests
 
@@ -61,6 +62,9 @@ async def build_project(
 ) -> BuildResult:
     # This project's files, kept in memory (agent/tools.py). dict(...) makes a copy, so the caller's files stay as they were.
     workspace = Workspace(files=dict(start_files or {}))
+    if isinstance(model, str):
+        # A model name: wrap it so each busy reply is retried inside this build (agent/llm.py builder_model).
+        model = builder_model(model)
     agent = Agent(name="builder", model=model, instruction=instruction, tools=make_tools(workspace))
 
     # InMemoryRunner is ADK's engine: it keeps the conversation in memory and runs the loop.

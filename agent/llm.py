@@ -16,11 +16,26 @@ import os
 import time
 
 from google import genai
+from google.adk.models import Gemini
 from google.genai import types
 
 MAX_TRIES = 3  # how many times we try when the free tier says "slow down"
 WAIT_SECONDS = 2  # wait this long after the first failure, twice as long after the second
 MAX_PROMPT_CHARS = 20000  # refuse huge prompts instead of burning free quota
+
+# HTTP codes that mean "busy, try again soon": 429 too many requests, 500/504 a server hiccup, 503 overloaded.
+BUSY_CODES = [429, 500, 503, 504]
+
+# How the builder agent retries ONE busy reply from Gemini, inside a build (see builder_model below).
+# 5 attempts with waits of about 2, 4, 8 and 16 seconds (plus a little random "jitter"), so at most
+# about 30 seconds of waiting before we give up on that reply and the retry loop (F-4) takes over.
+BUILDER_RETRY = types.HttpRetryOptions(
+    attempts=5,  # the first call plus 4 retries
+    initial_delay=2,
+    max_delay=16,
+    exp_base=2,  # each wait is twice the one before
+    http_status_codes=BUSY_CODES,
+)
 
 # Tests replace this with a fake so they do not really wait.
 _sleep = time.sleep
@@ -31,7 +46,7 @@ class LLMError(Exception):
 
 
 class RateLimited(LLMError):
-    """The provider said we are sending too many requests (HTTP 429)."""
+    """The provider is busy: too many requests (429) or overloaded (503). Worth trying again."""
 
 
 def _call_gemini(prompt: str, system: str | None, model: str) -> str:
@@ -47,7 +62,7 @@ def _call_gemini(prompt: str, system: str | None, model: str) -> str:
             config=types.GenerateContentConfig(system_instruction=system),
         )
     except genai.errors.APIError as error:
-        if error.code == 429:
+        if error.code in (429, 503):  # too many requests, or overloaded: worth waiting and trying again
             raise RateLimited("The model is busy (free-tier limit). Try again shortly.") from error
         # Only the code is shown: the original message could echo request details.
         raise LLMError(f"The model returned an error (code {error.code}).") from error
@@ -55,6 +70,16 @@ def _call_gemini(prompt: str, system: str | None, model: str) -> str:
         raise LLMError("Could not reach the model. Check the internet connection.") from error
 
     return response.text or ""
+
+
+def builder_model(name: str) -> Gemini:
+    """The model for the builder agent (W-3): Gemini, with a retry for each busy reply.
+
+    Without retry_options, ADK sends each request once, so ONE "503 busy" from the free tier
+    ended a whole build try (W-9 run 1, and the online runs on Render). With it, the google-genai
+    library waits and sends that same request again, and the build carries on where it was.
+    """
+    return Gemini(model=name, retry_options=BUILDER_RETRY)
 
 
 def _call_claude(prompt: str, system: str | None, model: str) -> str:
