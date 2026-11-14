@@ -1,0 +1,77 @@
+# W-9 fix live checks (PR #29), 2026-11-14, on Opei's laptop (Windows), LLM_MODEL=gemini-3.5-flash
+# Script: evidence/agent/f4_live_check.py (seeded failing Notes API, through agent.retry and backend.builder),
+# run with httpx / google_genai / tenacity logging at INFO, so every HTTP call to Gemini and any retry is listed.
+
+===== Run 1: commit 3df5c9f (busy-reply retry only) =====
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+Model: gemini-3.5-flash
+Seeded project before the loop: passed=False; 1 failed, 3 passed, 1 warning in 0.48s
+working   attempt 1/3          
+working   Result   The build took too long and was stopped.
+retrying  Thinking The build took too long and was stopped. Asking the AI to explain what went wrong and fix it.
+retrying  attempt 2/3          
+retrying  Doing    Listing the files
+retrying  Result   Done
+retrying  Doing    Reading app/main.py
+retrying  Result   Done
+retrying  Doing    Reading tests/test_notes.py
+retrying  Result   Done
+retrying  Doing    Reading app/database.py
+retrying  Result   Done
+retrying  Doing    Reading conftest.py
+retrying  Result   Done
+retrying  Doing    Reading requirements.txt
+retrying  Result   Done
+retrying  Thinking The DELETE endpoint was missing a check to verify that a note exists before deleting it, causing missing note deletes to return 204 instead of 404. I will add a
+retrying  Doing    Writing app/main.py
+retrying  Result   Wrote app/main.py
+retrying  Doing    Running the tests
+retrying  Result   Tests passed
+retrying  Thinking ```json {"status": "done", "summary": "A Notes API that lets users list, create, and delete notes.", "tests_passed": 4, "tests_total": 4} ```
+ready     Result   All tests pass.
+
+Took 500s. Final: ready (passed): All tests pass.
+Our own test run on the final files: passed=True; 4 passed, 1 warning in 0.13s
+# Note: try 1 made no HTTP request that returned; its first call hung for the whole 300 s try limit.
+
+===== Run 2: commit fe1cadc (plus a 90 s limit per Gemini call) =====
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+LOG httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
+Model: gemini-3.5-flash
+Seeded project before the loop: passed=False; 1 failed, 3 passed, 1 warning in 0.33s
+working   attempt 1/3          
+working   Thinking Building a Notes API with a notes table and 3 endpoints.
+working   Doing    Writing requirements.txt
+working   Result   Wrote requirements.txt
+working   Doing    Writing conftest.py
+working   Result   Wrote conftest.py
+working   Doing    Writing app/__init__.py
+working   Result   Wrote app/__init__.py
+working   Doing    Writing app/database.py
+working   Result   Wrote app/database.py
+working   Doing    Writing app/main.py
+working   Result   Wrote app/main.py
+working   Doing    Writing tests/test_notes.py
+working   Result   Wrote tests/test_notes.py
+working   Doing    Running the tests
+working   Result   Tests passed
+working   Thinking ```json {"status": "done", "summary": "A Notes API that allows creating, listing, and deleting notes.", "tests_passed": 5, "tests_total": 5} ```
+ready     Result   All tests pass.
+
+Took 148s. Final: ready (passed): All tests pass.
+Our own test run on the final files: passed=True; 5 passed, 1 warning in 0.18s
+# Note: no timeouts, no 503s and no 'Retrying' lines in this run; every call answered first time.
