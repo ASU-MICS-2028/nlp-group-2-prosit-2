@@ -1,0 +1,10 @@
+# D-1: frontend deployed to Vercel (Hobby), checked 2026-11-13T14:56Z
+# Deployed by Nana with: cd frontend && npx vercel deploy --prod --yes   (built on Vercel; .vercelignore keeps .env files out)
+
+$ curl -s -o /dev/null -w "%{http_code}\n" https://mesora-api-builder.vercel.app/
+200
+
+$ curl -s https://mesora-api-builder.vercel.app/ | grep -oE "<title>[^<]*</title>"
+<title>API Builder</title>
+
+Backend address in this build: http://localhost:8000 (default; VITE_API_URL is set after D-2)

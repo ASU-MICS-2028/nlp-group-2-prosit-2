@@ -1,0 +1,15 @@
+# D-2 early run: backend live on Render (Free), checked 2026-11-13T15:58:36Z
+# Code: main at 6d79f49. W-9 is not merged yet, so builds do not run online yet.
+
+$ curl -s -w "\nHTTP %{http_code} in %{time_total}s\n" https://nlp-group-2-prosit-2.onrender.com/health
+{"status":"ok"}
+HTTP 200 in 0.528933s
+
+$ curl -s -D - -H "Origin: https://mesora-api-builder.vercel.app" https://nlp-group-2-prosit-2.onrender.com/health | grep -i access-control-allow-origin
+access-control-allow-origin: https://mesora-api-builder.vercel.app
+
+$ curl -s -D - -H "Origin: https://evil.example" https://nlp-group-2-prosit-2.onrender.com/health | grep -i access-control-allow-origin
+(nothing: other addresses are refused)
+
+$ curl -s https://nlp-group-2-prosit-2.onrender.com/projects
+[]

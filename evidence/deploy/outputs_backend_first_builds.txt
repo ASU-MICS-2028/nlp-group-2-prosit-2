@@ -1,0 +1,19 @@
+# D-2: first real builds on the live backend, 2026-11-14, after LLM_MODEL=gemini-3.5-flash was set in Render
+# Request each time: "A simple API to store books with a title and an author" (sent with curl, as the chat screen does)
+
+Build 1 (08:19Z):
+  1s working -> 36s retrying -> 70s failed
+  files: 0
+  last event: "Still not working after 3 tries. Last problem: The AI service is busy or unavailable. Please try again in a few minutes."
+
+Build 2 (08:20Z):
+  1s working -> 54s retrying -> 100s failed
+  files: 1 (the agent wrote one file before Gemini went busy)
+  last event: "Still not working after 3 tries. Last problem: The AI service is busy or unavailable. Please try again in a few minutes."
+
+What this shows:
+- LLM_MODEL is now set: builds get past the model check, and the W-9 build runs on Render.
+- The key works: in build 2 Gemini answered at least once (one file written).
+- Both builds then failed because Gemini's free tier said "busy". The retry loop (F-4) waited and retried as designed,
+  and the timeline showed plain sentences. The server stayed up.
+- NOT yet shown: one build that ends "ready" online. Try again later, when Gemini is less busy.
