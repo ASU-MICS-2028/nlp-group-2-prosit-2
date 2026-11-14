@@ -8,6 +8,7 @@ Settings (environment variables, see .env.example):
   LLM_PROVIDER   which provider to use: "gemini" (default) or "claude"
   LLM_MODEL      the model name for that provider (required)
   GEMINI_API_KEY the secret key for Gemini (never commit it)
+  LLM_BACKUP_MODEL  optional: the model for the last try when LLM_MODEL is busy 3 times (D-018)
 
 Try it:  python -m agent.llm
 """
@@ -66,6 +67,12 @@ PROVIDERS = {
     "gemini": _call_gemini,
     "claude": _call_claude,
 }
+
+
+def backup_model() -> str | None:
+    """The builder's backup model name (D-018), or None when LLM_BACKUP_MODEL is not set."""
+    name = os.environ.get("LLM_BACKUP_MODEL", "").strip()
+    return name or None  # an empty setting means "no backup", not a model called ""
 
 
 def generate(prompt: str, system: str | None = None) -> str:

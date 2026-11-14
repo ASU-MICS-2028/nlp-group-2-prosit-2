@@ -21,8 +21,12 @@ from agent.prompts import load_prompt
 from backend.builder import MAX_KEPT_OUTPUT, BuildResult, Report, build_project
 from backend.runner import run_tests
 
-MAX_ATTEMPTS = 3  # whole builds, each with up to 3 test runs: at most 9 test runs per project
+# Whole builds, each with up to 3 test runs. Was 3 (F-4); 4 since D-018, so the main model keeps its 3 tries
+# and the 4th is a last shot (on the backup model if the main one was busy 3 times).
+MAX_ATTEMPTS = 4
 BUSY_WAIT_SECONDS = 30  # how long to wait after "503 busy" or "429 too many requests" before trying again
+# After the main model has been busy this many times in one build, the tries left use the backup model (D-018).
+SWITCH_AFTER_BUSY = 3
 
 # The reasons that can be fixed by asking the AI again with what went wrong.
 REFLECT_ON = {"tests_failed", "too_slow", "too_many_steps"}
@@ -34,9 +38,11 @@ async def build_with_retries(
     model: str | BaseLlm,  # a Gemini model name, or a FakeModel in tests
     report: Report,  # where each step goes; the server passes add_event (W-5)
     start_files: dict[str, str] | None = None,  # an existing project to fix instead of starting empty
+    backup_model: str | BaseLlm | None = None,  # used only when the main model is busy 3 times (D-018)
 ) -> BuildResult:
     message = plan_message
     files = start_files
+    busy_tries = 0  # how many tries ended because the AI service was busy
     result = BuildResult(status="failed", reason="No try was made.", files={}, kind="no_files")
 
     for attempt in range(1, MAX_ATTEMPTS + 1):
@@ -62,6 +68,7 @@ async def build_with_retries(
             break  # no tries left: don't wait or build a new message for nothing
 
         # Decide what the next try gets, based on why this one stopped.
+        text = retry_text(result)  # the sentence the timeline shows for this retry
         if result.kind in REFLECT_ON:
             message = reflection_message(plan_message, result)
             files = result.files  # keep the AI's work, so it fixes it instead of starting over
@@ -69,10 +76,17 @@ async def build_with_retries(
             message = load_prompt("no_files").replace("<<PLAN>>", plan_message)
             files = start_files
         elif result.kind == "service_busy":
-            await asyncio.sleep(BUSY_WAIT_SECONDS)  # "await" lets the server serve others while we wait
+            busy_tries += 1
+            if backup_model is not None and busy_tries == SWITCH_AFTER_BUSY:
+                # Critical: the main model was busy on every try so far, so it is probably down for a while.
+                # Switch to the backup for the tries left. No waiting: it is a different model.
+                model = backup_model
+                text = f"The AI service was busy {busy_tries} times. Switching to the backup model for one last try."
+            else:
+                await asyncio.sleep(BUSY_WAIT_SECONDS)  # "await" lets the server serve others while we wait
             files = result.files or start_files  # same message as before; keep any files already written
 
-        report({"status": "retrying", "step": {"kind": "Thinking", "text": retry_text(result), "state": "done"}})
+        report({"status": "retrying", "step": {"kind": "Thinking", "text": text, "state": "done"}})
 
     # Every try failed: now, and only now, send the final "failed" event, which ends the live stream (W-5).
     reason = f"Still not working after {MAX_ATTEMPTS} tries. Last problem: {result.reason}"
