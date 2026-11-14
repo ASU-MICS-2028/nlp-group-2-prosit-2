@@ -1,12 +1,16 @@
 """Project endpoints (W-5). The shapes follow docs/api-contract.md."""
 
 import asyncio
+import os
 from collections.abc import AsyncIterator
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.sse import EventSourceResponse
 from pydantic import BaseModel, ConfigDict, Field
+
+from agent.prompts import builder_instruction
+from agent.retry import build_with_retries
 
 # A router is a group of endpoints; main.py plugs it into the app.
 router = APIRouter(tags=["projects"])
@@ -98,8 +102,33 @@ def add_event(project_id: str, event: dict[str, object]) -> None:
     projects[project_id]["updated_at"] = now()  # any new event counts as a change, so the sidebar moves it up
 
 
+def failed(project_id: str, reason: str) -> None:
+    # End the build with one plain sentence. A final status also ends the live stream.
+    add_event(project_id, {"status": "failed", "step": {"kind": "Result", "text": reason, "state": "failed"}})
+
+
+async def run_build(project_id: str, request: str) -> None:
+    # The build job (W-9): runs after POST /projects has already answered.
+    model = os.environ.get("LLM_MODEL", "")
+    if not model:
+        # With no model name, ADK quietly picks its own default, so we stop and say so instead.
+        failed(project_id, "The server has no AI model set (LLM_MODEL).")
+        return
+    # Until F-2 adds a plan the person approves, the AI gets the request in the person's own words.
+    message = f"There is no plan yet. Build a small API for this request:\n\n{request}"
+    try:
+        # Opei's retry loop (F-4) around the builder (W-3). Every step it reports goes into this project's diary.
+        await build_with_retries(
+            message, builder_instruction(), model, report=lambda event: add_event(project_id, event)
+        )
+    except Exception:
+        # Last safety net: an error we didn't expect (e.g. no API key). Without this the project stays
+        # "working" forever and the screen spins. A plain sentence is better than a spinner.
+        failed(project_id, "Something went wrong on our side. Please try again.")
+
+
 @router.post("/projects", status_code=201, response_model=StartResponse)
-def start_project(body: StartRequest) -> StartResponse:
+def start_project(body: StartRequest, background: BackgroundTasks) -> StartResponse:
     project_id = f"p_{len(projects) + 1}"  # p_1, p_2, ...
     projects[project_id] = {
         "id": project_id,
@@ -108,6 +137,9 @@ def start_project(body: StartRequest) -> StartResponse:
         "updated_at": now(),
     }
     events[project_id] = [{"status": "waiting"}]  # the diary's first entry
+    # Start the build AFTER this reply is sent: the page gets the id at once and opens the live stream,
+    # instead of waiting minutes for an answer. Until F-2 adds approve, sending a request starts the build.
+    background.add_task(run_build, project_id, body.request)
     return StartResponse(id=project_id, status="waiting", questions=[])
 
 
