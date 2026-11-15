@@ -1,8 +1,10 @@
 import type { BuildState } from '../build/buildState'
 import { isFinal } from '../build/buildState'
+import { toPlainSteps } from '../build/plainSteps'
 import { BuildTimeline } from '../components/BuildTimeline'
 import { Button } from '../components/Button'
 import { Notice } from '../components/Notice'
+import { useTick } from '../hooks/useTick'
 
 type Props = {
   title: string // the project's name
@@ -15,13 +17,16 @@ type Props = {
 export function BuildScreen({ title, build, error, onReopen }: Props) {
   const lastStep = build.steps[build.steps.length - 1]
   const hasStarted = build.steps.length > 0
+  // Only tick while the build is going: a finished build's words never change.
+  const tick = useTick(!isFinal(build.status))
 
   return (
     <div className="start">
       <BuildTimeline
         title={title}
         status={build.status}
-        steps={build.steps}
+        steps={toPlainSteps(build.steps, build.status, tick)}
+        details={build.steps}
         tests={build.tests}
         attempt={build.attempt ?? undefined}
         maxAttempts={build.maxAttempts ?? undefined}

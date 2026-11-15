@@ -17,6 +17,7 @@ from google.adk.models import BaseLlm
 from google.adk.runners import InMemoryRunner
 from google.genai import errors, types
 
+from agent.llm import builder_model
 from agent.tools import Workspace, make_tools
 from backend.runner import run_tests
 
@@ -35,6 +36,19 @@ MAX_AI_CALLS = 40
 # Stop the whole build after this many seconds, in case the AI service is very slow or hangs.
 # A real build took 44 seconds in Opei's W-4 trial; 5 minutes leaves plenty of room.
 TIME_LIMIT_SECONDS = 300
+
+# Every timeline step carries a "phase": a short, fixed word for what the step is about (D-019).
+# The web page shows these as plain phases ("Writing your API...") and never reads the sentence in "text",
+# so rewording a sentence cannot break the page. Changing this list means changing docs/api-contract.md too.
+#   planning   the AI's opening sentence about what it will build
+#   writing    reading, writing or listing files
+#   testing    running the tests, and their result
+#   fixing     the AI explaining a problem and what it will change
+#   finishing  the AI's closing reply, and the build's final result
+PHASES = ("planning", "writing", "testing", "fixing", "finishing")
+
+# Which phase each tool belongs to (the tools are in agent/tools.py).
+TOOL_PHASES = {"write_file": "writing", "read_file": "writing", "list_files": "writing", "run_tests": "testing"}
 
 # How much of our own final test run's output we keep in the result (its end, where pytest's summary is).
 # The same size the tools send the AI (agent/tools.py MAX_RESULT_CHARACTERS), to save free-tier quota.
@@ -61,6 +75,9 @@ async def build_project(
 ) -> BuildResult:
     # This project's files, kept in memory (agent/tools.py). dict(...) makes a copy, so the caller's files stay as they were.
     workspace = Workspace(files=dict(start_files or {}))
+    if isinstance(model, str):
+        # A model name: wrap it so each busy reply is retried inside this build (agent/llm.py builder_model).
+        model = builder_model(model)
     agent = Agent(name="builder", model=model, instruction=instruction, tools=make_tools(workspace))
 
     # InMemoryRunner is ADK's engine: it keeps the conversation in memory and runs the loop.
@@ -70,6 +87,7 @@ async def build_project(
 
     # The reason we give if the tests fail at the end. It changes if WE had to stop the AI.
     failed_reason = "The tests still fail."
+    tools_used = False  # becomes True once the AI has asked for a tool; it decides what its later words are about
 
     try:
         # Stop rule 5: a stopwatch around the whole build. If it runs out, Python stops whatever
@@ -83,10 +101,14 @@ async def build_project(
                 run_config=RunConfig(max_llm_calls=MAX_AI_CALLS),  # stop rule 4: ADK raises an error past this
             ):
                 parts = event.content.parts if event.content and event.content.parts else []  # some events are empty
+                # What the AI's own words are about: its opening plan, a fix once it has used tools, or its closing reply.
+                text_phase = "finishing" if event.is_final_response() else ("fixing" if tools_used else "planning")
                 for part in parts:
-                    step = step_from_part(part)
+                    step = step_from_part(part, text_phase)
                     if step is not None:
                         report({"status": "working", "step": step})  # one line on the live timeline
+                    if part.function_call:
+                        tools_used = True
 
                 # Stop rule 1: enough test runs. `break` leaves the loop, so ADK never asks the AI for another move.
                 if workspace.test_runs >= MAX_TEST_RUNS:
@@ -111,22 +133,29 @@ async def build_project(
 
     # The last event carries the final status; it is also what makes the live stream hang up (W-5).
     state = "done" if result.status == "ready" else "failed"
-    report({"status": result.status, "step": {"kind": "Result", "text": result.reason, "state": state}})
+    report({"status": result.status, "step": {"kind": "Result", "text": result.reason, "state": state, "phase": "finishing"}})
     return result
 
 
-def step_from_part(part: types.Part) -> dict[str, object] | None:
+def phase_of(tool: str) -> str:
+    # An unknown tool counts as "writing": only the four tools above exist, and every step must have a phase.
+    return TOOL_PHASES.get(tool, "writing")
+
+
+def step_from_part(part: types.Part, text_phase: str = "planning") -> dict[str, object] | None:
     # Turn one piece of an ADK event into a timeline step (shapes from docs/api-contract.md).
+    # `text_phase` is the phase for the AI's own words; the loop in build_project decides it.
     if part.function_call:  # the AI asks for a tool
+        tool = part.function_call.name or ""
         arguments = part.function_call.args or {}
-        return {"kind": "Doing", "text": doing_text(part.function_call.name or "", arguments), "state": "done"}
+        return {"kind": "Doing", "text": doing_text(tool, arguments), "state": "done", "phase": phase_of(tool)}
     if part.function_response:  # a tool's answer comes back
         return result_step(part.function_response.name or "", part.function_response.response or {})
     if part.text and part.text.strip():  # the AI writes some text
         text = part.text.strip()
         if is_json_report(text):
             return None  # the AI's closing JSON report is for code, not for the person (see below)
-        return {"kind": "Thinking", "text": text, "state": "done"}
+        return {"kind": "Thinking", "text": text, "state": "done", "phase": text_phase}
     return None  # anything else isn't worth showing
 
 
@@ -151,16 +180,19 @@ def doing_text(tool: str, arguments: dict[str, object]) -> str:
 
 def result_step(tool: str, response: dict[str, object]) -> dict[str, object]:
     # Every tool answers {"status": "ok", ...} or {"status": "error", "message": ...} (agent/tools.py).
+    phase = phase_of(tool)
     if response.get("status") == "error":
-        return {"kind": "Result", "text": str(response.get("message", "Something went wrong.")), "state": "failed"}
+        message = str(response.get("message", "Something went wrong."))
+        return {"kind": "Result", "text": message, "state": "failed", "phase": phase}
     if tool == "run_tests":
         if response.get("passed"):
-            return {"kind": "Result", "text": "Tests passed", "state": "done"}
+            return {"kind": "Result", "text": "Tests passed", "state": "done", "phase": phase}
         # Keep pytest's output so the person (and the timeline) can see what failed.
-        return {"kind": "Result", "text": "Tests failed", "output": str(response.get("output", "")), "state": "failed"}
+        output = str(response.get("output", ""))
+        return {"kind": "Result", "text": "Tests failed", "output": output, "state": "failed", "phase": phase}
     if tool == "write_file":
-        return {"kind": "Result", "text": f"Wrote {response.get('path', 'a file')}", "state": "done"}
-    return {"kind": "Result", "text": "Done", "state": "done"}
+        return {"kind": "Result", "text": f"Wrote {response.get('path', 'a file')}", "state": "done", "phase": phase}
+    return {"kind": "Result", "text": "Done", "state": "done", "phase": phase}
 
 
 def check_result(workspace: Workspace, failed_reason: str) -> BuildResult:

@@ -199,6 +199,13 @@ Live check (`gemini-3.5-flash`, a seeded Notes API whose "delete a missing note"
 | Retry | Running the whole build again, with a new message |
 | Seeded failing project | A project with a planted bug, used to test that the loop can fix it |
 
+## Retrying one busy reply inside a build (W-9 fix, 2026-11-14)
+**Problem.** Online and in W-9 run 1, a build try ended the moment Gemini said "503 busy" once. ADK sends each request to Gemini only once by default (`retry_options` is empty), so one busy reply stopped the whole try, and the retry loop (F-4) had to start a new one after 30 seconds.
+**Fix.** `agent/llm.py` `builder_model(name)` builds ADK's `Gemini` model with `retry_options`: up to 5 attempts for 429, 500, 503 and 504, waiting about 2, 4, 8 and 16 seconds. `backend/builder.py` wraps a model name with it. Now a busy reply is sent again and the build carries on where it was; F-4 only takes over if Gemini stays busy for about 30 seconds. `generate()` also treats 503 like 429 now (flagged by Elise in F-1).
+**How to check.** `pytest -q agent/tests/test_llm.py`: a pretend Gemini server on the laptop says 503 twice, then answers; the real google-genai client sends 3 requests and gets the answer.
+**Second cause, found in the live check.** A call to Gemini can also hang: in the live check, try 1's first call never answered, so the whole 5-minute try was lost ("took too long", with zero steps), and W-9 run 1 looks the same. So `builder_model` also gives each call a 90-second limit (`CALL_TIMEOUT_SECONDS`). A call cut by it is sent again by the same retry. A test with a pretend server that hangs on the first call shows the request is sent again without waiting for the hang.
+**Still to watch.** Waiting counts against the 5-minute limit of one try (`TIME_LIMIT_SECONDS`).
+
 ## 6. What will bite us
 - Free-tier limits change and can be low: the evaluation (20 requests, each several calls) may hit them. Pace requests.
 - Model names change over time; `LLM_MODEL` is deliberately not hard-coded.

@@ -60,7 +60,7 @@ async def build_with_retries(
             check = run_tests(result.files)
             if check.passed:
                 reason = "All tests pass."
-                report({"status": "ready", "step": {"kind": "Result", "text": reason, "state": "done"}})
+                report({"status": "ready", "step": {"kind": "Result", "text": reason, "state": "done", "phase": "finishing"}})
                 output = check.output[-MAX_KEPT_OUTPUT:]
                 return BuildResult(status="ready", reason=reason, files=result.files, test_output=output)
 
@@ -86,11 +86,11 @@ async def build_with_retries(
                 await asyncio.sleep(BUSY_WAIT_SECONDS)  # "await" lets the server serve others while we wait
             files = result.files or start_files  # same message as before; keep any files already written
 
-        report({"status": "retrying", "step": {"kind": "Thinking", "text": text, "state": "done"}})
+        report({"status": "retrying", "step": {"kind": "Thinking", "text": text, "state": "done", "phase": "fixing"}})
 
     # Every try failed: now, and only now, send the final "failed" event, which ends the live stream (W-5).
     reason = f"Still not working after {MAX_ATTEMPTS} tries. Last problem: {result.reason}"
-    report({"status": "failed", "step": {"kind": "Result", "text": reason, "state": "failed"}})
+    report({"status": "failed", "step": {"kind": "Result", "text": reason, "state": "failed", "phase": "finishing"}})
     return BuildResult(status="failed", reason=reason, files=result.files, kind=result.kind, test_output=result.test_output)
 
 

@@ -92,6 +92,26 @@ describe('applyEvent', () => {
   })
 })
 
+describe('phase of a step', () => {
+  it('keeps a phase it knows', () => {
+    const state = applyEvent(emptyBuild, {
+      status: 'working',
+      step: { kind: 'Doing', text: 'x', state: 'done', phase: 'testing' },
+    })
+
+    expect(state.steps[0].phase).toBe('testing')
+  })
+
+  it('drops a phase it does not know, instead of showing something odd', () => {
+    const state = applyEvent(emptyBuild, {
+      status: 'working',
+      step: { kind: 'Doing', text: 'x', state: 'done', phase: 'dancing' },
+    })
+
+    expect(state.steps[0].phase).toBeUndefined()
+  })
+})
+
 describe('toStatus and isFinal', () => {
   it('knows every status word the contract names', () => {
     for (const word of [

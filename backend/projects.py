@@ -116,7 +116,7 @@ def add_event(project_id: str, event: dict[str, object]) -> None:
 
 def failed(project_id: str, reason: str) -> None:
     # End the build with one plain sentence. A final status also ends the live stream.
-    add_event(project_id, {"status": "failed", "step": {"kind": "Result", "text": reason, "state": "failed"}})
+    add_event(project_id, {"status": "failed", "step": {"kind": "Result", "text": reason, "state": "failed", "phase": "finishing"}})
 
 
 async def run_build(project_id: str, request: str) -> None:

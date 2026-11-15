@@ -374,3 +374,17 @@ Saved:
 - The first live run met a busy free tier: the system retried, stopped each try with a plain reason, and ended cleanly instead of hanging.
 - The second live run built a Notebook API from one sentence: 6 files and 10 passing tests, shown live in the browser.
 
+---
+
+# F-17 A fixed `phase` on every step (Perfect took this from Elise, 2026-11-14)
+
+**In one sentence:** every timeline step the backend sends now has a `phase` (`planning`, `writing`, `testing`, `fixing` or `finishing`), so the page can show plain lines without reading the sentences. Elise: please read this before the teach-back.
+
+**What changed**
+- `backend/builder.py`: `PHASES` and `TOOL_PHASES` (which tool belongs to which phase), `phase_of(tool)`, and a `phase` in every step made by `step_from_part` and `result_step`. The AI's own words get `planning` before it has used a tool, `fixing` after, and `finishing` when it is the AI's closing reply (`event.is_final_response()`). The build's final verdict is `finishing`.
+- `agent/retry.py` and `backend/projects.py`: their steps carry a phase too (`fixing` for "trying again", `finishing` for the final result).
+- The sentences in `text` did not change.
+
+**How to check it:** `python -m pytest -q` (142 passed). The 8 new tests: every step of a good, a failing and a no-files build has a known phase; each tool has its phase; a tool error keeps its phase; the AI's words get the phase the loop gives them; a retried build and a failed start also carry one. Output: `evidence/backend/outputs_f17_phase_tests.txt`. I also removed one phase on purpose and checked a test failed (`KeyError: 'phase'`), then put it back.
+
+**Not done / limits:** an unknown tool counts as `writing`. `fixing` is a guess from position (the AI's words after it used a tool), which matches what `builder.md` asks it to write. Real Gemini output has not been looked at with the new field.

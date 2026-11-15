@@ -28,6 +28,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | 2026-11-02 | S-5 FastAPI skeleton | Elise | Perfect | Owner unreachable; it blocked W-2, W-5, W-6, W-7, W-8 | Done. Elise: read `learnings/backend.md` |
 | 2026-11-11 | W-8 `GET /projects` | Perfect | Elise | It sits in Elise's `backend/projects.py`; Perfect can focus on W-6 and W-7, which block W-9 | Perfect can take it back any time; Elise walks Perfect through it before the teach-back |
 | 2026-11-02 | S-4 `agent/llm.py` | Opei | Perfect | Owner unreachable; it blocks W-1, W-3, W-4 | Code done; Opei can take over the live check and the rest of `agent/` |
+| 2026-11-14 | F-17 `phase` on every step in `backend/builder.py`, `agent/retry.py`, `backend/projects.py` | Elise | Perfect | The page needs a stable label, Elise was unavailable and the deadline is 15 Nov | Elise can take it back, change the words or the phases, and reviews the PR (Opei as backup reviewer) |
 
 ## Scope
 
@@ -57,7 +58,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | S-5 | FastAPI skeleton with `/health` and OpenAPI | Perfect (from Elise) | S-1 | ✅ | `/docs` opens locally |
 | S-6 | Vite + React + TS (strict) skeleton, oxlint, Prettier, Vitest; design tokens, 13 components, `/dev/gallery`, Start screen | Perfect | S-1 | ✅ | `npm run lint`, `tsc`, `npm test`, `npm run build` all pass |
 | S-7 | Draft the 20 plain-English test requests with expected endpoints | Nana | S-1 | ✅ | `evaluation/requests.json` merged (20 requests in 5 kinds; checked by `evaluation/tests/test_requests.py`) |
-| S-8 | Vercel and Render accounts, confirm free tier limits | Nana | none | 🔄 | Limits written in `learnings/deployment.md` (done 2026-11-10); accounts still to create; Render bandwidth/build minutes to read from its dashboard |
+| S-8 | Vercel and Render accounts, confirm free tier limits | Nana | none | ✅ | Limits written in `learnings/deployment.md` (done 2026-11-10); both accounts created (Vercel 2026-11-13 with D-1, Render 2026-11-13); Render Hobby: 5 GB bandwidth, 500 build minutes per month |
 
 ## Phase 1: Walking skeleton (Tue 27 – Wed 28 Oct)
 
@@ -94,17 +95,18 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | F-14 | Ready screen: live link, the API's Swagger page, "Wake it up" when sleeping, zip as take-home | Perfect | F-13, F-7 | ⛔ | Keyboard-only walkthrough works; screenshot in `evidence/live/` |
 | F-15 | Follow-up request after a build: a new round on the existing files (D-012) | Perfect | F-13 | ⚪ | Optional; only if there is time |
 | F-16 | Backup model when Gemini is busy: 3 tries on the main model, a 4th on `LLM_BACKUP_MODEL` (D-018) (outside lane) | Elise | F-4 | 🔄 | A main model that is busy on every try still ends `ready` via the backup (test with fake models); Opei approves. 2026-11-14: built, 135 tests pass; live: busy 3 times, the backup built it on try 4, `ready` 9/9 (`evidence/agent/outputs_d018_*`); waiting for Opei |
+| F-17 | Plain build timeline for non-developers: each step gets a fixed `phase`; the page shows plain lines and a folded "Show details" (D-019, from Nana's feedback; not in the first plan) | Perfect | W-7, W-9 | ✅ | A non-developer sees no file names in the main timeline. Done 2026-11-14: `phase` on every step (`backend/builder.py`, `agent/retry.py`, `backend/projects.py`), `frontend/src/build/plainSteps.ts`, 8 backend and 30 frontend tests; wording rotates while waiting (D-020, Elise's idea); evidence in `evidence/frontend/outputs_f17_tests.txt` and `evidence/backend/outputs_f17_phase_tests.txt` |
 
 ## Phase 3: Evaluation and deployment (Fri 30 – Sat 31 Oct)
 
 | ID | Task | Owner | Blocked by | Status | Done when |
 |---|---|---|---|---|---|
-| E-1 | Scoring script (pass/fail per request, retries, seconds) | Nana | W-9 | ⛔ | Runs on 2 requests |
+| E-1 | Scoring script (pass/fail per request, retries, seconds) | Nana | W-9 | 🔄 | Runs on 2 requests (2026-11-15: `evaluation/score.py` and 15 tests with a pretend builder; live run 0 on r01, r19 hit Gemini's daily limit and found a scorer bug, now fixed; run again when the quota resets) |
 | E-2 | Run evaluation on all 20 requests | Nana | E-1, F-4, F-5 | ⛔ | `evidence/evaluation/outputs_eval_run1.txt` saved |
 | E-3 | Fix the top failures (prompts: Opei; code: Elise) | Opei | E-2 | ⛔ | Fixes listed in `learnings/` |
 | E-4 | Re-run evaluation, compare to run 1 | Nana | E-3 | ⛔ | `outputs_eval_run2.txt` saved; numbers go into the report only now |
-| D-1 | Deploy frontend to Vercel | Nana | S-6 | 🟢 | Public URL loads (steps ready in `deploy/README.md`; CLI deploy per D-014) |
-| D-2 | Deploy backend to Render (keys in host settings, not code) | Nana | W-9 | ⛔ | `/health` OK on public URL |
+| D-1 | Deploy frontend to Vercel | Nana | S-6 | ✅ | Public URL loads (done 2026-11-13: https://mesora-api-builder.vercel.app; CLI deploy per D-014; evidence in `evidence/deploy/`) |
+| D-2 | Deploy backend to Render (keys in host settings, not code) | Nana | W-9 | 🔄 | `/health` OK on public URL (early run live 2026-11-13: https://nlp-group-2-prosit-2.onrender.com, `/health` 200, CORS OK; redeploy and full checks after W-9) |
 | D-3 | Smoke test deployed frontend ↔ backend | Nana | D-1, D-2 | ⛔ | One full request works online |
 | D-4 | Prove the model switch: change `LLM_MODEL` (and the provider if ADK allows it), still works | Opei | W-4 | ✅ | Terminal output saved in `evidence/`; if only the model name can change, say so in the report. Done 2026-11-10: the model name switches by `.env` alone; no second model finished a build (flash-lite skipped tools, others refused or overloaded on the free tier); `evidence/agent/outputs_d4_model_switch.txt` |
 

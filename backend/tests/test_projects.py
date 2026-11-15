@@ -230,3 +230,14 @@ def test_long_request_gets_a_short_name_in_the_list() -> None:
     # Cut at a word (no half-words), about 40 characters, with "…" to show it was cut.
     assert newest["name"] == "A bookshop where I can add books, list…"
     assert len(newest["name"]) <= 41  # 40 characters plus the "…"
+
+
+def test_a_build_that_cannot_start_ends_with_a_finishing_step() -> None:
+    project_id = client.post("/projects", json={"request": "A to-do list API"}).json()["id"]
+
+    projects.failed(project_id, "No model is set.")
+
+    last = projects.events[project_id][-1]
+    assert last["status"] == "failed"
+    assert last["step"]["phase"] == "finishing"  # every step carries a phase (D-019)
+
