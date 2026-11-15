@@ -32,7 +32,7 @@ Deadline for the prosit deliverables (code, report, slides): **Sun 1 Nov 2026**.
 | **Perfect** | S-2 branch protection, S-3 collaborators, A-3 Section A draft (W-6 and W-7 done 2026-11-12) | F-3 plan screen (F-2), F-14 live Ready screen |
 | **Opei** | A-2 Section A draft (W-4 done 2026-11-08, D-4 done 2026-11-10) | F-4 (W-9; builds on `backend/builder.py`), F-6 (F-5) |
 | **Elise** | A-1 Section A draft; W-9 end-to-end done 2026-11-14 (first Ready build from the chat screen); F-5, F-12 and F-13 handed to Nana 2026-11-15 (W-3 done 2026-11-10; W-8 and F-1 done 2026-11-11) | F-2 plan + approval (W-9, F-1) |
-| **Nana** | F-13 live link (from Elise; F-12 live runner done 2026-11-15); D-3 online smoke test; E-1 live run once the quota resets; A-4 Section A draft (D-2 done 2026-11-15; frontend https://mesora-api-builder.vercel.app, backend https://nlp-group-2-prosit-2.onrender.com) | E-2 full evaluation (E-1) |
+| **Nana** | F-13 live link (from Elise; F-5 zip download and F-12 live runner done 2026-11-15); D-3 online smoke test; E-1 live run once the quota resets; A-4 Section A draft (D-2 done 2026-11-15; frontend https://mesora-api-builder.vercel.app, backend https://nlp-group-2-prosit-2.onrender.com) | E-2 full evaluation (E-1) |
 
 Full task list, owners and blockers: [PLAN.md](PLAN.md). Rows leave this table once they are finished.
 

@@ -391,6 +391,33 @@ Saved:
 
 ---
 
+# F-5 Take-home zip (Nana took this from Elise, 2026-11-15)
+
+**In one sentence:** `GET /projects/{id}/download` hands back a ready project's files as a `.zip`, so a person can keep their API and run it on their own computer. Elise: please read this before the teach-back.
+
+**What changed**
+- `backend/projects.py`: `zip_files(files)` packs the files into a zip in memory (`io.BytesIO`, no temp file), and the endpoint `download_project` sends it with `Content-Disposition: attachment; filename="p_1.zip"`, so the browser saves it.
+- Only a **ready** project can be downloaded; anything else is `409` with "The API is not ready yet, so there is nothing to download." (as `docs/api-contract.md` says). A failed build's files are not offered: their tests fail. An unknown id is `404` (the same `find_project` as the other endpoints).
+- File names go into the zip as they are. They are safe already: the agent's `write_file` tool (`clean_path` in `agent/tools.py`) refuses `../`, absolute paths and drive letters, so unzipping cannot write outside the folder.
+
+**How to check it:** `python -m pytest backend/tests/test_download.py -v` (5 passed; all 5 failed before the endpoint existed). The PLAN's "done when" is the last test: it downloads the builder prompt's example project (a Notes API), unzips it into a temporary folder, checks nothing changed, and runs its tests with our sandbox runner: they pass. A real local server answered `409` for a failed build and `404` for an unknown id. Output: `evidence/backend/outputs_f5_download.txt`.
+
+**Not done / limits**
+- Not tried with a real Gemini-built project: today's free quota was used up. The example project has the same layout the builder writes.
+- No Dockerfile or README in the zip. The contract's `run_command` ("docker compose up") is not sent yet; the person needs Python and `pip install -r requirements.txt`.
+- Projects live in memory (D-013): after Render restarts or sleeps, an old project's download is `404`.
+- The page has no download button yet (F-14, Perfect).
+
+**Terms**
+| Term | One-line meaning |
+|---|---|
+| `io.BytesIO` | A pretend file kept in memory; we write the zip into it and then read the bytes out |
+| `ZIP_DEFLATED` | The zip setting that compresses the files (the default only stores them) |
+| `Content-Disposition: attachment` | A header that tells the browser to save the reply as a file, under the name given |
+| `409 Conflict` | "Not at this step yet": the request is fine, but the project isn't ready |
+
+---
+
 # F-12 Live runner (Nana took this from Elise, 2026-11-15)
 
 **In one sentence:** `backend/live.py` starts a finished project as its own small server on this computer, so people can really call it; F-13 will pass calls from `/apis/{id}/...` through to it. Elise: please read this before the teach-back.
