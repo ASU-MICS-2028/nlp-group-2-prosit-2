@@ -1,0 +1,26 @@
+# D-2: build 3 on the live backend, 2026-11-14 19:21Z, after Nana's redeploy of main 278228c (no backup model: PR #28 not merged yet)
+# Request: "A simple API to store books with a title and an author"
+
+Timeline (seconds after start): 5s working -> 119s retrying -> 361s failed
+Final: file_count 3, tests 0 of 0
+
+Steps shown to the user:
+  "Building a Books API with a books table and 5 endpoints."
+  "Writing requirements.txt"
+  "Wrote requirements.txt"
+  "Writing conftest.py"
+  "Wrote conftest.py"
+  "Writing app/__init__.py"
+  "Wrote app/__init__.py"
+  "The AI service is busy or unavailable. Please try again in a few minutes."
+  "The AI service was busy. Waited 30 seconds; trying again."
+  "The AI service is busy or unavailable. Please try again in a few minutes."
+  "The AI service was busy. Waited 30 seconds; trying again."
+  "The AI service is busy or unavailable. Please try again in a few minutes."
+  "Still not working after 3 tries. Last problem: The AI service is busy or unavailable. Please try again in a few minutes."
+
+What this shows:
+- Gemini answered several times this time: the agent planned the API and wrote 3 files before the service went busy.
+- Then every retry was busy; the build ended with a plain message after 3 tries, and the server stayed up.
+- One status poll around 213s got no answer within 30 s (the small free server was busy); the next poll worked.
+- Still NOT shown: a build that ends ready online. Next: after PR #28 (backup model) is merged and LLM_BACKUP_MODEL is set in Render.

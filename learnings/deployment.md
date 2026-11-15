@@ -1,6 +1,6 @@
 # Deployment
 
-Owner: Nana · Last updated: 2026-11-13 · Status: partly working (frontend live; backend waits for W-9)
+Owner: Nana · Last updated: 2026-11-15 · Status: working (frontend and backend live; first online build ended ready 2026-11-15)
 
 ## 1. In one sentence
 The frontend is a set of static files hosted free on Vercel; the backend is a long-running Python server hosted free on Render (D-003, D-011).
@@ -27,7 +27,14 @@ The frontend is a set of static files hosted free on Vercel; the backend is a lo
    (`evidence/deploy/outputs_backend_no_model.txt`). Nana added `LLM_MODEL=gemini-3.5-flash` in Render. The next two builds
    ran, then failed because Gemini's free tier was "busy" on every retry. One build wrote a file first, so the key works
    (`evidence/deploy/outputs_backend_first_builds.txt`).
-9. Still to do: one build that ends "ready" online, the wake-up time after sleep, memory during a build. Then D-2 ✅ and D-3.
+9. 2026-11-15: build 4 failed the same way, while the same request on the laptop was ready in about 40 s. Nana read
+   Render's Logs: the real error was **429 RESOURCE_EXHAUSTED, 20 requests per day** on the free tier, not "busy" (section 6).
+   Render shared one Google project (one daily quota) with our laptops
+   (`evidence/deploy/outputs_backend_build4_quota.txt`). Nana made a **separate Gemini key just for Render**.
+10. 2026-11-15: the first online build that ended **ready**: a to-do list API, 6 files, **9 of 9 tests passed**, about
+    4 minutes (`evidence/deploy/outputs_backend_ready_build.txt`).
+11. Wake-up after 18 idle minutes: the first `/health` took **34 seconds**, then answered 200 (`evidence/deploy/outputs_backend_wakeup.txt`).
+12. Still to do: memory during a build (Render's Metrics tab), then D-3.
 
 ## 3. Free-tier limits (checked 2026-11-10)
 
@@ -61,16 +68,31 @@ After D-1 (see `deploy/README.md`):
 $ curl -s -o /dev/null -w "%{http_code}\n" https://mesora-api-builder.vercel.app/
 200
 ```
-After D-2 (later, needs W-9):
+After D-2:
 ```
-$ curl -s https://<our-backend>.onrender.com/health
+$ curl -s https://nlp-group-2-prosit-2.onrender.com/health
 {"status":"ok"}
 ```
+A full build online (uses about 10-20 of the day's 20 free requests, so don't do it casually):
+```
+$ curl -s -X POST https://nlp-group-2-prosit-2.onrender.com/projects -H 'Content-Type: application/json' \
+    -d '{"request":"A to-do list API: add a task, list tasks, mark a task done."}'
+$ curl -s https://nlp-group-2-prosit-2.onrender.com/projects/<id>     # repeat until "ready" or "failed"
+```
+
+**Running the backend on a Windows laptop** (PowerShell, from the repo root):
+```
+backend\.venv\Scripts\Activate.ps1
+uvicorn backend.main:app --reload --env-file .env
+```
+Without the venv, Windows finds the global `uvicorn`, which has no Google packages: the server crashes with
+`No module named 'google'`. Without `--env-file .env`, the server never reads `.env` (no code loads it), so every build
+fails with "The server has no AI model set (LLM_MODEL)".
 
 ## 5. What is NOT done or is faked
 - Frontend live: https://mesora-api-builder.vercel.app. Backend live (early run): https://nlp-group-2-prosit-2.onrender.com.
-- **Building an API online does not work yet.** The backend runs `main` before W-9, so a new project stays "waiting".
-- Not tested online yet: a full build, the missing-key error, the wake-up time after 15 idle minutes, memory during a build.
+- **Building an API online works** (2026-11-15, 9 of 9 tests), but only about **one build per model per day** on the free tier.
+- Not tested online yet: the missing-key error, memory during a build, the frontend's "waking up" notice.
 - Render account created 2026-11-13 (Nana, GitHub sign-in). The 5 GB and 500-minute numbers come from Render's docs; nobody has yet confirmed them on the account's billing page.
 
 ## 6. What will bite us
@@ -92,8 +114,16 @@ $ curl -s https://<our-backend>.onrender.com/health
 - **Render chose the service name** `nlp-group-2-prosit-2`, not the planned `mesora-api-builder-api`. The name is only
   part of the address; it does not matter.
 - **`LLM_MODEL` is required on Render**, not optional: without it every build fails at once. We use `gemini-3.5-flash`.
-- **Gemini's free tier is often "busy".** Builds then fail after 3 tries with a plain message. Before a demo, run one
-  build a few minutes early; if Gemini is busy, wait and try again.
+- **Gemini's free tier allows only 20 requests per day, per Google project, per model.** This, not "busy", was why the
+  online builds of 2026-11-14 and 2026-11-15 failed (429 RESOURCE_EXHAUSTED in Render's Logs). One build uses about
+  10-20 requests, so that is about one build per model per day. Since #35 (Opei) the app says so: "Today's free AI limit
+  is used up. Please try again tomorrow.", and it stops at once instead of retrying. "The AI service is busy" now means a
+  real 503: try again in a few minutes. If unsure, Render's Logs show the code (429 or 503).
+- **Render has its own Gemini key**, in a separate Google project, so laptop testing does not use up the live site's quota.
+  On demo day: one warm-up build early, then nothing until the demo.
+- **Changing the model name does not give a fresh quota.** Render asked for `gemini-3.4-flash` and the laptop for
+  `gemini-3.5-flash`, yet Google counted both against `gemini-3.6-flash`'s 20 a day. Only a key in a different Google
+  project has its own 20. Keep `LLM_MODEL=gemini-3.5-flash`, the model all our checks used.
 - **`VITE_API_URL` is baked in at build time.** Changing it in the Vercel dashboard does nothing until we redeploy.
 
 ## 7. Terms used
@@ -107,11 +137,15 @@ $ curl -s https://<our-backend>.onrender.com/health
 | Instance hours | Hours a server is awake and running; free hours are counted per month |
 | `.vercelignore` | A list of files the Vercel CLI must not upload, like `.gitignore` but for deploys |
 | Symlink | A file that points to another file; Windows only lets some users create them, which breaks `vercel build` |
+| 429 RESOURCE_EXHAUSTED | Google's answer when a quota is used up; for a per-day quota, retrying only helps the next day |
+| Quota | A fixed number of requests allowed in a period (here: 20 per day per model on the free tier) |
+| venv | A folder with the project's own Python and packages (`backend/.venv`), separate from the computer's global Python |
 | Build time (for `VITE_` values) | The moment `npm run build` runs; `VITE_` values are copied into the JavaScript then, not read later |
 
 ## 8. Lines ready for the report
 - The frontend is hosted on Vercel's free plan and the backend on Render's free plan, so the whole system costs nothing to run.
 - The free backend sleeps after 15 idle minutes and has no persistent disk, so the first request can take about a minute and data resets when the server restarts.
+- Gemini's free tier allows 20 requests per day per model, and one build needs about 10-20, so the free online version can build only about one API per model per day.
 
 ## 9. Sources (read 2026-11-10)
 - Render: https://render.com/docs/free
@@ -120,3 +154,4 @@ $ curl -s https://<our-backend>.onrender.com/health
 - Render free instance size (512 MB RAM, 0.1 CPU): https://render.com/docs/compute-plans
 - Vercel limits (Git organisations, deployments, upload size): https://vercel.com/docs/limits
 - Vercel Hobby allowances and non-commercial rule: https://vercel.com/docs/limits/fair-use-guidelines
+- Gemini API rate limits (named in the 429 error, 2026-11-15): https://aistudio.google.com/docs/rate-limits

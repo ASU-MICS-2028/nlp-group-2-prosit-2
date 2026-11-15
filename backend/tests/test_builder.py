@@ -266,3 +266,27 @@ def test_the_ais_own_words_get_the_phase_the_loop_gives_them() -> None:
     assert step_from_part(words, "fixing")["phase"] == "fixing"
     assert step_from_part(words, "finishing")["phase"] == "finishing"
 
+
+
+class DailyLimitModel(BaseLlm):
+    """A pretend AI service whose free daily allowance is used up: every call is a per-DAY 429 (#33)."""
+
+    async def generate_content_async(
+        self, llm_request: LlmRequest, stream: bool = False
+    ) -> AsyncGenerator[LlmResponse, None]:
+        body = {"error": {"code": 429, "status": "RESOURCE_EXHAUSTED", "message": "quota",
+                          "details": [{"violations": [{"quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier"}]}]}}
+        raise errors.ClientError(429, body)
+        yield  # never reached; it only tells Python this is the same kind of function as FakeModel's
+
+
+def test_daily_limit_has_its_own_kind_and_a_plain_sentence() -> None:
+    steps: list[dict[str, object]] = []
+
+    result = asyncio.run(
+        build_project("Build it.", "You are a builder.", DailyLimitModel(model="fake"), report=steps.append)
+    )
+
+    assert result.status == "failed"
+    assert result.kind == "daily_limit"
+    assert result.reason == "Today's free AI limit is used up. Please try again tomorrow."

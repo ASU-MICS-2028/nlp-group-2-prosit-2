@@ -1,0 +1,9 @@
+# D-2: wake-up time of the free Render backend after it went to sleep, 2026-11-15
+# Last request to the backend: 10:09:03Z (end of the ready build). Then nothing for 18 minutes (sleep starts after 15).
+$ sleep 1080; curl -s -w "\nhttp %{http_code}, total %{time_total}s\n" https://nlp-group-2-prosit-2.onrender.com/health
+2026-11-15T10:27:25Z
+{"status":"ok"}
+http 200, total 33.865712s
+2026-11-15T10:27:59Z
+# So the first request after sleep took about 34 seconds (Render's docs say "about a minute"). Not checked here:
+# the frontend's "waking up" notice.

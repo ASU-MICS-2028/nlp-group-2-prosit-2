@@ -1,0 +1,34 @@
+# D-2: build 4 on the live backend, 2026-11-15, and the real cause of the "busy" failures
+# Request: "A to-do list API: add a task, list tasks, mark a task done."
+# Render settings at the time: LLM_MODEL=gemini-3.4-flash, the same Gemini key as the laptop
+
+Timeline (seconds after start): 10-70s working -> 80s retrying -> 190s failed
+
+Last steps shown to the user (from GET /projects/p_1/events):
+  "Wrote app/__init__.py", "Wrote app/database.py"
+  "The AI service is busy or unavailable. Please try again in a few minutes."
+  "The AI service was busy. Waited 30 seconds; trying again."   (try 2: wrote requirements.txt, then busy again)
+  "The AI service was busy. Waited 30 seconds; trying again."   (try 3: busy at once)
+  "Still not working after 3 tries. Last problem: The AI service is busy or unavailable. Please try again in a few minutes."
+
+The same request on the laptop a few minutes earlier (LLM_MODEL=gemini-3.5-flash in .env): ready in about 40 s.
+
+Render log line for the failure (copied by Nana from the Render Logs tab; no key in it):
+  429 RESOURCE_EXHAUSTED
+  "Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests,
+   limit: 20, model: gemini-3.6-flash, description: Generate content requests per day limit exceeded on Free Tier."
+  quotaId: GenerateRequestsPerDayPerProjectPerModel-FreeTier, quotaValue: 20
+  "Please retry in 22h29m33s"
+
+What it means:
+- It was not "busy" (503). It was the free tier's DAILY limit: 20 requests per day, per Google project, per model.
+  One build uses roughly 10-20 requests (each AI step is one request), so that is about one build per model per day.
+- Render asked for gemini-3.4-flash, but Google counted the requests against gemini-3.6-flash. Later the same day the
+  laptop, asking for gemini-3.5-flash, hit the SAME gemini-3.6-flash daily limit (evidence/evaluation/
+  outputs_e1_run0_scorer_bug.txt). So these older names share one quota; changing the model name does not give a
+  fresh 20. Only a key in a different Google project does.
+- The app shows every Gemini error as "busy" (backend/builder.py), so the code 429 was only visible in Render's logs.
+- Retrying a per-day 429 cannot help until the next day; the retries only made the user wait 190 s for a sure failure.
+
+Fix (Nana, 2026-11-15): a separate Gemini API key for Render, so the live site has its own daily quota and laptop
+testing no longer uses it up. Result: outputs_backend_ready_build.txt (first online build that ended ready, 9 of 9 tests).

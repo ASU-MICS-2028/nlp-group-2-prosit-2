@@ -173,6 +173,7 @@ Two small additions to `backend/builder.py` (Elise's file, no behaviour change):
 - **Keep the files** so the AI fixes its work instead of starting over (cheaper on the free tier).
 - **Explain before fixing**: asking the AI to name the cause first is the self-reflection idea (Section A topic p). It also gives the person a readable line on the timeline.
 - **Check ourselves after a busy error**: seen live: the AI fixed the bug, the tests passed, then Gemini said "503" on its last reply. Without the check we would throw a working fix away.
+- **Stop at once when today's free limit is used up** (added 2026-11-15, Nana's finding in #33): the free tier allows about 20 requests per day per Google project per model, and a build uses 10 to 20. When Google's 429 names a per-day quota (`quotaId` containing `PerDay`), `is_daily_limit` in `agent/llm.py` spots it, `builder.py` returns `kind="daily_limit"` with "Today's free AI limit is used up. Please try again tomorrow.", and the retry loop stops with no more tries or waits (it still checks finished files first). `generate()`, used by the questions step, stops too. A per-minute 429 is still retried, because it clears in seconds. Not changed: inside one call, `builder_model`'s HTTP retry still resends any 429 for up to about 30 s before we see it, because it can only tell errors apart by number.
 - **3 tries x 3 test runs** keeps the worst case to 9 test runs per project.
 
 **How to check it**
