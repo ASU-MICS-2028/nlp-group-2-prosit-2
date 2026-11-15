@@ -1,0 +1,44 @@
+# F-7 download button, 2026-11-15
+# 1) normal tests (no server needed)
+ Test Files  9 passed | 2 skipped (11)
+      Tests  84 passed | 18 skipped (102)
+
+# 2) live tests against the real backend on port 8001, with project p_ready seeded as ready (same way as backend/tests/test_download.py)
+ ✓ src/api/client.live.test.ts > against a real backend > getHealth says the server is ok
+ ✓ src/api/client.live.test.ts > against a real backend > startProject creates a project, and getProject finds it
+ ✓ src/api/client.live.test.ts > against a real backend > listProjects shows the newest project first
+ ✓ src/api/client.live.test.ts > against a real backend > an empty request is refused with a plain sentence (422)
+ ✓ src/api/client.live.test.ts > against a real backend > a request over 2000 characters is refused (422)
+ ✓ src/api/client.live.test.ts > against a real backend > an unknown project gives the 404 sentence
+ ✓ src/api/client.live.test.ts > against a real backend > an odd id cannot reach another address
+ ✓ src/api/client.live.test.ts > against a real backend > the events address really streams the first event
+ ✓ src/api/client.live.test.ts > against a real backend > streamEvents delivers the real first event, then stops when we hang up
+ ✓ src/api/client.live.test.ts > against a real backend > streamEvents gives the 404 sentence for an unknown project
+ ✓ src/api/client.live.test.ts > against a real backend > streamEvents hanging up before any event is not an error
+ ✓ src/api/client.live.test.ts > against a real backend > downloadProject refuses a project that is not ready with the 409 sentence
+ ✓ src/api/client.live.test.ts > against a real backend > downloadProject gives the 404 sentence for an unknown project
+ ✓ src/api/client.live.test.ts > against a real backend > downloadProject returns the real zip of a ready project
+ ✓ src/api/client.live.test.ts > against a real backend > says we could not reach the server when nothing is listening
+ ✓ src/App.live.test.tsx > the page against a real backend > sends a request and shows the new project waiting, in the timeline and the sidebar
+ ✓ src/App.live.test.tsx > the page against a real backend > a double click creates only one project
+ ✓ src/App.live.test.tsx > the page against a real backend > "New project" then picking the project again replays its timeline
+ Test Files  2 passed (2)
+      Tests  18 passed (18)
+
+# 3) real zip from the real server
+GET /projects/p_ready/download -> 200 application/zip 2634 bytes
+---------  ---------- -----   ----
+       61  11-15-2026 14:25   requirements.txt
+      442  11-15-2026 14:25   conftest.py
+        0  11-15-2026 14:25   app/__init__.py
+      587  11-15-2026 14:25   app/database.py
+     2669  11-15-2026 14:25   app/main.py
+     1628  11-15-2026 14:25   tests/test_notes.py
+---------                     -------
+     5387                     6 files
+
+# 4) typecheck, lint, format, build
+typecheck ok
+
+All matched files use Prettier code style!
+✓ built in 243ms
