@@ -11,6 +11,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   ApiError,
+  downloadProject,
   eventsUrl,
   getHealth,
   getProject,
@@ -42,15 +43,18 @@ describe.skipIf(!import.meta.env.VITE_LIVE_API)(
       expect(await getHealth()).toEqual({ status: 'ok' })
     })
 
-    it('startProject creates a waiting project, and getProject finds it', async () => {
+    it('startProject creates a project, and getProject finds it', async () => {
       const started = await startProject('A bookshop where I can add books')
 
       expect(started.id).toMatch(/^p_\d+$/)
-      expect(started.status).toBe('waiting')
+      expect(started.status).toBe('waiting') // the answer to POST is always "waiting": the build starts after it
       expect(Array.isArray(started.questions)).toBe(true)
 
+      // Since W-9 the build starts at once, so by now the status may have moved on. It is not checked here.
       const found = await getProject(started.id)
-      expect(found).toEqual({ id: started.id, status: 'waiting' })
+      expect(found.id).toBe(started.id)
+      expect(found.name).toBe('A bookshop where I can add books')
+      expect(found.file_count).toBeNull() // nothing has finished building yet
     })
 
     it('listProjects shows the newest project first', async () => {
@@ -151,6 +155,41 @@ describe.skipIf(!import.meta.env.VITE_LIVE_API)(
         streamEvents(started.id, () => {}, controller.signal),
       ).resolves.toBeUndefined()
     })
+
+    it('downloadProject refuses a project that is not ready with the 409 sentence', async () => {
+      const started = await startProject('A project that will not be ready')
+
+      const error = await failureOf(downloadProject(started.id))
+
+      // A project just started is still waiting (or has failed, with no key): either way it is not ready.
+      expect(error.status).toBe(409)
+      expect(error.message).toBe(
+        'The API is not ready yet, so there is nothing to download.',
+      )
+    })
+
+    it('downloadProject gives the 404 sentence for an unknown project', async () => {
+      const error = await failureOf(downloadProject('p_does_not_exist'))
+
+      expect(error.status).toBe(404)
+      expect(error.message).toBe('Project not found.')
+    })
+
+    // A project must really be ready, and a normal server has none without spending Gemini quota.
+    // So this one runs only when you give the id of a ready project: VITE_LIVE_READY_ID=p_1
+    // (see learnings/frontend.md for how to start a real server that has one).
+    it.skipIf(!import.meta.env.VITE_LIVE_READY_ID)(
+      'downloadProject returns the real zip of a ready project',
+      async () => {
+        const file = await downloadProject(
+          String(import.meta.env.VITE_LIVE_READY_ID),
+        )
+
+        expect(file.type).toBe('application/zip')
+        const start = new Uint8Array(await file.slice(0, 2).arrayBuffer())
+        expect(String.fromCharCode(...start)).toBe('PK') // every zip file starts with these two letters
+      },
+    )
 
     it('says we could not reach the server when nothing is listening', async () => {
       // Port 1 has nothing listening, so the connection is really refused. No fake involved.

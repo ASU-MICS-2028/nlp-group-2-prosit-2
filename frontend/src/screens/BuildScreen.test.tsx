@@ -17,6 +17,7 @@ const readyBuild: BuildState = (realBuild as unknown[]).reduce<BuildState>(
 function show(build: BuildState) {
   return render(
     <BuildScreen
+      projectId="p_1"
       title="A calculator API"
       build={build}
       error={null}

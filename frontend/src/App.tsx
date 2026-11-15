@@ -42,6 +42,7 @@ function App() {
         />
       ) : (
         <BuildScreen
+          projectId={state.projectId}
           title={openProject?.name ?? 'Your API'}
           build={state.build}
           error={state.error}

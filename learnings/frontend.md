@@ -276,3 +276,52 @@ Saved: `evidence/frontend/outputs_f17_tests.txt`.
 ## 8. Lines ready for the report
 - The build timeline speaks plain language to non-developers and keeps the exact steps one click away.
 - Every step carries a fixed `phase`, enforced by a backend test, so the page never depends on the wording of a sentence.
+
+# F-7 Download button (Perfect, 2026-11-15)
+
+## 1. In one sentence
+When a project is ready, the page shows a "Download your project (.zip)" button that saves the finished project, and says in plain words if it cannot.
+
+## 2. What I did, step by step
+1. `downloadProject(id)` in `src/api/client.ts` asks `GET /projects/{id}/download` (F-5, by Nana). I split the old `request` into `send` (the request, the 30 s timer and the plain error sentences) and `request` (reads JSON), so the download uses exactly the same error handling.
+2. `src/build/saveFile.ts` makes the browser save the bytes: a temporary address for the file, a hidden link with a `download` name, one click, then the address is freed.
+3. `src/hooks/useDownload.ts` holds the states: idle, loading, error sentence. A second click while loading does nothing, and a screen that was closed is not updated.
+4. `BuildScreen` shows the button inside the green "passed its tests" notice, only when the status is `ready`. The button is the existing `Button` (a real `<button>`, so Tab and Enter work).
+5. I regenerated the API types (`npm run api:generate`): they were stale (the project answer had 2 fields in the types and 7 on the server) and now include the download endpoint.
+
+## 3. Why we did it this way
+- **`fetch` and not a plain link:** with a link, a failure (server asleep, project gone) opens a page of raw JSON. With `fetch` we show a sentence and keep the button.
+- **Only for `ready`:** the server refuses anything else with 409; the button is simply not shown, so a person never sees that error.
+- **The file name is `<project id>.zip`:** the same name the server suggests.
+
+## 4. How to check it works
+```
+cd frontend
+npm test -- --run                     # 84 passed, 18 skipped (live ones)
+```
+Live tests need a real backend, started on your own port (never kill other servers by name). With the keys unset, builds fail at once and cost no Gemini quota:
+```
+env -u GEMINI_API_KEY -u LLM_MODEL uvicorn backend.main:app --port 8001      # repo root, backend venv on
+VITE_LIVE_API=1 VITE_API_URL=http://localhost:8001 npm test -- --run live    # frontend/
+```
+The success case needs a project that is really ready, and a normal server has none without a real build. So that test only runs when you give it one: `VITE_LIVE_READY_ID=p_ready`. I started the real backend app with one project put into the "ready" state in code (the same way `backend/tests/test_download.py` does) and the real zip came back. Saved: `evidence/frontend/outputs_f7_download.txt`.
+
+## 5. What is NOT done or is faked
+- **I have not clicked the button in a real browser** and not done the keyboard-only walkthrough (PLAN F-7 stays 🔄 until someone does).
+- **The success path is tested against a seeded project,** not a project built by Gemini.
+- **A double click is protected by code but not tested:** counting the requests would need a fake server.
+- **Not built:** F-3 (plan screen), F-14 (the live link and "Wake it up").
+
+## 6. What will bite us
+- Projects live in the server's memory (D-013): after a restart or sleep, the project is gone and the download says "Project not found."
+- Live tests share one server, so projects from earlier runs stay in the list. The tests look for the newest match and do not check the status.
+
+## 7. Terms used
+| Term | One-line meaning |
+|---|---|
+| Blob | The bytes of a file, held in the browser's memory |
+| Zip | One file that packs many files together |
+| 409 | "Not at this step yet": the project is not ready |
+
+## 8. Lines ready for the report
+- When a build is ready, the person can download the whole project as a zip with one button; failures are shown as plain sentences.
