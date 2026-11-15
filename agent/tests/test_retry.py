@@ -230,3 +230,67 @@ def test_every_step_of_a_retried_build_has_a_known_phase() -> None:
     assert "fixing" in phases  # the sentence that says we are trying again
     assert phases[-1] == "finishing"
 
+
+
+class DailyLimitFakeModel(FakeModel):
+    """Follows the script, then the free daily allowance runs out: every later call is a per-DAY 429 (#33)."""
+
+    async def generate_content_async(
+        self, llm_request: LlmRequest, stream: bool = False
+    ) -> AsyncGenerator[LlmResponse, None]:
+        if self.calls >= len(self.replies):
+            body = {"error": {"code": 429, "status": "RESOURCE_EXHAUSTED", "message": "quota",
+                              "details": [{"violations": [{"quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier"}]}]}}
+            raise errors.ClientError(429, body)
+        async for response in super().generate_content_async(llm_request, stream):
+            yield response
+
+
+def test_daily_limit_stops_at_once_without_more_tries_or_waits(monkeypatch: pytest.MonkeyPatch) -> None:
+    waits: list[float] = []
+
+    async def no_wait(seconds: float) -> None:
+        waits.append(seconds)
+
+    monkeypatch.setattr(retry.asyncio, "sleep", no_wait)
+    model = DailyLimitFakeModel(model="fake", replies=[])  # the very first call hits the daily limit
+
+    result, steps = run(model)
+
+    assert result.status == "failed"
+    assert result.kind == "daily_limit"
+    assert result.reason == "Today's free AI limit is used up. Please try again tomorrow."
+    assert "retrying" not in statuses(steps)  # no second try
+    assert waits == []  # and no 30-second wait
+    assert statuses(steps).count("failed") == 1
+    assert steps[-1]["step"]["text"] == "Today's free AI limit is used up. Please try again tomorrow."
+
+
+def test_daily_limit_after_a_finished_fix_is_still_ready() -> None:
+    # The AI fixed the bug and the tests passed, then the daily allowance ran out on its last reply.
+    model = DailyLimitFakeModel(
+        model="fake",
+        replies=[call("write_file", path="calc.py", content=FIXED_APP), call("run_tests")],
+    )
+
+    result, steps = run(model, start_files=SEEDED_PROJECT)
+
+    assert result.status == "ready"  # we checked the files ourselves instead of throwing the fix away
+    assert steps[-1]["status"] == "ready"
+
+
+def test_a_failed_try_s_last_step_is_about_fixing_not_finishing() -> None:
+    # Try 1 fails (3 test runs), try 2 fixes it. Between them, nothing may say "finishing" yet.
+    model = FakeModel(
+        model="fake",
+        replies=[call("run_tests"), call("run_tests"), call("run_tests"),
+                 call("write_file", path="calc.py", content=FIXED_APP),
+                 call("run_tests"), say("Done.")],
+    )
+
+    _, steps = run(model, start_files=SEEDED_PROJECT)
+
+    finishing = [step for step in steps if step.get("step", {}).get("phase") == "finishing"]
+    assert [step["status"] for step in finishing][-1] == "ready"  # only the real end says "finishing"
+    held_back = [s for s in steps if s.get("step", {}).get("text") == "The tests still fail after 3 tries."]
+    assert held_back and all(s["step"]["phase"] == "fixing" for s in held_back)

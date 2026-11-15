@@ -7,6 +7,7 @@ Sometimes that is not enough. This loop looks at WHY a build stopped and starts 
                            what went wrong before it fixes anything (self-reflection);
 - no files were written -> the AI gets a firm reminder that its first reply must be write_file;
 - AI service is busy    -> we wait a little, then send the same message again;
+- today's free limit is used up (a per-day 429) -> stop at once: no try or wait can help until tomorrow;
 - too slow / too many steps -> treated like failing tests: keep the files, explain, try again.
 
 The prompts for these new tries are Markdown files in agent/prompts/, so the team can review them.
@@ -50,13 +51,20 @@ async def build_with_retries(
 
         # The AI service can fail AFTER the AI has already fixed everything (seen live: tests passed,
         # then "503 busy" on its last reply). So check the files ourselves before starting a whole new try.
-        if result.kind == "service_busy" and result.files:
+        if result.kind in ("service_busy", "daily_limit") and result.files:
             check = run_tests(result.files)
             if check.passed:
                 reason = "All tests pass."
                 report({"status": "ready", "step": {"kind": "Result", "text": reason, "state": "done", "phase": "finishing"}})
                 output = check.output[-MAX_KEPT_OUTPUT:]
                 return BuildResult(status="ready", reason=reason, files=result.files, test_output=output)
+
+        if result.kind == "daily_limit":
+            # Today's free allowance is used up (#33). Another try or a wait cannot help until tomorrow,
+            # so stop now with the plain sentence, instead of making the person wait minutes for a sure failure.
+            step = {"kind": "Result", "text": result.reason, "state": "failed", "phase": "finishing"}
+            report({"status": "failed", "step": step})
+            return result
 
         if attempt == MAX_ATTEMPTS:
             break  # no tries left: don't wait or build a new message for nothing
@@ -90,6 +98,10 @@ def hold_back_failure(report: Report, status: str) -> Report:
     """
 
     def report_step(event: dict[str, object]) -> None:
+        if event.get("status") == "failed" and isinstance(event.get("step"), dict):
+            # A try's own failure is not the end, so its step is about fixing, not finishing: otherwise the
+            # plain timeline (F-17) says "Finalizing your API…" while we wait for the next try.
+            event = {**event, "step": {**event["step"], "phase": "fixing"}}
         if event.get("status") in ("working", "failed"):
             event = {**event, "status": status}  # a copy with a new status; the original is left alone
         report(event)
