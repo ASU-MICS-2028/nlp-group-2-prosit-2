@@ -28,6 +28,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | 2026-11-02 | S-5 FastAPI skeleton | Elise | Perfect | Owner unreachable; it blocked W-2, W-5, W-6, W-7, W-8 | Done. Elise: read `learnings/backend.md` |
 | 2026-11-11 | W-8 `GET /projects` | Perfect | Elise | It sits in Elise's `backend/projects.py`; Perfect can focus on W-6 and W-7, which block W-9 | Perfect can take it back any time; Elise walks Perfect through it before the teach-back |
 | 2026-11-02 | S-4 `agent/llm.py` | Opei | Perfect | Owner unreachable; it blocks W-1, W-3, W-4 | Code done; Opei can take over the live check and the rest of `agent/` |
+| 2026-11-14 | F-17 `phase` on every step in `backend/builder.py`, `agent/retry.py`, `backend/projects.py` | Elise | Perfect | The page needs a stable label, Elise was unavailable and the deadline is 15 Nov | Elise can take it back, change the words or the phases, and reviews the PR (Opei as backup reviewer) |
 
 ## Scope
 
@@ -93,6 +94,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | F-13 | Pass-through endpoint `/apis/{id}/...`; reopen restarts the API from stored files; `api_url` and `live_status` on the project (D-011) | Elise | F-12, W-5 | ⛔ | `/apis/{id}/docs` opens and "Try it out" works through our backend |
 | F-14 | Ready screen: live link, the API's Swagger page, "Wake it up" when sleeping, zip as take-home | Perfect | F-13, F-7 | ⛔ | Keyboard-only walkthrough works; screenshot in `evidence/live/` |
 | F-15 | Follow-up request after a build: a new round on the existing files (D-012) | Perfect | F-13 | ⚪ | Optional; only if there is time |
+| F-17 | Plain build timeline for non-developers: each step gets a fixed `phase`; the page shows plain lines and a folded "Show details" (D-019, from Nana's feedback; not in the first plan) | Perfect | W-7, W-9 | ✅ | A non-developer sees no file names in the main timeline. Done 2026-11-14: `phase` on every step (`backend/builder.py`, `agent/retry.py`, `backend/projects.py`), `frontend/src/build/plainSteps.ts`, 8 backend and 30 frontend tests; wording rotates while waiting (D-020, Elise's idea); evidence in `evidence/frontend/outputs_f17_tests.txt` and `evidence/backend/outputs_f17_phase_tests.txt` |
 
 ## Phase 3: Evaluation and deployment (Fri 30 – Sat 31 Oct)
 

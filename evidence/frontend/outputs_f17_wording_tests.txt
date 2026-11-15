@@ -1,0 +1,13 @@
+
+> api-builder-frontend@0.0.0 test
+> vitest --run
+
+
+ RUN  v4.1.12 /Users/perfectelormavugla/Desktop/ICS/1st-Semester-Courses/NLP/nlp-group-2-prosit-2/frontend
+
+
+ Test Files  8 passed | 2 skipped (10)
+      Tests  78 passed | 15 skipped (93)
+   Start at  20:17:05
+   Duration  1.78s (transform 538ms, setup 1.85s, import 1.06s, tests 529ms, environment 8.87s)
+

@@ -10,7 +10,7 @@ from collections.abc import AsyncGenerator
 from google.adk.models import BaseLlm, LlmRequest, LlmResponse
 from google.genai import types
 
-from backend.builder import build_project
+from backend.builder import PHASES, build_project, phase_of, result_step, step_from_part
 from google.genai import errors
 import pytest
 
@@ -173,3 +173,80 @@ def test_build_stops_when_it_takes_too_long(monkeypatch: pytest.MonkeyPatch) -> 
 
     assert result.status == "failed"
     assert result.reason == "The build took too long and was stopped."
+
+
+# --- Phases (D-019): every timeline step says what it is about, so the page never has to read the sentence.
+
+def phases_of(steps: list[dict[str, object]]) -> list[str]:
+    # The phase of every event that carries a step. (Some events only change the status.)
+    return [event["step"]["phase"] for event in steps if "step" in event]
+
+
+def test_every_step_of_a_good_build_has_the_expected_phase() -> None:
+    model = FakeModel(
+        model="fake",
+        replies=[
+            call("write_file", path="test_math.py", content=PASSING_TEST),
+            call("run_tests"),
+            say("All tests pass."),
+        ],
+    )
+    steps: list[dict[str, object]] = []
+
+    asyncio.run(build_project("Build it.", "You are a builder.", model, report=steps.append))
+
+    # Writing (Doing, Result), testing (Doing, Result), the AI's closing words, our final verdict.
+    assert phases_of(steps) == ["writing", "writing", "testing", "testing", "finishing", "finishing"]
+
+
+def test_every_step_of_a_failing_build_has_a_known_phase() -> None:
+    model = FakeModel(
+        model="fake",
+        replies=[
+            call("write_file", path="test_math.py", content=FAILING_TEST),
+            call("run_tests"),
+            call("run_tests"),
+            call("run_tests"),
+            say("I give up."),
+        ],
+    )
+    steps: list[dict[str, object]] = []
+
+    asyncio.run(build_project("Build it.", "You are a builder.", model, report=steps.append))
+
+    assert phases_of(steps)  # there are steps to check
+    assert all(phase in PHASES for phase in phases_of(steps))
+    assert phases_of(steps)[-1] == "finishing"  # the final verdict
+
+
+def test_the_final_verdict_of_a_build_with_no_files_has_a_phase() -> None:
+    model = FakeModel(model="fake", replies=[say("Building a Bookshop API.")])
+    steps: list[dict[str, object]] = []
+
+    asyncio.run(build_project("Build it.", "You are a builder.", model, report=steps.append))
+
+    assert all(phase in PHASES for phase in phases_of(steps))
+    assert phases_of(steps)[-1] == "finishing"
+
+
+def test_each_tool_belongs_to_one_phase() -> None:
+    for tool in ("write_file", "read_file", "list_files"):
+        assert phase_of(tool) == "writing"
+    assert phase_of("run_tests") == "testing"
+    assert phase_of("some_new_tool") == "writing"  # an unknown tool still gets a known phase
+
+
+def test_a_tool_step_keeps_the_tools_phase_even_when_it_failed() -> None:
+    step = result_step("write_file", {"status": "error", "message": "That file name is not allowed."})
+
+    assert step["state"] == "failed"
+    assert step["phase"] == "writing"
+
+
+def test_the_ais_own_words_get_the_phase_the_loop_gives_them() -> None:
+    words = types.Part(text="I will change the price field.")
+
+    assert step_from_part(words)["phase"] == "planning"  # the default: nothing was used yet
+    assert step_from_part(words, "fixing")["phase"] == "fixing"
+    assert step_from_part(words, "finishing")["phase"] == "finishing"
+
