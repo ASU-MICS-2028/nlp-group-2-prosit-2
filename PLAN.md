@@ -98,7 +98,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 
 | ID | Task | Owner | Blocked by | Status | Done when |
 |---|---|---|---|---|---|
-| E-1 | Scoring script (pass/fail per request, retries, seconds) | Nana | W-9 | ⛔ | Runs on 2 requests |
+| E-1 | Scoring script (pass/fail per request, retries, seconds) | Nana | W-9 | 🔄 | Runs on 2 requests (2026-11-15: `evaluation/score.py` and 15 tests with a pretend builder; live run 0 on r01, r19 hit Gemini's daily limit and found a scorer bug, now fixed; run again when the quota resets) |
 | E-2 | Run evaluation on all 20 requests | Nana | E-1, F-4, F-5 | ⛔ | `evidence/evaluation/outputs_eval_run1.txt` saved |
 | E-3 | Fix the top failures (prompts: Opei; code: Elise) | Opei | E-2 | ⛔ | Fixes listed in `learnings/` |
 | E-4 | Re-run evaluation, compare to run 1 | Nana | E-3 | ⛔ | `outputs_eval_run2.txt` saved; numbers go into the report only now |
