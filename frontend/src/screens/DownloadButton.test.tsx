@@ -54,13 +54,18 @@ describe('the download button', () => {
 
   it('says so in plain words when the server cannot be reached, and can be tried again', async () => {
     show(readyBuild)
+    // The Ready screen also asks for the project's details: that one failure is already on screen.
+    const before = (await screen.findAllByText(/could not reach the server/))
+      .length
 
     fireEvent.click(screen.getByRole('button', BUTTON))
 
-    // The real connection is refused: a sentence appears, not a crash or a blank screen.
-    expect(
-      await screen.findByText(/could not reach the server/),
-    ).toBeInTheDocument()
+    // The real connection is refused: a second sentence appears (for the download), not a crash or a blank screen.
+    await waitFor(() =>
+      expect(screen.getAllByText(/could not reach the server/)).toHaveLength(
+        before + 1,
+      ),
+    )
     await waitFor(() =>
       expect(screen.getByRole('button', BUTTON)).toBeEnabled(),
     )
