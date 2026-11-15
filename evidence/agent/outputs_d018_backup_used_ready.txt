@@ -1,0 +1,35 @@
+D-018 check 2 (2026-11-14, about 06:41 GMT): 'a simple notebook api' from the chat screen.
+LLM_MODEL=gemini-3.5-flash, LLM_BACKUP_MODEL=gemini-3-flash-preview (both in .env). Gemini 3.5 was busy on tries 1-3.
+
+GET /projects/p_1:
+{"id":"p_1","name":"a simple notebook api","status":"ready","file_count":6,"size_kb":7,"tests_passed":9,"tests_total":9}
+
+Timeline (status, attempt, step kind, step text):
+
+waiting                
+working   1            
+working      Result    The AI service is busy or unavailable. Please try again in a few minutes.
+retrying     Thinking  The AI service was busy. Waited 30 seconds; trying again.
+retrying  2            
+retrying     Result    The AI service is busy or unavailable. Please try again in a few minutes.
+retrying     Thinking  The AI service was busy. Waited 30 seconds; trying again.
+retrying  3            
+retrying     Result    The AI service is busy or unavailable. Please try again in a few minutes.
+retrying     Thinking  The AI service was busy 3 times. Switching to the backup model for one last try.
+retrying  4            
+retrying     Doing     Writing requirements.txt
+retrying     Doing     Writing conftest.py
+retrying     Doing     Writing app/__init__.py
+retrying     Doing     Writing app/database.py
+retrying     Doing     Writing app/main.py
+retrying     Doing     Writing tests/test_notes.py
+retrying     Doing     Running the tests
+retrying     Result    Wrote requirements.txt
+retrying     Result    Wrote conftest.py
+retrying     Result    Wrote app/__init__.py
+retrying     Result    Wrote app/database.py
+retrying     Result    Wrote app/main.py
+retrying     Result    Wrote tests/test_notes.py
+retrying     Result    Tests passed
+retrying     Thinking  ```json {"status": "done", "summary": "A simple Notebook API for creating, reading, updating, and deleting notes with titles and content.", "tests_passed": 9, "
+ready        Result    All tests pass.

@@ -11,6 +11,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.sse import EventSourceResponse
 from pydantic import BaseModel, ConfigDict, Field
 
+from agent import llm
 from agent.prompts import builder_instruction
 from agent.retry import build_with_retries
 from backend.builder import BuildResult
@@ -130,7 +131,11 @@ async def run_build(project_id: str, request: str) -> None:
     try:
         # Opei's retry loop (F-4) around the builder (W-3). Every step it reports goes into this project's diary.
         results[project_id] = await build_with_retries(
-            message, builder_instruction(), model, report=lambda event: add_event(project_id, event)
+            message,
+            builder_instruction(),
+            model,
+            report=lambda event: add_event(project_id, event),
+            backup_model=llm.backup_model(),  # only used if the main model is busy 3 times (D-018)
         )
     except Exception:
         # Last safety net: an error we didn't expect (e.g. no API key). Without this the project stays

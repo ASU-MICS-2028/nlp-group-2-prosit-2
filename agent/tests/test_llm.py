@@ -215,6 +215,16 @@ def test_gemini_reply_without_text_is_an_error(monkeypatch):
         llm.generate("hi")
 
 
+def test_backup_model_is_read_from_the_settings(monkeypatch):
+    monkeypatch.setenv("LLM_BACKUP_MODEL", " gemini-3-flash-preview ")
+    assert llm.backup_model() == "gemini-3-flash-preview"  # spaces around it are ignored
+
+
+def test_no_backup_model_gives_none(monkeypatch):
+    monkeypatch.setenv("LLM_BACKUP_MODEL", "")
+    assert llm.backup_model() is None
+
+
 def test_gemini_503_busy_is_retried_like_429(monkeypatch):
     # The free tier often answers "503 overloaded" (W-9, Render). That is worth a retry too.
     use_gemini(monkeypatch, llm.genai.errors.APIError(503, {"error": {"message": "overloaded"}}))

@@ -353,6 +353,7 @@ Saved:
 - Results are in memory and lost on restart (D-013).
 
 ## 6. What will bite us
+- (Fixed 2026-11-14 on the F-16 branch) The AI's closing JSON report no longer shows as a raw "Thinking" line: `is_json_report` in `builder.py` skips it.
 - Saving a backend file while a build runs restarts the server (`--reload`) and the build is lost.
 - `run_tests` uses `subprocess.run`, which blocks: while the generated tests run (up to 30 s), the server answers nobody and the live stream pauses.
 - On a busy free tier one AI reply can take a minute, so a build hits the 5-minute limit. Run again later or try another Gemini model.
