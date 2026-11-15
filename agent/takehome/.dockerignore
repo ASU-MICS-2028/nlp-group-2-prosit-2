@@ -1,0 +1,5 @@
+# Files Docker should not copy into the container: your local Python setup and your local data.
+.venv
+__pycache__
+.pytest_cache
+app.db
