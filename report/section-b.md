@@ -114,7 +114,11 @@ a laptop. Render's logs showed the real cause: Gemini's free tier allows **20 re
 build uses about 10 to 20 of them, so our laptops had used up the day's quota for the live site. Giving Render its own key, in a
 separate Google project, fixed it: on 2026-11-15 the first online build ended ready, with 9 of 9 tests passing, in about four
 minutes. After 18 idle minutes the sleeping backend answered its first request in 34 seconds. The app now names the daily
-limit itself instead of saying "busy" (#35). ⏳ *Memory use during a build on Render is still to be read from its Metrics tab.*
+limit itself instead of saying "busy" (#35).
+
+Render's free plan showed no memory data in its Metrics tab, so memory on the live server could not be measured. On a laptop, the backend used about 51 MB at rest and each live generated API about 50 MB, so three live APIs and the backend
+should fit in the 512 MB limit; memory during a build was not measured. Outgoing traffic stayed under 2 MB on a test day,
+against a free allowance of 5 GB a month.
 
 ## 4. Evaluation (B-4, Nana) — method drafted, results ⏳
 
