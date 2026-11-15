@@ -34,7 +34,11 @@ The frontend is a set of static files hosted free on Vercel; the backend is a lo
 10. 2026-11-15: the first online build that ended **ready**: a to-do list API, 6 files, **9 of 9 tests passed**, about
     4 minutes (`evidence/deploy/outputs_backend_ready_build.txt`).
 11. Wake-up after 18 idle minutes: the first `/health` took **34 seconds**, then answered 200 (`evidence/deploy/outputs_backend_wakeup.txt`).
-12. Still to do: memory during a build (Render's Metrics tab), then D-3.
+12. 2026-11-15: Render's Metrics tab, read by Nana: the **Memory graph has no data at all** (only the 512 MB limit), so memory
+    on Render could not be measured; we think the free plan does not record it, but did not find that in Render's docs.
+    Outbound bandwidth was under 2 MB for the whole day (peak about 0.6 MB per hour), against 5 GB a month
+    (`evidence/deploy/render-metrics-memory.png`, `render-metrics-bandwidth.png`). A second build at 15:24 UTC to watch memory
+    stopped after 36 s with "Today's free AI limit is used up" (Render's key had used its 20 requests).
 13. 2026-11-15, D-3 ✅: redeployed the frontend (the live site was still the 13 Nov version, without the download button or
     the Ready screen: Vercel does not redeploy by itself). With paid API credit on Render's key, a Bookshop build ended ready
     in 36 s, 9 of 9 tests; the zip downloaded; `/apis/p_2/docs` and calls through the live link worked. A link to an API that
@@ -98,7 +102,9 @@ fails with "The server has no AI model set (LLM_MODEL)".
 ## 5. What is NOT done or is faked
 - Frontend live: https://mesora-api-builder.vercel.app. Backend live (early run): https://nlp-group-2-prosit-2.onrender.com.
 - **Building an API online works** (2026-11-15, 9 of 9 tests), but only about **one build per model per day** on the free tier.
-- Not tested online yet: the missing-key error, memory during a build, the frontend's "waking up" notice.
+- Not tested online yet: the missing-key error, the frontend's "waking up" notice.
+- **Memory on Render is unknown** (the free plan's Metrics tab shows none). Laptop figures: backend about 51 MB at rest, each
+  live generated API about 50 MB (F-12). Memory during a build was not measured anywhere.
 - Render account created 2026-11-13 (Nana, GitHub sign-in). The 5 GB and 500-minute numbers come from Render's docs; nobody has yet confirmed them on the account's billing page.
 
 ## 6. What will bite us
