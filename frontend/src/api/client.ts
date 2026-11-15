@@ -14,6 +14,9 @@ export type Health = components['schemas']['Health']
 
 // A free-tier server can be asleep and take about half a minute to wake up.
 const TIMEOUT_MS = 30_000
+// Waking a generated API can take up to 30 seconds on the server's side (docs/api-contract.md),
+// so we wait a little longer than that, to see the server's own plain sentence instead of ours.
+const WAKE_TIMEOUT_MS = 45_000
 
 // Every failure becomes an ApiError whose message is a sentence we can show to a user as it is.
 export class ApiError extends Error {
@@ -58,6 +61,7 @@ async function messageFromResponse(response: Response): Promise<string> {
 async function send(
   path: string,
   options: RequestInit = {},
+  timeoutMs = TIMEOUT_MS,
 ): Promise<Response> {
   // AbortController lets us cancel the request when the timer runs out.
   const controller = new AbortController()
@@ -65,7 +69,7 @@ async function send(
   const timer = setTimeout(() => {
     timedOut = true
     controller.abort()
-  }, TIMEOUT_MS)
+  }, timeoutMs)
 
   try {
     const response = await fetch(`${API_URL}${path}`, {
@@ -86,8 +90,12 @@ async function send(
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const response = await send(path, options)
+async function request<T>(
+  path: string,
+  options: RequestInit = {},
+  timeoutMs = TIMEOUT_MS,
+): Promise<T> {
+  const response = await send(path, options, timeoutMs)
   try {
     return (await response.json()) as T
   } catch {
@@ -116,6 +124,23 @@ export function startProject(requestText: string): Promise<StartResponse> {
 export function getProject(projectId: string): Promise<ProjectResponse> {
   // encodeURIComponent keeps odd characters in an id from changing the address.
   return request<ProjectResponse>(`/projects/${encodeURIComponent(projectId)}`)
+}
+
+// Start a sleeping live API again from its stored files (F-13). Answers {"live_status": "running"}.
+export function wakeProject(
+  projectId: string,
+): Promise<{ live_status: string }> {
+  return request<{ live_status: string }>(
+    `/projects/${encodeURIComponent(projectId)}/wake`,
+    { method: 'POST' },
+    WAKE_TIMEOUT_MS,
+  )
+}
+
+// Where the generated API's own Swagger page opens. `apiUrl` is the project's `api_url` (for example "/apis/p_1");
+// the page is served by our backend, which passes the calls on to the generated API.
+export function liveDocsUrl(apiUrl: string): string {
+  return `${API_URL}${apiUrl}/docs`
 }
 
 // The finished project as a zip (F-5). A Blob is the file's bytes held in the browser's memory.

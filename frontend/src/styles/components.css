@@ -480,3 +480,25 @@
 .timeline-details > summary {
   cursor: pointer;
 }
+
+/* The Ready screen's details: facts, the live link, and the buttons (F-14) */
+.ready-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+
+.ready-details__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* A link that looks like a button: no underline, normal text colour */
+a.btn {
+  text-decoration: none;
+  color: var(--text);
+}

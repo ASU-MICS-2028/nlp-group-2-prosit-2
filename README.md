@@ -22,15 +22,16 @@ Code is kept short and plain on purpose. See [CONTRIBUTING.md](CONTRIBUTING.md) 
 
 Last updated: 2026-11-15. Stage: **Phase 4, Writing and handing in**. The walking skeleton is done: a request typed in the web page
 starts a real build (agent with retries and a backup model), and the page shows its progress live in plain words (W-9, F-4, F-16, F-17).
-The server can hand over the finished project as a zip (F-5, endpoint only: the download button is F-7). The frontend and backend are deployed (Vercel and Render).
-Not built (so the report must not claim them): plan preview and approval (F-2, F-3), the download button (F-7), the live generated API (F-12 to F-14).
+The server hands over the finished project as a zip (F-5) and starts it as a live API at a link (F-12, F-13). The ready screen shows the facts, the link to the API's
+Swagger page, "Wake it up" and the download button (F-7, F-14; the check in a real browser is still to do). The frontend and backend are deployed (Vercel and Render).
+Not built (so the report must not claim them): plan preview and approval (F-2, F-3).
 Evaluation numbers wait for E-2 and E-4; the free Gemini quota limits those runs.
 Tasks that stall get picked up by someone else (D-009); see Handovers in PLAN.md.
 Deadline for the prosit deliverables (code, report, slides): **Sun 15 Nov 2026** (moved from Sun 1 Nov). Presentation and viva come after (dates ❓).
 
 | Person | Now (can start today) | Next (waiting on) |
 |---|---|---|
-| **Perfect** | F-7 download button (F-5 is done); A-3 Section A; B-3 frontend paragraph (slot in the Section B draft, PR #32); R-6 final repo check; S-2 branch protection and S-3 collaborators | R-4 teach-back |
+| **Perfect** | F-7 and F-14 are built: click them in a browser, keyboard walkthrough, screenshots; A-3 Section A; B-3 frontend paragraph (slot in the Section B draft, PR #32); R-6 final repo check; S-2 branch protection and S-3 collaborators | R-4 teach-back |
 | **Opei** | A-2 Section A; B-2 agent, prompts and LLM paragraph (drafted in PR #32) | E-3 fix the top failures (E-2) |
 | **Elise** | A-1 Section A; B-1 backend paragraph; R-1 architecture diagram (F-5, F-12 and F-13 handed to Nana 2026-11-15) | F-2 plan + approval is not started |
 | **Nana** | (F-5 zip download, F-12 live runner and F-13 live link done 2026-11-15, from Elise; D-2 done 2026-11-15: first online build ready); D-3 online smoke test; E-1 live run once the quota resets; A-4 Section A; B-5 assemble Section B, R-2 report PDF, R-3 slides, R-5 Canvas upload | E-2 and E-4 evaluation runs |
