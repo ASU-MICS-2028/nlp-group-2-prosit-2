@@ -17,7 +17,7 @@ from google.adk.models import BaseLlm
 from google.adk.runners import InMemoryRunner
 from google.genai import errors, types
 
-from agent.llm import builder_model
+from agent.llm import DAILY_LIMIT_MESSAGE, builder_model, is_daily_limit
 from agent.tools import Workspace, make_tools
 from backend.runner import run_tests
 
@@ -61,7 +61,7 @@ class BuildResult:
     reason: str  # one plain sentence: why the build stopped
     files: dict[str, str]  # the project the AI wrote: {file name: file text}
     # Why it stopped, as one fixed word, so the retry loop (F-4, agent/retry.py) can decide what to do
-    # without comparing sentences: "passed", "tests_failed", "no_files", "service_busy", "too_slow", "too_many_steps".
+    # without comparing sentences: "passed", "tests_failed", "no_files", "service_busy", "daily_limit", "too_slow", "too_many_steps".
     kind: str = "passed"
     test_output: str = ""  # the end of pytest's output from our own final test run (empty if it never ran)
 
@@ -122,11 +122,15 @@ async def build_project(
         # Stop rule 4: the AI used up its moves without finishing (for example, going round in circles).
         reason = "The AI took too many steps without finishing."
         result = BuildResult(status="failed", reason=reason, files=workspace.files, kind="too_many_steps")
-    except errors.APIError:
+    except errors.APIError as error:
         # Stop rule 3: the AI service said no (503 busy, 429 too many requests, a wrong key, ...).
         # Without this, the error would crash the build and no final status would ever reach the live stream.
-        reason = "The AI service is busy or unavailable. Please try again in a few minutes."
-        result = BuildResult(status="failed", reason=reason, files=workspace.files, kind="service_busy")
+        if is_daily_limit(error):
+            # Today's free allowance is used up (#33): its own kind, so the retry loop stops instead of waiting.
+            result = BuildResult(status="failed", reason=DAILY_LIMIT_MESSAGE, files=workspace.files, kind="daily_limit")
+        else:
+            reason = "The AI service is busy or unavailable. Please try again in a few minutes."
+            result = BuildResult(status="failed", reason=reason, files=workspace.files, kind="service_busy")
     else:
         # "else" runs only when the try block finished WITHOUT an error: then we check the work ourselves.
         result = check_result(workspace, failed_reason)
@@ -152,8 +156,17 @@ def step_from_part(part: types.Part, text_phase: str = "planning") -> dict[str, 
     if part.function_response:  # a tool's answer comes back
         return result_step(part.function_response.name or "", part.function_response.response or {})
     if part.text and part.text.strip():  # the AI writes some text
-        return {"kind": "Thinking", "text": part.text.strip(), "state": "done", "phase": text_phase}
+        text = part.text.strip()
+        if is_json_report(text):
+            return None  # the AI's closing JSON report is for code, not for the person (see below)
+        return {"kind": "Thinking", "text": text, "state": "done", "phase": text_phase}
     return None  # anything else isn't worth showing
+
+
+def is_json_report(text: str) -> bool:
+    # The builder prompt asks the AI to end with a JSON report, e.g. ```json {"status": "done", ...} ```.
+    # A person can't read it, and we don't rely on it: we run the tests ourselves (check_result).
+    return text.startswith("```json") or (text.startswith("{") and text.endswith("}"))
 
 
 def doing_text(tool: str, arguments: dict[str, object]) -> str:

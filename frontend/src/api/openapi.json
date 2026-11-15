@@ -112,6 +112,46 @@
         }
       }
     },
+    "/projects/{project_id}/download": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Download Project",
+        "operationId": "download_project_projects__project_id__download_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/projects/{project_id}/events": {
       "get": {
         "tags": [
@@ -235,14 +275,63 @@
             "type": "string",
             "title": "Id"
           },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
           "status": {
             "type": "string",
             "title": "Status"
+          },
+          "file_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Count"
+          },
+          "size_kb": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Kb"
+          },
+          "tests_passed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tests Passed"
+          },
+          "tests_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tests Total"
           }
         },
         "type": "object",
         "required": [
           "id",
+          "name",
           "status"
         ],
         "title": "ProjectResponse"

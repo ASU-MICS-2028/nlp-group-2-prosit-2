@@ -1,0 +1,23 @@
+# F-5 manual check on a real local server (no .env, so a build fails at once: no Gemini call), 2026-11-15
+$ curl -s -X POST localhost:8013/projects -d {"request":"A notes API"}
+{"id":"p_1","status":"waiting","questions":[]}
+$ curl -s localhost:8013/projects/p_1
+{"id":"p_1","name":"A notes API","status":"failed","file_count":null,"size_kb":null,"tests_passed":null,"tests_total":null}
+$ curl -s -i localhost:8013/projects/p_1/download
+HTTP/1.1 409 Conflict
+content-type: application/json
+{"detail":"The API is not ready yet, so there is nothing to download."}
+
+$ curl -s -i localhost:8013/projects/p_9/download
+HTTP/1.1 404 Not Found
+{"detail":"Project not found."}
+
+
+# Automated tests (pretend builds; the last one unzips the builder prompt's example project and runs its tests):
+$ python -m pytest backend/tests/test_download.py -v
+backend/tests/test_download.py::test_a_ready_project_downloads_as_a_zip_of_its_files PASSED
+backend/tests/test_download.py::test_a_project_that_is_still_building_cannot_be_downloaded PASSED
+backend/tests/test_download.py::test_a_failed_build_cannot_be_downloaded_even_if_it_wrote_files PASSED
+backend/tests/test_download.py::test_an_unknown_project_is_404 PASSED
+backend/tests/test_download.py::test_the_unzipped_project_passes_its_own_tests PASSED
+======================== 5 passed, 1 warning in 3.03s =========================

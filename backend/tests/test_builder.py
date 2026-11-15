@@ -84,6 +84,22 @@ def test_each_step_is_reported_for_the_timeline() -> None:
     assert steps[0]["step"]["text"] == "Writing test_math.py"
     assert steps[-1]["status"] == "ready"  # the last event carries the final status
 
+
+def test_the_ais_json_report_is_not_shown_in_the_timeline() -> None:
+    # The builder prompt asks the AI to end with a JSON report. It is for code, not for the person.
+    report = '```json\n{"status": "done", "tests_passed": 1, "tests_total": 1}\n```'
+    model = FakeModel(
+        model="fake",
+        replies=[call("write_file", path="test_math.py", content=PASSING_TEST), call("run_tests"), say(report)],
+    )
+    steps: list[dict[str, object]] = []
+
+    asyncio.run(build_project("Build it.", "You are a builder.", model, report=steps.append))
+
+    texts = [str(event["step"]["text"]) for event in steps]
+    assert not any("tests_passed" in text for text in texts)  # the raw JSON never reaches the screen
+    assert steps[-1]["status"] == "ready"  # the build itself is unchanged
+
 # A tiny project whose test always fails.
 FAILING_TEST = "def test_add():\n    assert 1 + 1 == 3\n"
 
@@ -250,3 +266,27 @@ def test_the_ais_own_words_get_the_phase_the_loop_gives_them() -> None:
     assert step_from_part(words, "fixing")["phase"] == "fixing"
     assert step_from_part(words, "finishing")["phase"] == "finishing"
 
+
+
+class DailyLimitModel(BaseLlm):
+    """A pretend AI service whose free daily allowance is used up: every call is a per-DAY 429 (#33)."""
+
+    async def generate_content_async(
+        self, llm_request: LlmRequest, stream: bool = False
+    ) -> AsyncGenerator[LlmResponse, None]:
+        body = {"error": {"code": 429, "status": "RESOURCE_EXHAUSTED", "message": "quota",
+                          "details": [{"violations": [{"quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier"}]}]}}
+        raise errors.ClientError(429, body)
+        yield  # never reached; it only tells Python this is the same kind of function as FakeModel's
+
+
+def test_daily_limit_has_its_own_kind_and_a_plain_sentence() -> None:
+    steps: list[dict[str, object]] = []
+
+    result = asyncio.run(
+        build_project("Build it.", "You are a builder.", DailyLimitModel(model="fake"), report=steps.append)
+    )
+
+    assert result.status == "failed"
+    assert result.kind == "daily_limit"
+    assert result.reason == "Today's free AI limit is used up. Please try again tomorrow."
