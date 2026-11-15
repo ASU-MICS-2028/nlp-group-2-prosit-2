@@ -39,7 +39,12 @@ The frontend is a set of static files hosted free on Vercel; the backend is a lo
     Outbound bandwidth was under 2 MB for the whole day (peak about 0.6 MB per hour), against 5 GB a month
     (`evidence/deploy/render-metrics-memory.png`, `render-metrics-bandwidth.png`). A second build at 15:24 UTC to watch memory
     stopped after 36 s with "Today's free AI limit is used up" (Render's key had used its 20 requests).
-13. Still to do: D-3, one full request from the live website.
+13. 2026-11-15, D-3 ✅: redeployed the frontend (the live site was still the 13 Nov version, without the download button or
+    the Ready screen: Vercel does not redeploy by itself). With paid API credit on Render's key, a Bookshop build ended ready
+    in 36 s, 9 of 9 tests; the zip downloaded; `/apis/p_2/docs` and calls through the live link worked. A link to an API that
+    had gone to sleep showed "This API is asleep"; fixed in #43 (the link starts it first), redeployed, and checked by Nana
+    (`evidence/deploy/outputs_d3_online_smoke.txt`).
+14. **After any frontend change is merged, redeploy the frontend by hand** (clean copy of `main`), and the backend first if it changed too.
 
 ## 3. Free-tier limits (checked 2026-11-10)
 
