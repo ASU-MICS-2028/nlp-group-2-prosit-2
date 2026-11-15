@@ -105,9 +105,12 @@ After the tests pass, our backend runs the generated project as its own process 
 Everything under `/apis/{id}/` goes to the generated API. For example `/apis/p_1/docs` is that API's own Swagger page, where "Try it out" really calls it, and `/apis/p_1/books` is one of its endpoints. These calls are not part of our OpenAPI schema.
 - If the API is `sleeping` (stopped to save memory, or the server restarted), the first call returns `503` with `{ "detail": "This API is asleep. Wake it up and try again." }`.
 - Data inside the generated API lasts while it is running and is lost when it restarts.
+- A ready build goes live by itself; `live_status` is `sleeping` if it could not start, and the zip still works.
+- `409` if the project is not ready. `413` "The request is too big." over 1 MB. `502` if the API does not answer within 30 seconds, or its answer is over 1 MB.
+- An API nobody calls for 10 minutes is put to sleep. Its own status codes and bodies (for example its `404`) come back unchanged.
 
 ### `POST /projects/{id}/wake`
-Restart a sleeping API from its stored files. Response `202`: `{ "live_status": "running" }` once it answers, or `503` with a plain `detail` if too many APIs are already running. Calling it on a running API does nothing new.
+Restart a sleeping API from its stored files. Response `202`: `{ "live_status": "running" }` once it answers, or `503` with a plain `detail` if it could not start ("The API could not start. Its code has a problem.", or it did not answer within 30 seconds). Calling it on a running API does nothing new. `409` if the project is not ready. When 3 APIs are already running, waking one more puts the one used least recently to sleep (F-12), instead of refusing.
 
 ### Optional: `POST /projects/{id}/followup` (D-012, F-15)
 Request: `{ "request": "Also add search by title" }`. Starts a new build round on the existing files, then the same events stream applies.

@@ -1,0 +1,21 @@
+# F-13 live link tests, 2026-11-15 (Windows laptop; real live servers started through backend/live.py, no AI)
+$ python -m pytest backend/tests/test_live_link.py -v
+backend/tests/test_live_link.py::test_a_finished_build_starts_its_live_api PASSED
+backend/tests/test_live_link.py::test_calls_go_through_to_the_live_api_and_its_data_lasts PASSED
+backend/tests/test_live_link.py::test_the_live_apis_own_errors_come_back_unchanged PASSED
+backend/tests/test_live_link.py::test_its_swagger_page_works_behind_our_link PASSED
+backend/tests/test_live_link.py::test_a_sleeping_api_says_so_plainly PASSED
+backend/tests/test_live_link.py::test_wake_starts_a_sleeping_api_and_does_nothing_new_when_it_runs PASSED
+backend/tests/test_live_link.py::test_wake_on_a_project_that_cannot_start_is_a_plain_503 PASSED
+backend/tests/test_live_link.py::test_a_project_that_is_not_ready_has_no_live_api PASSED
+backend/tests/test_live_link.py::test_unknown_projects_are_404 PASSED
+backend/tests/test_live_link.py::test_a_request_that_is_too_big_is_refused PASSED
+backend/tests/test_live_link.py::test_stopping_our_server_stops_every_live_api PASSED
+======================= 11 passed, 1 warning in 12.26s ========================
+
+# Do the tests catch mistakes? (code broken on purpose, then put back)
+full /apis/p_1/... path forwarded to the live API -> 2 failed (calls go through; Swagger page)
+no --root-path when a build finishes              -> 1 failed (a finished build starts its live API)
+
+$ python -m pytest -q   (whole repo)
+191 passed
