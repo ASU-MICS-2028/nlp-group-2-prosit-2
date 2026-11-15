@@ -124,7 +124,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | B-2 | Section B paragraph: prompts / LLM | Opei | E-4 | ⛔ | In `report/section-b.md` |
 | B-3 | Section B paragraph: frontend | Perfect | E-4 | ⛔ | In `report/section-b.md` |
 | B-4 | Section B paragraph: deployment + evaluation | Nana | E-4 | ⛔ | In `report/section-b.md` |
-| B-5 | Assemble Section B (approach, architecture, implementation, evaluation) | Nana | B-1..B-4, R-1 | ⛔ | Reads as one text |
+| B-5 | Assemble Section B (approach, architecture, implementation, evaluation) | Nana | B-1..B-4, R-1 | ⛔ | Reads as one text (skeleton draft started 2026-11-14 in `report/section-b.md`: slots for B-1..B-3, deployment and evaluation method drafted, results wait for E-4) |
 | R-2 | Assemble report PDF; **GitHub link on page 1** | Nana | A-1..A-4, B-5 | ⛔ | PDF checked |
 | R-3 | Slides (10 min, engaging, Section B content); **GitHub link on page 1** | Nana | E-4 | ⛔ | Slides done; each person has a speaking part |
 | R-4 | Teach-back: each person walks the others through their learnings note and code | Perfect | W-9, F-5 | ⛔ | Held; open questions logged |
