@@ -1,0 +1,33 @@
+# D-3 online smoke test, 2026-11-15 (after Nana added paid API credit to Render's Gemini key)
+# Backend: Render, deployed at main f6c35c6 (has F-5, F-12, F-13). Frontend: Vercel, redeployed 16:2x UTC from a clean copy of main f6c35c6.
+
+## Frontend redeploy check (the live JavaScript bundle)
+bundle /assets/index-DsMgrA6N.js: "Open your live API" 1, "Wake it up" 1, backend address 1, "AIza" (key pattern) 0
+(before the redeploy the bundle was the 13 Nov version: none of the new screen text)
+
+## One build on the live backend
+$ POST /projects  {"request":"A bookshop API. Books have a title, author, price and whether they are in stock. I want to add, list, see one, change and delete books."}
+start 2026-11-15T16:26:36Z -> ready after ~36 s
+{"id":"p_2","status":"ready","file_count":6,"size_kb":7,"tests_passed":9,"tests_total":9,"api_url":"/apis/p_2","live_status":"sleeping"}
+last events: "Tests passed" (testing) -> "All tests pass." (finishing)
+Note: live_status read "sleeping" in the seconds right after "ready", while its API was still starting
+(the build reports "ready" before start_live_api has finished). A wake a moment later answered at once:
+
+$ POST /projects/p_2/wake            -> {"live_status":"running"} HTTP 202 in 0.56 s
+$ GET  /projects/p_2/download        -> HTTP 200, 2906 bytes, application/zip
+   files: requirements.txt, conftest.py, app/__init__.py, app/database.py, app/main.py, tests/test_books.py
+
+## The live link (F-13) on Render
+$ GET  /apis/p_2/docs                -> HTTP 200 (the generated API's own Swagger page)
+$ GET  /apis/p_2/openapi.json        -> title "Bookshop API", servers [{"url": "/apis/p_2"}], paths /books, /books/{book_id}
+$ POST /apis/p_2/books {"title":"Things Fall Apart","author":"Chinua Achebe","price":12.5,"in_stock":true}
+   -> {"title":"Things Fall Apart","author":"Chinua Achebe","price":12.5,"in_stock":true,"id":1} HTTP 201
+$ GET  /apis/p_2/books               -> [ that book ] HTTP 200
+
+Not checked here: clicking through the website itself (screenshot to add by hand), memory on Render (no data on the free plan).
+
+## After the auto-wake fix (#43), 2026-11-15
+Seen first: a sleeping API's link answered {"detail":"This API is asleep. Wake it up and try again."}, because the Ready
+screen still showed the link from before the API went to sleep. Fixed in #43 (opening the link starts the API first).
+Render redeployed by Nana at main 3d0ffc5; Nana checked on the live site that the links open the Swagger page and that
+download works ("Everything working well").

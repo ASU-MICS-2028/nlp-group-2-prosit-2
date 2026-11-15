@@ -108,7 +108,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | E-4 | Re-run evaluation, compare to run 1 | Nana | E-3 | ⛔ | `outputs_eval_run2.txt` saved; numbers go into the report only now |
 | D-1 | Deploy frontend to Vercel | Nana | S-6 | ✅ | Public URL loads (done 2026-11-13: https://mesora-api-builder.vercel.app; CLI deploy per D-014; evidence in `evidence/deploy/`) |
 | D-2 | Deploy backend to Render (keys in host settings, not code) | Nana | W-9 | ✅ | `/health` OK on public URL. Done 2026-11-15: https://nlp-group-2-prosit-2.onrender.com, `/health` 200, CORS OK; first online build ready (9 of 9 tests) after Render got its own Gemini key (the earlier "busy" failures were the free tier's 20 requests per day); wake-up after sleep 34 s; `evidence/deploy/` |
-| D-3 | Smoke test deployed frontend ↔ backend | Nana | D-1, D-2 | 🟢 | One full request works online |
+| D-3 | Smoke test deployed frontend ↔ backend | Nana | D-1, D-2 | ✅ | One full request works online. Done 2026-11-15: a Bookshop build on the live site ended ready (9 of 9 tests, 36 s, with paid API credit on Render's key); the zip downloads; `/apis/p_2/docs` and calls through the live link work; a sleeping API's link now wakes it (#43); `evidence/deploy/outputs_d3_online_smoke.txt` |
 | D-4 | Prove the model switch: change `LLM_MODEL` (and the provider if ADK allows it), still works | Opei | W-4 | ✅ | Terminal output saved in `evidence/`; if only the model name can change, say so in the report. Done 2026-11-10: the model name switches by `.env` alone; no second model finished a build (flash-lite skipped tools, others refused or overloaded on the free tier); `evidence/agent/outputs_d4_model_switch.txt` |
 
 ## Phase 4: Writing and handing in (final: Sun 15 Nov)
