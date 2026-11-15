@@ -1,0 +1,23 @@
+# D-2 preparation: backend started on the laptop with Render's exact start command, 2026-11-13
+# (not a deploy; Render itself has not run anything yet)
+
+$ ALLOWED_ORIGINS=https://mesora-api-builder.vercel.app GEMINI_API_KEY= \
+  uvicorn backend.main:app --host 0.0.0.0 --port 8011
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8011 (Press CTRL+C to quit)
+
+$ curl -s localhost:8011/health
+{"status":"ok"}
+
+$ curl -s -D - -H "Origin: https://mesora-api-builder.vercel.app" localhost:8011/health | grep -i access-control-allow-origin
+access-control-allow-origin: https://mesora-api-builder.vercel.app
+
+$ curl -s -D - -H "Origin: https://evil.example" localhost:8011/health | grep -i access-control-allow-origin
+(nothing: other addresses are refused)
+
+$ curl -s -X POST localhost:8011/projects -H "Content-Type: application/json" -d '{"request":"A simple API to store books with title and author"}'
+{"id":"p_1","status":"waiting","questions":[]}
+# 6 seconds later the status is still "waiting": POST /projects does not start the agent yet (that is W-9),
+# so the "key missing gives a clear error" check cannot be run until W-9 is merged.
+
+Memory of the idle server (Windows working set): about 51 MB, out of Render's 512 MB. A real build was not measured.
