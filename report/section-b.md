@@ -82,7 +82,9 @@ Free models fail in ordinary ways, so the agent is built to recover. The retry l
 tries. After failing tests, the next try gets the test output and must first explain what went wrong, then fix it
 (self-reflection). A try that writes no files gets a firm reminder, and after a "busy" error we run the tests ourselves before
 starting over. On a project with a planted bug, the loop ended `ready`. Inside each try, a busy or hanging Gemini call is now
-retried up to five times, with a 90-second limit per call (#29). All model access goes through `agent/llm.py` (D-002), so the
+retried up to five times, with a 90-second limit per call (#29). If the main model stays busy for three tries, a fourth
+and last try runs on a backup Gemini model (D-018, #28). When Google reports that the free daily allowance is used up, the agent
+stops at once with a plain "try again tomorrow" message, because no retry can help until the next day (#35). All model access goes through `agent/llm.py` (D-002), so the
 model is a setting: switching `LLM_MODEL` needed no code change (D-4), but other free models were busy, unavailable to new users,
 or, in one case, answered without using the tools at all.
 
@@ -156,9 +158,11 @@ expected endpoints and fields against the request is our guard against that.
 ✍️ *Fixes made between the runs (E-3, Opei and Elise): to list after run 1.*
 
 ### 4.4 What we learned / limitations (so far)
-- The free model is the weakest link: on 2026-11-14 every online build attempt was refused as "busy", and our error message
-  does not yet say whether the cause was overload or the daily quota. ✍️ *Update when merged:* a free backup Gemini model
-  for the last try (D-018, PR #28) is in review; a paid second provider (issue #30) would need a team decision because of our free-tiers-only rule.
+- The free model is the weakest link. The online builds refused on 2026-11-14 were not "busy": Render's logs showed the free
+  tier's daily quota (20 requests per Google project per model, about one build), used up by laptop testing on a shared key (#33).
+  Render now has its own key, and a per-day limit now stops at once with a plain "try again tomorrow" message (#35). A free backup
+  Gemini model takes the last try when the main one stays busy (D-018, #28), but it may count against the same daily quota.
+  A paid second provider (issue #30) would need a team decision because of our free-tiers-only rule.
 - The free host has no permanent disk, so projects (and, later, live generated APIs, D-011) reset on restart.
 - Running AI-written code on a server is a real risk; we limit it with a sandbox, time and output limits, and no secrets, but it is a demo, not production.
 - ⏳ *More after E-2 / E-4.*

@@ -85,7 +85,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | F-3 | Plan preview + approve UI | Perfect | F-2 | ⛔ | Approve and reject both work |
 | F-4 | Retry / self-reflection loop (reads test failure, fixes) | Opei | W-3 (was W-9: the loop needs the agent, not the UI) | ✅ | Fixes a seeded failing project within N tries. Done 2026-11-12: `agent/retry.py` (up to 3 tries; reflection prompt `agent/prompts/reflection.md`), 8 tests with a fake AI; live with `gemini-3.5-flash` a seeded Notes API with one failing test ended `ready`, 5 of 5 (`evidence/agent/outputs_f4_live_check_run1.txt`). Not wired into the server yet (W-9) |
 | F-5 | Zip export endpoint | Nana (from Elise) | W-9 | ✅ | Unzipped project runs with `pytest`. Done 2026-11-15: `GET /projects/{id}/download` (409 unless ready); a test unzips the builder prompt's example project and its tests pass; `evidence/backend/outputs_f5_download.txt` |
-| F-6 | Dockerfile + run instructions for the zip (outside lane) | Opei | F-5 | ⛔ | Nana can run the zip by following the text |
+| F-6 | Dockerfile + run instructions for the zip (outside lane) | Opei | F-5 | 🟢 | Nana can run the zip by following the text |
 | F-7 | Download button; loading, error and empty states; accessibility pass | Perfect | F-5 | 🔄 | Keyboard-only walkthrough works. 2026-11-15: button, loading and error states, 9 new tests, live checks done (`evidence/frontend/outputs_f7_download.txt`); still to do: a keyboard-only walkthrough and a click in a real browser |
 | F-8 | Frontend tests for send, approve, download | Perfect | W-7 | ⛔ | Vitest passes in CI |
 | F-9 | UI text and user guide for non-developers (outside lane) | Nana | F-3 | ⛔ | Guide merged; Perfect approves |
