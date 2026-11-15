@@ -1,0 +1,9 @@
+# E-2, r01 run again on its own, 2026-11-15 ~22:00 UTC. In run 1 (outputs_eval_run1.txt, kept unchanged) r01 was an
+# 'error': the live server restarted during that build, so the project was gone (D-013: projects live in memory), and the
+# scorer crashed on the 404 (KeyError, fixed since: now 'ProjectGone'). Evidence: run 1's r02 became project p_1.
+# Cause of the restart not confirmed (a manual deploy, or memory on the 512 MB server).
+Live site: https://nlp-group-2-prosit-2.onrender.com
+r01  pass      30.5s  retries=0  Built, its tests pass, and every expected endpoint exists.
+1 of 1 passed (100%); 0 stopped by the free-tier limit; 1 run in total.
+
+{"id": "r01", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 30.5, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}

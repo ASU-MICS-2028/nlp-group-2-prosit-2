@@ -17,14 +17,17 @@ It reads GEMINI_API_KEY and LLM_MODEL from .env. Each build uses about 10-20 of 
 
 import argparse
 import asyncio
+import io
 import json
 import os
 import re
 import time
+import zipfile
 from collections.abc import Awaitable, Callable
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+import httpx
 from dotenv import load_dotenv
 
 from agent.prompts import builder_instruction
@@ -43,6 +46,9 @@ PATH_PARAMETER = re.compile(r"\{[^}]+\}")
 TABLE = re.compile(r"CREATE TABLE IF NOT EXISTS\s+(\w+)", re.IGNORECASE)
 # Other names a table may fairly get (from the notes in requests.json), mapped to the name we wrote there.
 OTHER_NAMES = {"classrooms": "classes", "products": "produce", "crops": "produce"}
+
+# Stop reasons that come from Gemini saying no (busy, or the free daily allowance used up, #35), not from our code.
+LIMIT_KINDS = {"service_busy", "daily_limit"}
 
 # What one build looks like to this script: (request text, where to report steps) -> the build's result.
 # The real one calls Gemini; the tests pass a pretend one.
@@ -91,7 +97,7 @@ def judge(spec: dict, result: BuildResult) -> tuple[str, str, list[str], int]:
     tables = tables_in(result.files)
     # First: did Gemini say no? Then the build tells us nothing, not even for a refusal
     # (live run 2026-11-15: r19 "built nothing" only because the day's quota was used up).
-    if result.status != "ready" and result.kind == "service_busy":
+    if result.status != "ready" and result.kind in LIMIT_KINDS:
         return "limit", f"Gemini said no (busy or out of quota): {result.reason}", [], tables
     if spec["expect"] == "refuse":
         if result.files:
@@ -170,11 +176,74 @@ async def run(specs: list[dict], build: Build, pause: float) -> list[Score]:
     return scores
 
 
+class ProjectGone(Exception):
+    """The server no longer knows the project: it restarted (or slept) during the build, and lost it (D-013)."""
+
+
+def kind_from_text(text: str) -> str:
+    # The server only tells us the final sentence, so the stop reason is read from it (the sentences come from
+    # agent/llm.py DAILY_LIMIT_MESSAGE and backend/builder.py's "busy" message).
+    if "free AI limit" in text:
+        return "daily_limit"
+    if "busy" in text:
+        return "service_busy"
+    return "failed"
+
+
+def live_build(base_url: str, transport: httpx.AsyncBaseTransport | None = None, poll_seconds: float = 5) -> Build:
+    """A build that goes through a running server's API, exactly like a user's (E-2 on the live site).
+
+    POST /projects, wait for "ready" or "failed", read the diary (/events) for the tries and the final sentence,
+    and for a ready build download the zip (F-5) to check its endpoints. The server uses its own key, so no key is
+    needed here. `transport` lets the tests use a pretend server.
+    """
+
+    async def build(request: str, report: Report) -> BuildResult:
+        async with httpx.AsyncClient(base_url=base_url, transport=transport, timeout=60) as http:
+            started = await http.post("/projects", json={"request": request})
+            started.raise_for_status()
+            project_id = started.json()["id"]
+
+            while True:  # score_one's time limit stops this if the server never finishes
+                answer = await http.get(f"/projects/{project_id}")
+                if answer.status_code == 404:
+                    raise ProjectGone()  # scored as "error", with this name in the reason, not a bare KeyError
+                project = answer.json()
+                if project["status"] in ("ready", "failed", "stopped"):
+                    break
+                await asyncio.sleep(poll_seconds)
+
+            final_text = ""
+            diary = await http.get(f"/projects/{project_id}/events")  # the build is over, so the stream replays and ends
+            for line in diary.text.splitlines():
+                if line.startswith("data:"):
+                    event = json.loads(line[len("data:"):])
+                    report(event)  # score_one counts the tries from the "attempt" events
+                    step = event.get("step")
+                    if isinstance(step, dict):
+                        final_text = str(step.get("text", ""))
+
+            if project["status"] == "ready":
+                download = await http.get(f"/projects/{project_id}/download")
+                download.raise_for_status()
+                with zipfile.ZipFile(io.BytesIO(download.content)) as archive:
+                    files = {name: archive.read(name).decode() for name in archive.namelist()}
+                return BuildResult(status="ready", reason=final_text, files=files)
+
+            # A failed build can't be downloaded, but the server says how many files it wrote. A refusal is judged
+            # on "were any files written", so stand-in names are enough here.
+            written = {f"(file {n})": "" for n in range(project.get("file_count") or 0)}
+            return BuildResult(status="failed", reason=final_text, files=written, kind=kind_from_text(final_text))
+
+    return build
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Score requests from evaluation/requests.json (E-1).")
     parser.add_argument("--only", help="comma-separated ids, e.g. r01,r02 (default: all 20)")
     parser.add_argument("--out", help="also save the results to this file (never overwrite an old run)")
     parser.add_argument("--pause", type=float, default=PAUSE_SECONDS, help="seconds to wait between requests")
+    parser.add_argument("--base-url", help="score through a running server's API instead (e.g. the live site); uses the server's key")
     args = parser.parse_args()
 
     load_dotenv()  # GEMINI_API_KEY and LLM_MODEL from the local .env file
@@ -185,12 +254,15 @@ def main() -> None:
     if args.out and Path(args.out).exists():
         raise SystemExit(f"{args.out} already exists. Keep every run: pick a new file name.")
 
-    print(f"Model: {os.environ.get('LLM_MODEL', '(not set)')}; {len(specs)} requests", flush=True)
-    scores = asyncio.run(run(specs, real_build, args.pause))
+    # Live mode: the server's own model and key are used, so name the server, not this laptop's settings.
+    where = f"Live site: {args.base_url}" if args.base_url else f"Model: {os.environ.get('LLM_MODEL', '(not set)')}"
+    print(f"{where}; {len(specs)} requests", flush=True)
+    build = live_build(args.base_url) if args.base_url else real_build
+    scores = asyncio.run(run(specs, build, args.pause))
     print(summary(scores))
 
     if args.out:
-        lines = [f"Model: {os.environ.get('LLM_MODEL', '(not set)')}", *map(line, scores), summary(scores), ""]
+        lines = [where, *map(line, scores), summary(scores), ""]
         lines += [json.dumps(asdict(s)) for s in scores]  # the raw numbers, one line per request, for E-2/E-4
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         Path(args.out).write_text("\n".join(lines) + "\n", encoding="utf-8")
