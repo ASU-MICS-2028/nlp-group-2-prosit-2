@@ -1,0 +1,20 @@
+# F-6 check, 2026-11-15, on Opei's Windows laptop: follow HOW_TO_RUN.md "Way 2: with Python" on a real take-home zip
+# The zip was made by backend/projects.py zip_files from the builder prompt's example project (Notes API, 6 files),
+# then unzipped into a fresh folder. Files in the zip:
+#   .dockerignore, Dockerfile, docker-compose.yml, HOW_TO_RUN.md  (added by F-6)
+#   requirements.txt, conftest.py, app/__init__.py, app/database.py, app/main.py, tests/test_notes.py  (the project)
+
+> py -3.11 -m venv .venv
+exit 0
+> .venv\Scripts\python -m pip install -r requirements.txt
+exit 0
+> python -m pytest -q
+9 passed in 0.93s
+> uvicorn app.main:app --port 8765, then GET /docs
+GET /docs -> 200 (Swagger page)
+POST /notes -> {"title":"Buy milk","done":false,"id":1}
+GET /notes -> {"title":"Buy milk","done":false,"id":1}
+
+# Port 8765 instead of 8000 only because another program used 8000 on this laptop; HOW_TO_RUN.md explains --port.
+# NOT tested: "Way 1: with Docker" (Docker is not installed on this laptop). The Dockerfile and docker-compose.yml
+# are checked by tests (agent/tests/test_takehome.py) against the builder's layout, but not built here.

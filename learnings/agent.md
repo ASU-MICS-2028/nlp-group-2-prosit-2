@@ -207,6 +207,38 @@ Live check (`gemini-3.5-flash`, a seeded Notes API whose "delete a missing note"
 **Second cause, found in the live check.** A call to Gemini can also hang: in the live check, try 1's first call never answered, so the whole 5-minute try was lost ("took too long", with zero steps), and W-9 run 1 looks the same. So `builder_model` also gives each call a 90-second limit (`CALL_TIMEOUT_SECONDS`). A call cut by it is sent again by the same retry. A test with a pretend server that hangs on the first call shows the request is sent again without waiting for the hang.
 **Still to watch.** Waiting counts against the 5-minute limit of one try (`TIME_LIMIT_SECONDS`).
 
+## Run files in the take-home zip (task F-6, 2026-11-15)
+**In one sentence:** every downloaded zip now also holds a `Dockerfile`, a `docker-compose.yml`, a `.dockerignore` and `HOW_TO_RUN.md`, so a person can run their API on their own computer by following plain steps.
+
+**How it works, step by step**
+1. The four files are plain files in `agent/takehome/`, so the team can read them. `takehome_files()` returns them as `{name: text}`.
+2. `zip_files` in `backend/projects.py` (F-5) adds them to the project's files. The project's own files are added second, so if the agent ever wrote a file with the same name, the agent's version is kept.
+3. `HOW_TO_RUN.md` gives two ways. Way 1: `docker compose up` (the contract's `run_command`). Way 2: Python, with separate Windows and Mac commands. Both end at http://localhost:8000/docs, and it also says how to run the tests, where the data lives (`app.db`) and how to use another port.
+
+**Why this way**
+- **Fixed files, not AI-written:** they are the same for every project, so writing them in code costs no Gemini requests and cannot be wrong in a different way each time.
+- **They match the builder's layout:** `builder.md` always puts `app` in `app/main.py` and the libraries in `requirements.txt`, which is what the Dockerfile copies and starts. A test checks this, so changing the layout in one place breaks a test instead of the person's download.
+- **`.dockerignore`:** stops a local `.venv` or `app.db` being copied into the container.
+
+**How to check it**
+```
+pytest -q agent/tests/test_takehome.py backend/tests/test_download.py    # 11 passed
+```
+By hand (`evidence/agent/outputs_f6_takehome_run.txt`): a real zip of the builder's example project, unzipped into a fresh folder, followed "Way 2" exactly: install OK, its own tests 9 passed, `/docs` showed the Swagger page, and adding and listing a note worked.
+
+**Not done or not tested**
+- Way 1 (Docker) was not run: Docker is not installed on Opei's laptop. Someone with Docker Desktop should run `docker compose up` once.
+- PLAN's done-when is "Nana can run the zip by following the text": she still has to try it.
+- `GET /projects/{id}` does not send the contract's `run_command` yet.
+
+**Terms**
+| Term | One-line meaning |
+|---|---|
+| Docker | A tool that runs a program in a "container" with everything it needs, so nothing else has to be installed |
+| Dockerfile | The recipe Docker follows to build that container |
+| docker compose | Starts the container described in `docker-compose.yml` with one command |
+| Port | The "door number" a program listens on; here 8000 |
+
 ## 6. What will bite us
 - Free-tier limits change and can be low: the evaluation (20 requests, each several calls) may hit them. Pace requests.
 - Model names change over time; `LLM_MODEL` is deliberately not hard-coded.

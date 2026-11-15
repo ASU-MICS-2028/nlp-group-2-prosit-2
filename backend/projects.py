@@ -17,6 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from agent import llm
 from agent.prompts import builder_instruction
 from agent.retry import build_with_retries
+from agent.takehome import takehome_files
 from backend import live
 from backend.builder import BuildResult
 
@@ -215,8 +216,11 @@ def zip_files(files: dict[str, str]) -> bytes:
     # Pack the project into a zip in memory (BytesIO is a file that lives in RAM), so no temp file is left behind.
     buffer = io.BytesIO()
     # ZIP_DEFLATED = compress the files (the default, ZIP_STORED, only puts them side by side).
+    # Add the run files (F-6: Dockerfile, HOW_TO_RUN.md, ...). Written second, the project's own files win
+    # if the agent happened to write a file with the same name.
+    with_run_files = {**takehome_files(), **files}
     with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for name, text in files.items():
+        for name, text in with_run_files.items():
             # The names are already safe: the agent's write_file tool refuses "../" and drive paths (W-1).
             archive.writestr(name, text)
     return buffer.getvalue()
