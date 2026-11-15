@@ -45,7 +45,7 @@ If the task is not in PLAN.md, or its blockers are not ✅, say so before doing 
 - LLM access goes only through `agent/llm.py`, so the provider (Gemini now, Claude later) can change in one place.
 - Free tiers only. Do not add any paid service or dependency.
 - Reuse before writing. One PR per branch; no stacked PRs.
-- Real deadlines beat the syllabus: the prosit is due Sun 1 Nov 2026; presentation and viva come after.
+- Real deadlines beat the syllabus: the prosit is due Sun 15 Nov 2026; presentation and viva come after.
 
 ## Ask first
 Ask before anything outward-facing or hard to undo: deploying, deleting data, merging PRs, changing repo settings, sending messages.
