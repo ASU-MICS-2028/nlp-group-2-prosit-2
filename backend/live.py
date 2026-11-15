@@ -89,8 +89,12 @@ def end_process(api: LiveApi) -> None:
     api.folder.cleanup()
 
 
-def start(project_id: str, files: dict[str, str]) -> LiveApi:
-    """Start this project's API, or give back the one already running. Raises LiveError if it can't start."""
+def start(project_id: str, files: dict[str, str], root_path: str = "") -> LiveApi:
+    """Start this project's API, or give back the one already running. Raises LiveError if it can't start.
+
+    root_path is the address our backend shows it under (F-13: "/apis/p_1"). The API then tells its own
+    Swagger page to load "/apis/p_1/openapi.json" and send "Try it out" calls there, instead of to our backend.
+    """
     with lock:
         api = running.get(project_id)
         if api is not None and api.process.poll() is None:
@@ -114,9 +118,11 @@ def start(project_id: str, files: dict[str, str]) -> LiveApi:
             raise
 
         port = free_port()
+        command = [sys.executable, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", str(port)]
+        if root_path:
+            command += ["--root-path", root_path]
         process = subprocess.Popen(
-            # The same Python as our server (sys.executable), so uvicorn and FastAPI are there.
-            [sys.executable, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", str(port)],
+            command,  # the same Python as our server (sys.executable), so uvicorn and FastAPI are there
             cwd=folder.name,  # the project's folder, so "app.main" and its app.db are found there
             env=minimal_environment(),  # no API key (backend/runner.py)
             # Throw its log away. A pipe nobody reads would fill up and freeze the API.
@@ -144,6 +150,12 @@ def touch(project_id: str) -> None:
     api = running.get(project_id)
     if api is not None:
         api.last_used = time.monotonic()
+
+
+def port_of(project_id: str) -> int | None:
+    # The port of a running API, or None. .get(): it may have been stopped a moment ago by another request.
+    api = running.get(project_id)
+    return api.port if api is not None and api.process.poll() is None else None
 
 
 def is_running(project_id: str) -> bool:

@@ -33,7 +33,7 @@ Deadline for the prosit deliverables (code, report, slides): **Sun 15 Nov 2026**
 | **Perfect** | F-7 download button (F-5 is done); A-3 Section A; B-3 frontend paragraph (slot in the Section B draft, PR #32); R-6 final repo check; S-2 branch protection and S-3 collaborators | R-4 teach-back |
 | **Opei** | A-2 Section A; B-2 agent, prompts and LLM paragraph (drafted in PR #32) | E-3 fix the top failures (E-2) |
 | **Elise** | A-1 Section A; B-1 backend paragraph; R-1 architecture diagram (F-5, F-12 and F-13 handed to Nana 2026-11-15) | F-2 plan + approval is not started |
-| **Nana** | F-13 live link (from Elise; F-5 zip download and F-12 live runner done 2026-11-15); D-3 online smoke test; E-1 live run once the quota resets; A-4 Section A; B-5 assemble Section B, R-2 report PDF, R-3 slides, R-5 Canvas upload | E-2 and E-4 evaluation runs |
+| **Nana** | (F-5 zip download, F-12 live runner and F-13 live link done 2026-11-15, from Elise); D-3 online smoke test; E-1 live run once the quota resets; A-4 Section A; B-5 assemble Section B, R-2 report PDF, R-3 slides, R-5 Canvas upload | E-2 and E-4 evaluation runs |
 
 Full task list, owners and blockers: [PLAN.md](PLAN.md). Rows leave this table once they are finished.
 

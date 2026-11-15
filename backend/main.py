@@ -4,16 +4,28 @@ Run from the repo root:  uvicorn backend.main:app --reload
 Interactive docs:        http://localhost:8000/docs
 """
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from backend import live
 from backend.config import allowed_origins
 from backend.projects import router as projects_router
 
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    # Code before "yield" runs when the server starts, code after it when the server stops.
+    yield
+    live.stop_all()  # stop every live API (F-12), so none is left running on its own after we stop
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title="Mesora API Builder",
     description="Turns a plain-English request into a tested FastAPI project.",
     version="0.1.0",

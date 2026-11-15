@@ -9,13 +9,15 @@ import zipfile
 from collections.abc import AsyncIterator
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response
+import httpx
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response
 from fastapi.sse import EventSourceResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from agent import llm
 from agent.prompts import builder_instruction
 from agent.retry import build_with_retries
+from backend import live
 from backend.builder import BuildResult
 
 # A router is a group of endpoints; main.py plugs it into the app.
@@ -72,6 +74,9 @@ class ProjectResponse(BaseModel):
     size_kb: int | None = None
     tests_passed: int | None = None
     tests_total: int | None = None
+    # The live API (F-13, D-011). Only for a ready project; null before that.
+    api_url: str | None = None  # e.g. "/apis/p_1"; its Swagger page is api_url + "/docs"
+    live_status: str | None = None  # "running" or "sleeping" (stopped to save memory, or the server restarted)
 
 
 class ProjectSummary(BaseModel):
@@ -143,6 +148,18 @@ async def run_build(project_id: str, request: str) -> None:
         # Last safety net: an error we didn't expect (e.g. no API key). Without this the project stays
         # "working" forever and the screen spins. A plain sentence is better than a spinner.
         failed(project_id, "Something went wrong on our side. Please try again.")
+        return
+    if results[project_id].status == "ready":
+        await start_live_api(project_id)  # D-011: once the tests pass, the API goes live at its link
+
+
+async def start_live_api(project_id: str) -> None:
+    # live.start waits (up to 30 s) for the API to answer. to_thread runs that wait on the side,
+    # so the server keeps answering everyone else meanwhile.
+    try:
+        await asyncio.to_thread(live.start, project_id, results[project_id].files, f"/apis/{project_id}")
+    except live.LiveError:
+        pass  # the build is still ready and downloadable; the page shows "sleeping" and offers Wake it up
 
 
 @router.post("/projects", status_code=201, response_model=StartResponse)
@@ -188,6 +205,9 @@ def get_project(project: dict[str, str] = Depends(find_project)) -> ProjectRespo
         # Size of all files together, rounded UP to whole kilobytes (1 KB = 1024 bytes), so a tiny project shows 1, not 0.
         answer.size_kb = math.ceil(sum(len(text.encode()) for text in result.files.values()) / 1024)
         answer.tests_passed, answer.tests_total = count_tests(result.test_output)
+        if project["status"] == "ready":
+            answer.api_url = f"/apis/{project['id']}"
+            answer.live_status = "running" if live.is_running(project["id"]) else "sleeping"
     return answer
 
 
@@ -240,3 +260,66 @@ async def stream_events(project: dict[str, str] = Depends(find_project)) -> Asyn
             return  # nothing more will happen: hang up
         # Wait half a second, then look for news again. "await" lets the server serve others meanwhile.
         await asyncio.sleep(0.5)
+
+
+# The most a call to a live API may send or get back. A generated API only handles small JSON, and a
+# bigger reply would sit in our small server's memory (D-011: caps on request and output size).
+MAX_PASS_THROUGH_BYTES = 1_000_000  # 1 MB
+PASS_THROUGH_TIMEOUT_SECONDS = 30
+
+
+def ready_files(project: dict[str, str]) -> dict[str, str]:
+    # The files of a ready project; 409 for any other status (the same rule as the download).
+    result = results.get(project["id"])
+    if project["status"] != "ready" or result is None:
+        raise HTTPException(status_code=409, detail="The API is not ready yet.")
+    return result.files
+
+
+@router.post("/projects/{project_id}/wake", status_code=202)
+async def wake_project(project: dict[str, str] = Depends(find_project)) -> dict[str, str]:
+    # Start a sleeping API again from its stored files (D-011). On a running one, live.start does nothing new.
+    files = ready_files(project)
+    try:
+        await asyncio.to_thread(live.start, project["id"], files, f"/apis/{project['id']}")
+    except live.LiveError as error:
+        raise HTTPException(status_code=503, detail=str(error))  # its message is already a plain sentence
+    return {"live_status": "running"}
+
+
+# Every method, and any path after /apis/{id}/ ({path:path} also matches "a/b/c").
+# include_in_schema=False: these calls belong to the generated API, not to our own API's description.
+@router.api_route(
+    "/apis/{project_id}/{path:path}",
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    include_in_schema=False,
+)
+async def pass_through(path: str, request: Request, project: dict[str, str] = Depends(find_project)) -> Response:
+    ready_files(project)  # 409 if the project isn't ready
+    await asyncio.to_thread(live.stop_idle)  # a good moment to put unused APIs to sleep
+    port = live.port_of(project["id"])
+    if port is None:
+        raise HTTPException(status_code=503, detail="This API is asleep. Wake it up and try again.")
+    live.touch(project["id"])  # it is being used, so it is not idle
+
+    body = await request.body()
+    if len(body) > MAX_PASS_THROUGH_BYTES:
+        raise HTTPException(status_code=413, detail="The request is too big.")
+    # Pass on the method, the path WITHOUT "/apis/p_1" (the API was started with that as its root path),
+    # the query (?a=1), the body and its content type. Nothing else: no cookies or other headers of ours.
+    headers = {"content-type": request.headers["content-type"]} if "content-type" in request.headers else {}
+    try:
+        async with httpx.AsyncClient(timeout=PASS_THROUGH_TIMEOUT_SECONDS) as http:
+            reply = await http.request(
+                request.method,
+                f"http://127.0.0.1:{port}/{path}",
+                params=request.query_params,
+                content=body,
+                headers=headers,
+            )
+    except httpx.HTTPError:
+        raise HTTPException(status_code=502, detail="The API did not answer. Try again, or wake it up.")
+    if len(reply.content) > MAX_PASS_THROUGH_BYTES:
+        raise HTTPException(status_code=502, detail="The API's answer is too big to pass on.")
+    # Its own status and body come back unchanged, so its own errors (like 404) reach the person as they are.
+    return Response(content=reply.content, status_code=reply.status_code, media_type=reply.headers.get("content-type"))

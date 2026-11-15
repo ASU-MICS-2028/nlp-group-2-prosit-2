@@ -459,3 +459,48 @@ Stopping: `terminate()`, wait up to 5 seconds, then `kill()`. The folder is dele
 | `DEVNULL` | A bin for output nobody needs |
 | Lock | Lets only one piece of code at a time do something, so two at once can't get in each other's way |
 | Least recently used | The one whose last use was longest ago |
+
+---
+
+# F-13 Live link (Nana took this from Elise, 2026-11-15)
+
+**In one sentence:** a ready project now goes live by itself, and `/apis/{id}/...` passes every call through to it, so a person can open `/apis/p_1/docs` and really use their API with "Try it out". Elise: please read this before the teach-back.
+
+**What changed**
+- `run_build` (`backend/projects.py`): when the build is ready, `start_live_api` starts it with the live runner (F-12). `asyncio.to_thread` runs the up-to-30-second wait on the side, so the server keeps answering others. If it can't start, the build is still ready and downloadable; it just shows `sleeping`.
+- `GET /projects/{id}`: `api_url` (`/apis/p_1`) and `live_status` (`running` or `sleeping`), only for a ready project.
+- `POST /projects/{id}/wake`: start it again from the stored files. `202 {"live_status": "running"}`, `503` with the runner's plain sentence if it can't start, `409` if not ready.
+- `ANY /apis/{id}/{path}` (`pass_through`): passes the method, the path, the query, the body and its content type to the live API's port with `httpx`, and sends its status and body back unchanged (its own `404` stays a `404`). Nothing else is passed on: no cookies or other headers of ours. Asleep → `503` "This API is asleep. Wake it up and try again." Over 1 MB → `413` (request) or `502` (answer). No answer in 30 s → `502`. Each call counts as use (`touch`) and puts unused APIs to sleep (`stop_idle`).
+- `backend/live.py`: `start(..., root_path="/apis/p_1")` adds `--root-path /apis/p_1`. Without it the API's Swagger page would load **our** `/openapi.json`. With it the page loads `/apis/p_1/openapi.json`, and its `servers` says `/apis/p_1`, so "Try it out" calls go through our link. We pass on the path **without** `/apis/p_1` (tried on a real server first: `/notes` works, `/apis/p_1/notes` is a 404).
+- `backend/main.py`: a `lifespan` that stops every live API when our server stops, so none is left running on its own (every `--reload` on a laptop is a stop).
+- `docs/api-contract.md`: `wake` stops the least-used API instead of refusing with "too many" (F-12's rule), plus the new `409`, `413` and `502` answers.
+
+**How to check it:** `python -m pytest backend/tests/test_live_link.py -v` (11 passed, real live servers, about 12 s, no AI). They check:
+- a finished build starts its live API, under its link;
+- calls go through and their data lasts;
+- the API's own errors come back unchanged;
+- the Swagger page works behind our link (PLAN's "done when");
+- a sleeping API says so;
+- `wake` starts it, and does nothing new on a running one;
+- a broken project gives a plain `503`;
+- not ready gives `409`, unknown gives `404`, too big gives `413`;
+- stopping our server stops every live API.
+
+I broke the code on purpose twice (full path forwarded; no root path after a build) and tests failed each time. The second one first passed, which showed a gap, so I added a check to the build test. Full suite: 191 passed, with no process or `live_` folder left. Output: `evidence/backend/outputs_f13_live_link.txt`.
+
+**Not done / limits**
+- "Try it out" was checked through the schema's `servers` and real calls, **not clicked in a browser**, and not tried on Render or with a Gemini-built project (no quota today).
+- The frontend's Ready screen (F-14, Perfect) must put the **backend's address** in front of `api_url`, because the page is on Vercel.
+- Memory with 3 live APIs plus a build on Render is still to be measured (Metrics tab).
+- Anyone with the link can call the API and change its data; there are no logins (same as the rest of the demo).
+- Everything is in memory: after Render restarts, projects (and so their links) are gone (D-013).
+
+**Terms**
+| Term | One-line meaning |
+|---|---|
+| Pass-through (proxy) | Our server takes a call and sends it on to another server, then hands back the answer |
+| Root path | The address prefix a server is shown under (`/apis/p_1`), so its own pages link to the right place |
+| `httpx` | The library our server uses to call another server; it was already installed for the tests |
+| `asyncio.to_thread` | Run a slow, blocking function on the side, so the server keeps serving others |
+| `lifespan` | FastAPI's start-up and shut-down steps |
+| `413` / `502` | "Your request is too big" / "the server behind us didn't answer properly" |
