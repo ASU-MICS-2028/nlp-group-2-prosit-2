@@ -66,7 +66,8 @@ Facts to use (replace with your paragraph):
 - Agent loop `backend/builder.py` with five stop rules (too slow, too many steps, service busy, no files, tests failed) (W-3).
 - Sandbox runner: temporary folder, timeout, output cap, only `PATH` and `SYSTEMROOT` passed on (W-2, F-11).
 - Tests: 130 passing on 2026-11-14 (Elise's AI-use log line); count again before the report.
-- Not done yet (check before writing): plan + approval step (F-2), zip export (F-5), live generated API at a link (F-12, F-13).
+- Done 2026-11-15 (Nana, taken from Elise): zip download `GET /projects/{id}/download` (F-5); live runner `backend/live.py`, at most 3 live APIs, idle ones stopped after 10 minutes, no key in their environment (F-12); live link `/apis/{id}/...` with the API's own Swagger page and `POST /projects/{id}/wake` (F-13, PR #39: check it is merged before writing). Learnings: `learnings/backend.md`.
+- Not done yet (check before writing): plan + approval step (F-2).
 
 ### 3.2 Agent, prompts and the LLM (B-2, Opei)
 A language model can only write text, so the agent works through four tools in `agent/tools.py` (W-1): write a file,
@@ -108,9 +109,12 @@ We checked each step on the live sites: the backend's `/health` answers, other w
 started online runs the agent (`evidence/deploy/`).
 
 Deploying also showed us real failure cases. Without the model setting, a build stops at once with *"The server has no AI
-model set"*, a clear message rather than a crash. On 2026-11-14, Gemini's free tier was busy for every online try, so builds
-failed after their retries, with a plain message to the user. ⏳ *To add after D-2 is complete: one Ready build online, the
-wake-up time after sleep, and memory use during a build.*
+model set"*, a clear message rather than a crash. Online builds then kept failing as "busy", while the same request worked on
+a laptop. Render's logs showed the real cause: Gemini's free tier allows **20 requests per day per Google project**, and one
+build uses about 10 to 20 of them, so our laptops had used up the day's quota for the live site. Giving Render its own key, in a
+separate Google project, fixed it: on 2026-11-15 the first online build ended ready, with 9 of 9 tests passing, in about four
+minutes. After 18 idle minutes the sleeping backend answered its first request in 34 seconds. The app now names the daily
+limit itself instead of saying "busy" (#35). ⏳ *Memory use during a build on Render is still to be read from its Metrics tab.*
 
 ## 4. Evaluation (B-4, Nana) — method drafted, results ⏳
 
