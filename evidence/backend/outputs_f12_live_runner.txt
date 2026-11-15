@@ -1,0 +1,28 @@
+# F-12 live runner tests, 2026-11-15 (Windows laptop; real uvicorn servers on 127.0.0.1, no AI)
+$ python -m pytest backend/tests/test_live.py -v
+backend/tests/test_live.py::test_a_sample_project_answers_a_real_http_call PASSED
+backend/tests/test_live.py::test_its_data_lasts_while_it_runs PASSED
+backend/tests/test_live.py::test_starting_one_more_than_the_limit_stops_the_least_recently_used PASSED
+backend/tests/test_live.py::test_starting_a_running_api_again_reuses_it PASSED
+backend/tests/test_live.py::test_stop_ends_the_server_and_deletes_its_folder PASSED
+backend/tests/test_live.py::test_stopping_an_api_that_is_not_running_does_nothing PASSED
+backend/tests/test_live.py::test_idle_apis_are_stopped PASSED
+backend/tests/test_live.py::test_a_project_that_cannot_start_gives_a_plain_error_and_leaves_nothing_behind PASSED
+backend/tests/test_live.py::test_a_project_that_takes_too_long_to_start_is_stopped PASSED
+backend/tests/test_live.py::test_secret_keys_are_hidden_from_the_live_api PASSED
+backend/tests/test_live.py::test_an_unsafe_file_name_is_refused PASSED
+backend/tests/test_live.py::test_two_starts_at_the_same_moment_never_go_over_the_limit PASSED
+backend/tests/test_live.py::test_an_api_that_crashed_is_started_again PASSED
+============================= 13 passed in 21.88s =============================
+
+# Do the tests catch mistakes? Each line: the code broken on purpose -> what failed (then put back)
+no limit on running APIs          -> test_starting_one_more_than_the_limit..., test_two_starts_at_the_same_moment... (2 failed)
+secrets passed to the live API     -> test_secret_keys_are_hidden_from_the_live_api (1 failed)
+crashed API's folder not deleted   -> test_an_api_that_crashed_is_started_again (1 failed)
+
+# After a normal run: 0 live API processes left, 0 live_ temp folders left.
+$ python -m pytest -q   (whole repo)
+175 passed
+
+# Memory, laptop, 3 live Notes APIs at once (Get-Process working set): 50, 50, 50 MB each
+# (plus a 5 MB venv launcher each on Windows; after stop_all: 0 processes left)
