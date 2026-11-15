@@ -1,12 +1,15 @@
+import { Download } from 'lucide-react'
 import type { BuildState } from '../build/buildState'
 import { isFinal } from '../build/buildState'
 import { toPlainSteps } from '../build/plainSteps'
 import { BuildTimeline } from '../components/BuildTimeline'
 import { Button } from '../components/Button'
 import { Notice } from '../components/Notice'
+import { useDownload } from '../hooks/useDownload'
 import { useTick } from '../hooks/useTick'
 
 type Props = {
+  projectId: string
   title: string // the project's name
   build: BuildState
   error: string | null // a plain sentence when the live connection failed
@@ -14,7 +17,31 @@ type Props = {
 }
 
 // Shows one project: its timeline, plus a plain sentence for whatever state it is in.
-export function BuildScreen({ title, build, error, onReopen }: Props) {
+// The take-home zip (F-7). It exists only while the project is ready, so the hook (and its state) starts fresh each time.
+function DownloadButton({ projectId }: { projectId: string }) {
+  const { loading, error, download } = useDownload(projectId)
+  return (
+    <>
+      <Button variant="primary" loading={loading} onClick={download}>
+        {!loading && <Download size={16} aria-hidden />}
+        {loading ? 'Preparing your download…' : 'Download your project (.zip)'}
+      </Button>
+      {error && (
+        <span className="notice__text" role="alert">
+          {error}
+        </span>
+      )}
+    </>
+  )
+}
+
+export function BuildScreen({
+  projectId,
+  title,
+  build,
+  error,
+  onReopen,
+}: Props) {
   const lastStep = build.steps[build.steps.length - 1]
   const hasStarted = build.steps.length > 0
   // Only tick while the build is going: a finished build's words never change.
@@ -41,8 +68,13 @@ export function BuildScreen({ title, build, error, onReopen }: Props) {
       )}
 
       {build.status === 'ready' && (
-        <Notice tone="success" title="Your API passed its tests">
-          The live link and the download arrive in a later step.
+        <Notice
+          tone="success"
+          title="Your API passed its tests"
+          action={<DownloadButton projectId={projectId} />}
+        >
+          Download the project to keep it. The live link arrives in a later
+          step.
         </Notice>
       )}
 

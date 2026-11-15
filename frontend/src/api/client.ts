@@ -53,7 +53,12 @@ async function messageFromResponse(response: Response): Promise<string> {
   return GENERIC_MESSAGE
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+// Sends the request and gives back the answer if it was a success. Every failure (no answer, too slow,
+// an error status) becomes an ApiError with a plain sentence. Shared by request() and downloadProject().
+async function send(
+  path: string,
+  options: RequestInit = {},
+): Promise<Response> {
   // AbortController lets us cancel the request when the timer runs out.
   const controller = new AbortController()
   let timedOut = false
@@ -70,12 +75,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     if (!response.ok) {
       throw new ApiError(await messageFromResponse(response), response.status)
     }
-    try {
-      return (await response.json()) as T
-    } catch {
-      // The server answered, but not with JSON. That is not an offline problem.
-      throw new ApiError(GENERIC_MESSAGE, response.status)
-    }
+    return response
   } catch (error) {
     if (error instanceof ApiError) throw error
     // fetch itself failed: no answer came back.
@@ -83,6 +83,16 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   } finally {
     // Always stop the timer, so a finished request does not abort later.
     clearTimeout(timer)
+  }
+}
+
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const response = await send(path, options)
+  try {
+    return (await response.json()) as T
+  } catch {
+    // The server answered, but not with JSON. That is not an offline problem.
+    throw new ApiError(GENERIC_MESSAGE, response.status)
   }
 }
 
@@ -106,6 +116,20 @@ export function startProject(requestText: string): Promise<StartResponse> {
 export function getProject(projectId: string): Promise<ProjectResponse> {
   // encodeURIComponent keeps odd characters in an id from changing the address.
   return request<ProjectResponse>(`/projects/${encodeURIComponent(projectId)}`)
+}
+
+// The finished project as a zip (F-5). A Blob is the file's bytes held in the browser's memory.
+// The server answers 409 with a plain sentence while the project is not ready (and 404 if it does not exist).
+export async function downloadProject(projectId: string): Promise<Blob> {
+  const response = await send(
+    `/projects/${encodeURIComponent(projectId)}/download`,
+  )
+  try {
+    return await response.blob()
+  } catch {
+    // The connection dropped while the file was arriving.
+    throw new ApiError(GENERIC_MESSAGE, response.status)
+  }
 }
 
 export function eventsUrl(projectId: string): string {
