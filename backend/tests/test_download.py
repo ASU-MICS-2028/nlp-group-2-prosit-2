@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from agent import prompts
+from agent.takehome import takehome_files
 from agent.tests.test_prompts import example_files  # pulls the example project out of the builder prompt
 from backend import projects
 from backend.builder import BuildResult
@@ -48,7 +49,8 @@ def test_a_ready_project_downloads_as_a_zip_of_its_files() -> None:
     assert response.headers["content-type"] == "application/zip"
     # "attachment" makes the browser save the file instead of opening it; the name is what the person sees.
     assert response.headers["content-disposition"] == f'attachment; filename="{project_id}.zip"'
-    assert unzip(response.content) == NOTES_FILES
+    # The project's own files, plus the run files every zip gets (F-6: Dockerfile, HOW_TO_RUN.md, ...).
+    assert unzip(response.content) == {**takehome_files(), **NOTES_FILES}
 
 
 def test_a_project_that_is_still_building_cannot_be_downloaded() -> None:
@@ -85,5 +87,5 @@ def test_the_unzipped_project_passes_its_own_tests(tmp_path: Path) -> None:
         archive.extractall(tmp_path)  # what the person does after downloading
 
     unzipped = {str(path.relative_to(tmp_path).as_posix()): path.read_text() for path in tmp_path.rglob("*") if path.is_file()}
-    assert unzipped == files  # nothing lost or changed on the way
+    assert unzipped == {**takehome_files(), **files}  # nothing lost or changed on the way, plus the run files
     assert run_tests(unzipped, timeout_seconds=60).passed

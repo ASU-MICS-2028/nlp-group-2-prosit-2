@@ -1,0 +1,6 @@
+# Lets you start the API with one command:  docker compose up
+services:
+  api:
+    build: .            # build the image from the Dockerfile in this folder
+    ports:
+      - "8000:8000"     # your computer's port 8000 -> the API's port 8000 in the container
