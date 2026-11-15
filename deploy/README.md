@@ -64,9 +64,9 @@ Then save evidence: `evidence/deploy/outputs_frontend_url.txt` (the command and 
 `VITE_API_URL` = the Render backend, so the Start screen now loads the project list from it).
 
 ## Backend on Render (D-2)
-**Live now (early run, 2026-11-13):** https://nlp-group-2-prosit-2.onrender.com, running `main` before W-9 is merged.
-`/health`, CORS and the project list work; building an API online needs W-9. **After W-9 is merged:** Render dashboard →
-the service → Manual Deploy → Deploy latest commit (auto-deploy is off), then run the checks below.
+**Live now:** https://nlp-group-2-prosit-2.onrender.com. First online build that ended ready: 2026-11-15 (9 of 9 tests).
+**After a backend change is merged:** Render dashboard → the service → Manual Deploy → Deploy latest commit
+(auto-deploy is off), then run the checks below.
 
 One Render web service runs the whole backend: the FastAPI server, the builder agent (`backend/builder.py` imports
 `agent/`), the Gemini calls and the pytest runs of generated code. There is no separate agent deploy.
@@ -93,10 +93,15 @@ One Render web service runs the whole backend: the FastAPI server, the builder a
 **Environment variables** (the service → Environment). Type them in the dashboard only, never in a file in the repo.
 | Name | Value | Secret? |
 |---|---|---|
-| `GEMINI_API_KEY` | the team's Gemini key | **Yes** |
+| `GEMINI_API_KEY` | a key **only for Render**, made in its own Google project (see below) | **Yes** |
 | `ALLOWED_ORIGINS` | `https://mesora-api-builder.vercel.app` | No |
 | `PYTHON_VERSION` | `3.12.8` (CI uses 3.12) | No |
-| `LLM_MODEL` | `gemini-3.5-flash` (**required**: with no model every build fails at once with "The server has no AI model set (LLM_MODEL)") | No |
+| `LLM_MODEL` | `gemini-3.5-flash` (**required**: with no model every build fails at once with "The server has no AI model set (LLM_MODEL)"). Keep the model all our checks used; another name does not give more free quota | No |
+
+**Why Render has its own key.** Gemini's free tier allows **20 requests per day, per Google project, per model**, and one
+build uses about 10-20. When Render shared a key with our laptops, laptop testing used up the day's quota and every online
+build failed with "The AI service is busy" (the real error, 429 RESOURCE_EXHAUSTED, is only in Render's Logs). After
+changing any setting, use **Save, rebuild and deploy**: a new value takes effect only after a redeploy.
 
 **Then connect the frontend**
 1. Vercel → mesora-api-builder → Settings → Environment Variables: `VITE_API_URL` = `https://nlp-group-2-prosit-2.onrender.com`.
@@ -110,3 +115,6 @@ curl -s https://nlp-group-2-prosit-2.onrender.com/health        # {"status":"ok"
 - Key missing: remove `GEMINI_API_KEY` for one test, start a build, and check for a clear error, not a crash. Then put the key back.
 - CORS: the Vercel site can call the backend. A page at any other address is refused.
 - Memory: watch the service's Metrics tab during one full build. The free server has 512 MB.
+- A full build: see `learnings/deployment.md` section 4. It uses most of the day's free quota, so run at most one.
+- A build fails with "busy": open Render → Logs. `429 RESOURCE_EXHAUSTED ... per day` means the quota is used up until
+  tomorrow (don't retry); `503 UNAVAILABLE` means Gemini is busy (try again in a few minutes).
