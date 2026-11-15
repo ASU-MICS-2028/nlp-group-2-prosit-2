@@ -116,8 +116,9 @@ fails with "The server has no AI model set (LLM_MODEL)".
 - **`LLM_MODEL` is required on Render**, not optional: without it every build fails at once. We use `gemini-3.5-flash`.
 - **Gemini's free tier allows only 20 requests per day, per Google project, per model.** This, not "busy", was why the
   online builds of 2026-11-14 and 2026-11-15 failed (429 RESOURCE_EXHAUSTED in Render's Logs). One build uses about
-  10-20 requests, so that is about one build per model per day. The app shows every Gemini error as "The AI service is
-  busy", so **read Render's Logs** to tell a 429 (quota used up, wait until tomorrow) from a 503 (busy, try again soon).
+  10-20 requests, so that is about one build per model per day. Since #35 (Opei) the app says so: "Today's free AI limit
+  is used up. Please try again tomorrow.", and it stops at once instead of retrying. "The AI service is busy" now means a
+  real 503: try again in a few minutes. If unsure, Render's Logs show the code (429 or 503).
 - **Render has its own Gemini key**, in a separate Google project, so laptop testing does not use up the live site's quota.
   On demo day: one warm-up build early, then nothing until the demo.
 - **Changing the model name does not give a fresh quota.** Render asked for `gemini-3.4-flash` and the laptop for

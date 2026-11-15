@@ -116,5 +116,6 @@ curl -s https://nlp-group-2-prosit-2.onrender.com/health        # {"status":"ok"
 - CORS: the Vercel site can call the backend. A page at any other address is refused.
 - Memory: watch the service's Metrics tab during one full build. The free server has 512 MB.
 - A full build: see `learnings/deployment.md` section 4. It uses most of the day's free quota, so run at most one.
+- A build fails with "Today's free AI limit is used up": the day's quota is gone (since #35 the app says so); wait until tomorrow.
 - A build fails with "busy": open Render → Logs. `429 RESOURCE_EXHAUSTED ... per day` means the quota is used up until
   tomorrow (don't retry); `503 UNAVAILABLE` means Gemini is busy (try again in a few minutes).
