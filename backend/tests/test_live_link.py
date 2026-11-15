@@ -91,15 +91,26 @@ def test_its_swagger_page_works_behind_our_link():
     assert schema["servers"] == [{"url": f"/apis/{project_id}"}]  # so "Try it out" calls go through our link
 
 
-def test_a_sleeping_api_says_so_plainly():
-    project_id = project_with("ready", NOTES)  # ready, but never started
+def test_opening_a_sleeping_api_wakes_it_by_itself():
+    # Seen live on Render: a page showed the link of an API that had gone to sleep, and the person got
+    # "This API is asleep" instead of the Swagger page. Opening the link now starts it first.
+    project_id = project_with("ready", NOTES)  # ready, but asleep (never started)
+    assert client.get(f"/projects/{project_id}").json()["live_status"] == "sleeping"
 
-    response = client.get(f"/apis/{project_id}/notes")
-    body = client.get(f"/projects/{project_id}").json()
+    page = client.get(f"/apis/{project_id}/docs")
+
+    assert page.status_code == 200
+    assert f"/apis/{project_id}/openapi.json" in page.text
+    assert client.get(f"/projects/{project_id}").json()["live_status"] == "running"
+
+
+def test_a_sleeping_api_that_cannot_start_says_why_plainly():
+    project_id = project_with("ready", BROKEN)
+
+    response = client.get(f"/apis/{project_id}/docs")
 
     assert response.status_code == 503
-    assert response.json() == {"detail": "This API is asleep. Wake it up and try again."}
-    assert body["live_status"] == "sleeping"
+    assert response.json() == {"detail": "The API could not start. Its code has a problem."}
 
 
 def test_wake_starts_a_sleeping_api_and_does_nothing_new_when_it_runs():
