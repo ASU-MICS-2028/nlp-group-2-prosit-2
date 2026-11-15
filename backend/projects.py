@@ -1,16 +1,19 @@
 """Project endpoints (W-5). The shapes follow docs/api-contract.md."""
 
 import asyncio
+import io
 import math
 import os
 import re
+import zipfile
 from collections.abc import AsyncIterator
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response
 from fastapi.sse import EventSourceResponse
 from pydantic import BaseModel, ConfigDict, Field
 
+from agent import llm
 from agent.prompts import builder_instruction
 from agent.retry import build_with_retries
 from backend.builder import BuildResult
@@ -115,7 +118,7 @@ def add_event(project_id: str, event: dict[str, object]) -> None:
 
 def failed(project_id: str, reason: str) -> None:
     # End the build with one plain sentence. A final status also ends the live stream.
-    add_event(project_id, {"status": "failed", "step": {"kind": "Result", "text": reason, "state": "failed"}})
+    add_event(project_id, {"status": "failed", "step": {"kind": "Result", "text": reason, "state": "failed", "phase": "finishing"}})
 
 
 async def run_build(project_id: str, request: str) -> None:
@@ -130,7 +133,11 @@ async def run_build(project_id: str, request: str) -> None:
     try:
         # Opei's retry loop (F-4) around the builder (W-3). Every step it reports goes into this project's diary.
         results[project_id] = await build_with_retries(
-            message, builder_instruction(), model, report=lambda event: add_event(project_id, event)
+            message,
+            builder_instruction(),
+            model,
+            report=lambda event: add_event(project_id, event),
+            backup_model=llm.backup_model(),  # only used if the main model is busy 3 times (D-018)
         )
     except Exception:
         # Last safety net: an error we didn't expect (e.g. no API key). Without this the project stays
@@ -182,6 +189,29 @@ def get_project(project: dict[str, str] = Depends(find_project)) -> ProjectRespo
         answer.size_kb = math.ceil(sum(len(text.encode()) for text in result.files.values()) / 1024)
         answer.tests_passed, answer.tests_total = count_tests(result.test_output)
     return answer
+
+
+def zip_files(files: dict[str, str]) -> bytes:
+    # Pack the project into a zip in memory (BytesIO is a file that lives in RAM), so no temp file is left behind.
+    buffer = io.BytesIO()
+    # ZIP_DEFLATED = compress the files (the default, ZIP_STORED, only puts them side by side).
+    with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for name, text in files.items():
+            # The names are already safe: the agent's write_file tool refuses "../" and drive paths (W-1).
+            archive.writestr(name, text)
+    return buffer.getvalue()
+
+
+@router.get("/projects/{project_id}/download")
+def download_project(project: dict[str, str] = Depends(find_project)) -> Response:
+    # The take-home zip (F-5). Only for a ready project: a failed build's files have failing tests.
+    result = results.get(project["id"])
+    if project["status"] != "ready" or result is None:
+        # 409 Conflict = "not at this step yet" (docs/api-contract.md).
+        raise HTTPException(status_code=409, detail="The API is not ready yet, so there is nothing to download.")
+    # "attachment" tells the browser to save the file instead of showing it, under this name.
+    headers = {"Content-Disposition": f'attachment; filename="{project["id"]}.zip"'}
+    return Response(content=zip_files(result.files), media_type="application/zip", headers=headers)
 
 
 def count_tests(output: str) -> tuple[int, int]:

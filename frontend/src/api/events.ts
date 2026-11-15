@@ -11,7 +11,14 @@
 // Everything is a plain string here; build/buildState.ts turns the words into the UI's own types.
 export type BuildEvent = {
   status: string
-  step?: { kind: string; text: string; output?: string; state: string }
+  // phase: a fixed word for what the step is about (D-019). The page uses it, never the sentence in `text`.
+  step?: {
+    kind: string
+    text: string
+    output?: string
+    state: string
+    phase?: string
+  }
   attempt?: number
   maxAttempts?: number
   tests?: string[]
@@ -24,12 +31,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function readStep(value: unknown): BuildEvent['step'] {
   if (!isRecord(value)) return undefined
-  const { kind, text, output, state } = value
+  const { kind, text, output, state, phase } = value
   if (typeof kind !== 'string' || typeof text !== 'string') return undefined
   if (typeof state !== 'string') return undefined
-  return typeof output === 'string'
-    ? { kind, text, output, state }
-    : { kind, text, state }
+  const step: NonNullable<BuildEvent['step']> = { kind, text, state }
+  if (typeof output === 'string') step.output = output
+  if (typeof phase === 'string') step.phase = phase
+  return step
 }
 
 // Turn the text of one message into an event. A message we cannot read gives null,

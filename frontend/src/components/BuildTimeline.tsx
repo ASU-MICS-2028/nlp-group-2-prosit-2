@@ -1,3 +1,4 @@
+import type { Phase } from '../build/phases'
 import { StatusPill, type Status } from './StatusPill'
 
 export type TestResult = 'pass' | 'fail' | 'pending'
@@ -7,6 +8,7 @@ export type BuildStep = {
   text: string
   output?: string
   state: 'done' | 'current' | 'failed'
+  phase?: Phase // missing when the server did not send one
 }
 
 type Props = {
@@ -18,6 +20,23 @@ type Props = {
   status: Status
   tests?: TestResult[]
   steps: BuildStep[]
+  // Every step exactly as it happened, for people who want the detail. Shown folded away.
+  details?: BuildStep[]
+}
+
+function StepList({ steps }: { steps: BuildStep[] }) {
+  return (
+    <ol className="steps">
+      {steps.map((step, index) => (
+        <li key={index} className={`step step--${step.state}`}>
+          <span className="step__dot" aria-hidden />
+          <span className="step__kind t-caption">{step.kind}</span>
+          <div>{step.text}</div>
+          {step.output && <pre className="well t-code">{step.output}</pre>}
+        </li>
+      ))}
+    </ol>
+  )
 }
 
 function countOf(tests: TestResult[], result: TestResult) {
@@ -32,6 +51,7 @@ export function BuildTimeline({
   status,
   tests = [],
   steps,
+  details,
 }: Props) {
   return (
     <div className="card card--bordered">
@@ -69,16 +89,15 @@ export function BuildTimeline({
         </div>
       )}
 
-      <ol className="steps">
-        {steps.map((step, index) => (
-          <li key={index} className={`step step--${step.state}`}>
-            <span className="step__dot" aria-hidden />
-            <span className="step__kind t-caption">{step.kind}</span>
-            <div>{step.text}</div>
-            {step.output && <pre className="well t-code">{step.output}</pre>}
-          </li>
-        ))}
-      </ol>
+      <StepList steps={steps} />
+
+      {/* A native <details> element: it opens and closes with the keyboard, and needs no code of ours. */}
+      {details && details.length > 0 && (
+        <details className="timeline-details">
+          <summary className="t-caption muted">Show details</summary>
+          <StepList steps={details} />
+        </details>
+      )}
     </div>
   )
 }

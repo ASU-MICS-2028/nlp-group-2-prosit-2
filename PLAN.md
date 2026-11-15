@@ -4,7 +4,7 @@
 - Every task has exactly one owner. A task starts only when everything in **Blocked by** is ✅.
 - Finishing a task = flip its row to ✅ **and** flip the tasks it unblocks from ⛔ to 🟢, in the same PR.
 - Update the README "Pending now" table in that same PR.
-- Dates: the prosit is due **Sun 1 Nov 2026**. Team target: upload by **Sat 31 Oct** so Sunday is buffer ❓ (team target, not given by the course).
+- Dates: the prosit is due **Sun 15 Nov 2026** (moved from Sun 1 Nov). Team target: upload early on Sun 15 Nov ❓ (team target, not given by the course).
   Presentation and viva dates are ❓ (they come after the prosit, not yet known).
 
 Status legend: ✅ Done · 🔄 In progress · 🟢 Ready · ⛔ Blocked · ⚪ Optional · ❓ Confirm
@@ -28,6 +28,8 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | 2026-11-02 | S-5 FastAPI skeleton | Elise | Perfect | Owner unreachable; it blocked W-2, W-5, W-6, W-7, W-8 | Done. Elise: read `learnings/backend.md` |
 | 2026-11-11 | W-8 `GET /projects` | Perfect | Elise | It sits in Elise's `backend/projects.py`; Perfect can focus on W-6 and W-7, which block W-9 | Perfect can take it back any time; Elise walks Perfect through it before the teach-back |
 | 2026-11-02 | S-4 `agent/llm.py` | Opei | Perfect | Owner unreachable; it blocks W-1, W-3, W-4 | Code done; Opei can take over the live check and the rest of `agent/` |
+| 2026-11-15 | F-5 zip download, F-12 live runner, F-13 live link | Elise | Nana | Elise is busy; agreed with her first. F-13 blocks Perfect's Ready screen (F-14) | Elise can take back F-13 any time; F-5 and F-12 are done (Elise: read their parts of `learnings/backend.md`) |
+| 2026-11-14 | F-17 `phase` on every step in `backend/builder.py`, `agent/retry.py`, `backend/projects.py` | Elise | Perfect | The page needs a stable label, Elise was unavailable and the deadline is 15 Nov | Elise can take it back, change the words or the phases, and reviews the PR (Opei as backup reviewer) |
 
 ## Scope
 
@@ -82,23 +84,25 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | F-2 | Plan preview + approval step in backend | Elise | W-9, F-1 | ⛔ | Nothing is generated before approval |
 | F-3 | Plan preview + approve UI | Perfect | F-2 | ⛔ | Approve and reject both work |
 | F-4 | Retry / self-reflection loop (reads test failure, fixes) | Opei | W-3 (was W-9: the loop needs the agent, not the UI) | ✅ | Fixes a seeded failing project within N tries. Done 2026-11-12: `agent/retry.py` (up to 3 tries; reflection prompt `agent/prompts/reflection.md`), 8 tests with a fake AI; live with `gemini-3.5-flash` a seeded Notes API with one failing test ended `ready`, 5 of 5 (`evidence/agent/outputs_f4_live_check_run1.txt`). Not wired into the server yet (W-9) |
-| F-5 | Zip export endpoint | Elise | W-9 | ⛔ | Unzipped project runs with `pytest` |
+| F-5 | Zip export endpoint | Nana (from Elise) | W-9 | ✅ | Unzipped project runs with `pytest`. Done 2026-11-15: `GET /projects/{id}/download` (409 unless ready); a test unzips the builder prompt's example project and its tests pass; `evidence/backend/outputs_f5_download.txt` |
 | F-6 | Dockerfile + run instructions for the zip (outside lane) | Opei | F-5 | ⛔ | Nana can run the zip by following the text |
-| F-7 | Download button; loading, error and empty states; accessibility pass | Perfect | F-5 | ⛔ | Keyboard-only walkthrough works |
+| F-7 | Download button; loading, error and empty states; accessibility pass | Perfect | F-5 | 🔄 | Keyboard-only walkthrough works. 2026-11-15: button, loading and error states, 9 new tests, live checks done (`evidence/frontend/outputs_f7_download.txt`); still to do: a keyboard-only walkthrough and a click in a real browser |
 | F-8 | Frontend tests for send, approve, download | Perfect | W-7 | ⛔ | Vitest passes in CI |
 | F-9 | UI text and user guide for non-developers (outside lane) | Nana | F-3 | ⛔ | Guide merged; Perfect approves |
 | F-10 | Test one UI page by hand and file bugs (outside lane) | Nana | F-3 | ⛔ | Bug list in `learnings/frontend-qa.md` |
 | F-11 | Security and privacy checks: runner gets a minimal environment (only `PATH` and `SYSTEMROOT`, which Windows needs; neither is a secret, so `GEMINI_API_KEY` no longer leaks), output capped (last 20,000 characters), input size limits, no secrets in logs | Elise | W-2 | ✅ | Tests for the leak and the cap; checklist in `learnings/backend.md` with results. "No secrets in logs" is checked again once the server has logging |
-| F-12 | Live runner: start a generated project as its own process on a local port, stop idle ones, limit how many run at once, minimal environment (D-011) | Elise | W-2, F-11 | 🟢 | A sample project answers a real HTTP call; starting one more than the limit stops the oldest |
-| F-13 | Pass-through endpoint `/apis/{id}/...`; reopen restarts the API from stored files; `api_url` and `live_status` on the project (D-011) | Elise | F-12, W-5 | ⛔ | `/apis/{id}/docs` opens and "Try it out" works through our backend |
+| F-12 | Live runner: start a generated project as its own process on a local port, stop idle ones, limit how many run at once, minimal environment (D-011) | Nana (from Elise) | W-2, F-11 | ✅ | A sample project answers a real HTTP call; starting one more than the limit stops the oldest. Done 2026-11-15: `backend/live.py` (limit 3, least recently used stopped, idle 10 min, start timeout 30 s, no key in its environment), 13 tests with real servers; about 50 MB per live API on the laptop; `evidence/backend/outputs_f12_live_runner.txt` |
+| F-13 | Pass-through endpoint `/apis/{id}/...`; reopen restarts the API from stored files; `api_url` and `live_status` on the project (D-011) | Nana (from Elise) | F-12, W-5 | 🟢 | `/apis/{id}/docs` opens and "Try it out" works through our backend |
 | F-14 | Ready screen: live link, the API's Swagger page, "Wake it up" when sleeping, zip as take-home | Perfect | F-13, F-7 | ⛔ | Keyboard-only walkthrough works; screenshot in `evidence/live/` |
 | F-15 | Follow-up request after a build: a new round on the existing files (D-012) | Perfect | F-13 | ⚪ | Optional; only if there is time |
+| F-16 | Backup model when Gemini is busy: 3 tries on the main model, a 4th on `LLM_BACKUP_MODEL` (D-018) (outside lane) | Elise | F-4 | ✅ | A main model that is busy on every try still ends `ready` via the backup (test with fake models); Opei approves. 2026-11-14: built, 135 tests pass; live: busy 3 times, the backup built it on try 4, `ready` 9/9 (`evidence/agent/outputs_d018_*`); merged in PR #28 on 2026-11-15 (Perfect resolved its conflicts with F-17; check that Opei approved) |
+| F-17 | Plain build timeline for non-developers: each step gets a fixed `phase`; the page shows plain lines and a folded "Show details" (D-019, from Nana's feedback; not in the first plan) | Perfect | W-7, W-9 | ✅ | A non-developer sees no file names in the main timeline. Done 2026-11-14: `phase` on every step (`backend/builder.py`, `agent/retry.py`, `backend/projects.py`), `frontend/src/build/plainSteps.ts`, 8 backend and 30 frontend tests; wording rotates while waiting (D-020, Elise's idea); evidence in `evidence/frontend/outputs_f17_tests.txt` and `evidence/backend/outputs_f17_phase_tests.txt` |
 
 ## Phase 3: Evaluation and deployment (Fri 30 – Sat 31 Oct)
 
 | ID | Task | Owner | Blocked by | Status | Done when |
 |---|---|---|---|---|---|
-| E-1 | Scoring script (pass/fail per request, retries, seconds) | Nana | W-9 | ⛔ | Runs on 2 requests |
+| E-1 | Scoring script (pass/fail per request, retries, seconds) | Nana | W-9 | 🔄 | Runs on 2 requests (2026-11-15: `evaluation/score.py` and 15 tests with a pretend builder; live run 0 on r01, r19 hit Gemini's daily limit and found a scorer bug, now fixed; run again when the quota resets) |
 | E-2 | Run evaluation on all 20 requests | Nana | E-1, F-4, F-5 | ⛔ | `evidence/evaluation/outputs_eval_run1.txt` saved |
 | E-3 | Fix the top failures (prompts: Opei; code: Elise) | Opei | E-2 | ⛔ | Fixes listed in `learnings/` |
 | E-4 | Re-run evaluation, compare to run 1 | Nana | E-3 | ⛔ | `outputs_eval_run2.txt` saved; numbers go into the report only now |
@@ -107,7 +111,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | D-3 | Smoke test deployed frontend ↔ backend | Nana | D-1, D-2 | 🟢 | One full request works online |
 | D-4 | Prove the model switch: change `LLM_MODEL` (and the provider if ADK allows it), still works | Opei | W-4 | ✅ | Terminal output saved in `evidence/`; if only the model name can change, say so in the report. Done 2026-11-10: the model name switches by `.env` alone; no second model finished a build (flash-lite skipped tools, others refused or overloaded on the free tier); `evidence/agent/outputs_d4_model_switch.txt` |
 
-## Phase 4: Writing and handing in (from Wed 28; final Sat 31 Oct – Sun 1 Nov)
+## Phase 4: Writing and handing in (final: Sun 15 Nov)
 
 | ID | Task | Owner | Blocked by | Status | Done when |
 |---|---|---|---|---|---|

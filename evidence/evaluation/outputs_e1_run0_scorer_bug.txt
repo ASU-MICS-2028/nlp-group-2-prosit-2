@@ -1,0 +1,12 @@
+# E-1 run 0 (2026-11-15, laptop key, LLM_MODEL=gemini-3.5-flash): python -m evaluation.score --only r01,r19
+# NOTE added after the run: both requests hit Gemini's daily free limit (429, counted against gemini-3.6-flash).
+# r19's 'pass' is WRONG: nothing was built because of the quota, not because it refused. This run found that
+# scorer bug; score.py now counts any quota/busy stop as 'limit' first (test_a_refusal_stopped_by_the_free_tier_limit_is_not_a_pass).
+# The results below are as the script printed them, unchanged.
+Model: gemini-3.5-flash
+r01  limit    218.1s  retries=2  Gemini said no (busy or out of quota): Still not working after 3 tries. Last problem: The AI service is busy or unavailable. Please try again in a few minutes.
+r19  pass     169.2s  retries=2  Nothing was built, as expected.
+1 of 1 passed (100%); 1 stopped by the free-tier limit; 2 run in total.
+
+{"id": "r01", "kind": "clear_one_table", "expect": "build", "outcome": "limit", "seconds": 218.1, "retries": 2, "reason": "Gemini said no (busy or out of quota): Still not working after 3 tries. Last problem: The AI service is busy or unavailable. Please try again in a few minutes.", "missing_endpoints": [], "tables": 0}
+{"id": "r19", "kind": "out_of_scope", "expect": "refuse", "outcome": "pass", "seconds": 169.2, "retries": 2, "reason": "Nothing was built, as expected.", "missing_endpoints": [], "tables": 0}

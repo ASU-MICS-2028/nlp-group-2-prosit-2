@@ -20,19 +20,20 @@ Code is kept short and plain on purpose. See [CONTRIBUTING.md](CONTRIBUTING.md) 
 
 ## Pending now
 
-Last updated: 2026-11-15. Stage: **Phase 1, Walking skeleton** (frontend, backend skeleton, sandbox runner and LLM wrapper are on `main`).
-Gemini key and ADK spike are done (S-4, W-10). Critical path: W-1 tools + W-4 instructions → W-3 agent → W-5 endpoints → W-9 first end-to-end → live API (F-12, F-13) → evaluation → report.
-New decisions (D-010 to D-012): agent built with Google ADK; each generated API runs live at a stable link; follow-ups only after a build.
-Runner security fixes are done (F-11), so the live runner (F-12) can start.
+Last updated: 2026-11-15. Stage: **Phase 4, Writing and handing in**. The walking skeleton is done: a request typed in the web page
+starts a real build (agent with retries and a backup model), and the page shows its progress live in plain words (W-9, F-4, F-16, F-17).
+The server can hand over the finished project as a zip (F-5, endpoint only: the download button is F-7). The frontend and backend are deployed (Vercel and Render).
+Not built (so the report must not claim them): plan preview and approval (F-2, F-3), the download button (F-7), the live generated API (F-12 to F-14).
+Evaluation numbers wait for E-2 and E-4; the free Gemini quota limits those runs.
 Tasks that stall get picked up by someone else (D-009); see Handovers in PLAN.md.
-Deadline for the prosit deliverables (code, report, slides): **Sun 1 Nov 2026**. Presentation and viva come after (dates ❓).
+Deadline for the prosit deliverables (code, report, slides): **Sun 15 Nov 2026** (moved from Sun 1 Nov). Presentation and viva come after (dates ❓).
 
 | Person | Now (can start today) | Next (waiting on) |
 |---|---|---|
-| **Perfect** | S-2 branch protection, S-3 collaborators, A-3 Section A draft (W-6 and W-7 done 2026-11-12) | F-3 plan screen (F-2), F-14 live Ready screen |
-| **Opei** | A-2 Section A draft (W-4 done 2026-11-08, D-4 done 2026-11-10) | F-4 (W-9; builds on `backend/builder.py`), F-6 (F-5) |
-| **Elise** | A-1 Section A draft; W-9 end-to-end done 2026-11-14 (first Ready build from the chat screen); F-12 live runner (W-3 done 2026-11-10; W-8 and F-1 done 2026-11-11) | F-2 plan + approval (W-9, F-1), F-13 live API (F-12) |
-| **Nana** | D-3 online smoke test; E-1 scoring script (the 20-request set S-7 is ready); A-4 Section A draft (D-2 done 2026-11-15: first online build ready; frontend https://mesora-api-builder.vercel.app, backend https://nlp-group-2-prosit-2.onrender.com) | E-2 full evaluation run (E-1, F-5) |
+| **Perfect** | F-7 download button (F-5 is done); A-3 Section A; B-3 frontend paragraph (slot in the Section B draft, PR #32); R-6 final repo check; S-2 branch protection and S-3 collaborators | R-4 teach-back |
+| **Opei** | A-2 Section A; B-2 agent, prompts and LLM paragraph (drafted in PR #32) | E-3 fix the top failures (E-2) |
+| **Elise** | A-1 Section A; B-1 backend paragraph; R-1 architecture diagram (F-5, F-12 and F-13 handed to Nana 2026-11-15) | F-2 plan + approval is not started |
+| **Nana** | F-13 live link (from Elise; F-5 zip download and F-12 live runner done 2026-11-15; D-2 done 2026-11-15: first online build ready); D-3 online smoke test; E-1 live run once the quota resets; A-4 Section A; B-5 assemble Section B, R-2 report PDF, R-3 slides, R-5 Canvas upload | E-2 and E-4 evaluation runs |
 
 Full task list, owners and blockers: [PLAN.md](PLAN.md). Rows leave this table once they are finished.
 

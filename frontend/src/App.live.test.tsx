@@ -15,6 +15,12 @@ function typeRequest(text: string) {
   fireEvent.change(screen.getByRole('textbox'), { target: { value: text } })
 }
 
+// The project's timeline is open when its name is the heading. This does not depend on the status:
+// since W-9 a build starts at once, so a project may be waiting, working or failed by the time we look.
+async function timelineOf(name: RegExp) {
+  return screen.findByRole('heading', { name })
+}
+
 describe.skipIf(!import.meta.env.VITE_LIVE_API)(
   'the page against a real backend',
   () => {
@@ -33,7 +39,9 @@ describe.skipIf(!import.meta.env.VITE_LIVE_API)(
             .some((element) => element.textContent === 'Waiting'),
         ).toBe(true),
       )
-      expect(await screen.findByText('Waiting to start')).toBeInTheDocument()
+      expect(
+        await timelineOf(/A bookshop where I can add books/),
+      ).toBeInTheDocument()
       // The sidebar lists the project under its stand-in name (the start of the request).
       // Other tests share this backend and used the same text, so there may be several rows: at least one.
       const rows = await screen.findAllByRole('button', {
@@ -50,7 +58,7 @@ describe.skipIf(!import.meta.env.VITE_LIVE_API)(
 
       fireEvent.click(send)
       fireEvent.click(send)
-      await screen.findByText('Waiting to start')
+      await timelineOf(/A garden planner API/)
 
       const after = (await listProjects()).length
       expect(after - before).toBe(1)
@@ -60,20 +68,29 @@ describe.skipIf(!import.meta.env.VITE_LIVE_API)(
       render(<App />)
       typeRequest('A recipe book API for the sidebar test')
       fireEvent.click(screen.getByRole('button', { name: /Plan my API/ }))
-      await screen.findByText('Waiting to start')
+      await timelineOf(/A recipe book API for the/)
 
       fireEvent.click(screen.getByRole('button', { name: /New project/ }))
       expect(
         screen.getByRole('heading', { name: 'What should your API do?' }),
       ).toBeInTheDocument()
 
-      fireEvent.click(
-        await screen.findByRole('button', {
+      // Earlier runs may have left projects with the same name. The list is newest first, so the first one is ours.
+      const rows = await screen.findAllByRole('button', {
+        name: /A recipe book API for the/,
+      })
+      fireEvent.click(rows[0])
+
+      // The project's own timeline is open again: its name is the heading. (Its status is not checked:
+      // since W-9 a build starts at once, so the project may be waiting, working or failed.)
+      expect(
+        await screen.findByRole('heading', {
           name: /A recipe book API for the/,
         }),
-      )
-
-      expect(await screen.findByText('Waiting to start')).toBeInTheDocument()
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByRole('heading', { name: 'What should your API do?' }),
+      ).not.toBeInTheDocument()
     })
   },
 )

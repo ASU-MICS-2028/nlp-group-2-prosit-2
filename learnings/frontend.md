@@ -200,3 +200,128 @@ Saved output: `evidence/frontend/outputs_w7_live.txt`. With the backend stopped,
 - The UI follows a build live through Server-Sent Events, and every state (starting, waiting, ready, failed, connection lost) has a plain-English message.
 - The rules for reading events and updating the timeline are plain functions, tested on their own; the page is tested against a real running backend, not a simulation.
 - The timeline shows only what the server reported: when attempt counts are not available, it shows none.
+
+---
+
+# F-17 Plain build timeline (Perfect, 2026-11-14)
+
+## 1. In one sentence
+The timeline now tells a non-developer what is happening in plain words ("Putting your plan into action…", "Testing your API…", "Finalizing your API…") and keeps every exact step folded under "Show details".
+
+## 2. What I did, step by step
+1. A teammate (Nana) pointed out that lines like "Writing app/database.py" mean nothing to someone who cannot code.
+2. The backend now sends a fixed `phase` with every step: `planning`, `writing`, `testing`, `fixing` or `finishing` (D-019, `backend/builder.py`). The page reads only this word, never the sentence.
+3. `src/build/phases.ts` holds the list. `src/build/plainSteps.ts` (`toPlainSteps`) turns the steps into short lines: file steps join into one line, each test run is its own line, a file problem gets its own red line, and a "finishing" step only counts if nothing comes after it (so a failed try does not say "Finalizing" in the middle of a build).
+4. `BuildTimeline` has a new optional `details` list, shown in a native `<details>` element ("Show details"), closed by default.
+5. `BuildScreen` passes the plain lines as the main list and the raw steps as the details.
+
+## 3. Why we did it this way
+- **A fixed `phase`, not the sentence:** the page cannot read a changed sentence by mistake. The live stream is not in the OpenAPI schema, so TypeScript cannot warn us about it. A backend test now fails if a step has no `phase`.
+- **A safe fallback:** a step with no phase (an older server) becomes "Working on your API…", and its text is still in the details. It never shows blank or wrong.
+- **The detail is folded away, not deleted:** useful for debugging, and for showing the real steps in the demo or viva.
+- **The AI's own opening sentence is kept:** "Building a Bookshop API with 4 endpoints." is already plain.
+- **Native `<details>`:** it works with the keyboard and needs no code of ours.
+
+## 4. How to check it works
+```
+cd frontend
+npm test -- --run plainSteps BuildScreen        # the plain lines and the folded details
+npm test -- --run                               # 69 passed, 15 skipped (live ones)
+npm run typecheck && npm run lint && npm run format:check
+```
+`src/build/realBuildEvents.json` is a real event sequence made by running the backend's retry loop with the pretend AI (three tries, a fix, then success). To make it again, from the repo root with the backend venv on:
+```
+python - <<'PY'
+import asyncio, json
+from agent.retry import build_with_retries
+from agent.tests.test_retry import FakeModel, call, say, SEEDED_PROJECT, FIXED_APP
+model = FakeModel(model="fake", replies=[call("run_tests"), call("run_tests"), call("run_tests"),
+    say("The add function subtracts. I will change - to +."),
+    call("write_file", path="calc.py", content=FIXED_APP), call("run_tests"), say("Done.")])
+events = []
+asyncio.run(build_with_retries("Build the calculator.", "You are a builder.", model, events.append, dict(SEEDED_PROJECT)))
+json.dump(events, open("frontend/src/build/realBuildEvents.json", "w"), indent=2)
+PY
+```
+Saved: `evidence/frontend/outputs_f17_tests.txt`.
+
+## 5. What is NOT done or is faked
+- **I have not seen a real Gemini build with the new timeline.** The tests use a real event sequence from the backend's own loop with a pretend AI. Please run one real build and look at it, then save a screenshot.
+- **The wording is mine plus Nana's ideas.** Nana should read it.
+- **The page does not show how many files were written** or how far along the build is. That would need a total from the server.
+- **Two lists of phases must stay in step:** `PHASES` in `backend/builder.py` and `phases.ts`. An unknown phase is dropped by the page and becomes "Working on your API…".
+- **"Finalizing your API…" can appear for a moment** between a failed try and the next one, until the "Fixing…" line arrives.
+
+## 6. What will bite us
+- Adding a new kind of step in the backend without a `phase` fails a backend test. That is on purpose.
+- If you change a phase word, change `docs/api-contract.md`, `backend/builder.py` and `phases.ts` together.
+
+## 6b. Changing words while waiting (D-020, Elise's idea)
+- Each phase has a few wordings in `WORDS` (`plainSteps.ts`). The first one is the fixed one.
+- `useTick(running)` (`src/hooks/useTick.ts`) counts up every 4 seconds while the build is going. `BuildScreen` passes it to `toPlainSteps(steps, status, tick)`.
+- Only the newest line (the one happening now) uses `WORDS[phase][tick % length]`. `%` wraps the number back to the start of the list. Finished lines, the plan sentence and test results never change.
+- Tests: `plainSteps.test.ts` ("changing words while waiting", 5 tests) and `useTick.test.ts` (4 tests, with fake timers: they fake only the clock, no data). Saved: `evidence/frontend/outputs_f17_wording_tests.txt` (78 passed, 15 skipped). I made the rotation return the first wording on purpose and one test failed, then I restored it.
+- Not done: nobody has watched it on a real build yet; Nana should read the wordings. Changing the timer length is one number (`everyMs`).
+
+## 7. Terms used
+| Term | One-line meaning |
+|---|---|
+| Tick | A number that goes up on a timer; the page uses it to pick the next wording |
+| Phase | A fixed word saying what a step is about (planning, writing, testing, fixing, finishing) |
+| Plain steps | The short, non-technical lines shown by default |
+| Details | The exact steps, folded away under "Show details" |
+| Fixture | A saved piece of real data a test reads (`realBuildEvents.json`) |
+| Fallback | What the page does when data is missing, so nothing breaks |
+
+## 8. Lines ready for the report
+- The build timeline speaks plain language to non-developers and keeps the exact steps one click away.
+- Every step carries a fixed `phase`, enforced by a backend test, so the page never depends on the wording of a sentence.
+
+# F-7 Download button (Perfect, 2026-11-15)
+
+## 1. In one sentence
+When a project is ready, the page shows a "Download your project (.zip)" button that saves the finished project, and says in plain words if it cannot.
+
+## 2. What I did, step by step
+1. `downloadProject(id)` in `src/api/client.ts` asks `GET /projects/{id}/download` (F-5, by Nana). I split the old `request` into `send` (the request, the 30 s timer and the plain error sentences) and `request` (reads JSON), so the download uses exactly the same error handling.
+2. `src/build/saveFile.ts` makes the browser save the bytes: a temporary address for the file, a hidden link with a `download` name, one click, then the address is freed.
+3. `src/hooks/useDownload.ts` holds the states: idle, loading, error sentence. A second click while loading does nothing, and a screen that was closed is not updated.
+4. `BuildScreen` shows the button inside the green "passed its tests" notice, only when the status is `ready`. The button is the existing `Button` (a real `<button>`, so Tab and Enter work).
+5. I regenerated the API types (`npm run api:generate`): they were stale (the project answer had 2 fields in the types and 7 on the server) and now include the download endpoint.
+
+## 3. Why we did it this way
+- **`fetch` and not a plain link:** with a link, a failure (server asleep, project gone) opens a page of raw JSON. With `fetch` we show a sentence and keep the button.
+- **Only for `ready`:** the server refuses anything else with 409; the button is simply not shown, so a person never sees that error.
+- **The file name is `<project id>.zip`:** the same name the server suggests.
+
+## 4. How to check it works
+```
+cd frontend
+npm test -- --run                     # 84 passed, 18 skipped (live ones)
+```
+Live tests need a real backend, started on your own port (never kill other servers by name). With the keys unset, builds fail at once and cost no Gemini quota:
+```
+env -u GEMINI_API_KEY -u LLM_MODEL uvicorn backend.main:app --port 8001      # repo root, backend venv on
+VITE_LIVE_API=1 VITE_API_URL=http://localhost:8001 npm test -- --run live    # frontend/
+```
+The success case needs a project that is really ready, and a normal server has none without a real build. So that test only runs when you give it one: `VITE_LIVE_READY_ID=p_ready`. I started the real backend app with one project put into the "ready" state in code (the same way `backend/tests/test_download.py` does) and the real zip came back. Saved: `evidence/frontend/outputs_f7_download.txt`.
+
+## 5. What is NOT done or is faked
+- **I have not clicked the button in a real browser** and not done the keyboard-only walkthrough (PLAN F-7 stays 🔄 until someone does).
+- **The success path is tested against a seeded project,** not a project built by Gemini.
+- **A double click is protected by code but not tested:** counting the requests would need a fake server.
+- **Not built:** F-3 (plan screen), F-14 (the live link and "Wake it up").
+
+## 6. What will bite us
+- Projects live in the server's memory (D-013): after a restart or sleep, the project is gone and the download says "Project not found."
+- Live tests share one server, so projects from earlier runs stay in the list. The tests look for the newest match and do not check the status.
+
+## 7. Terms used
+| Term | One-line meaning |
+|---|---|
+| Blob | The bytes of a file, held in the browser's memory |
+| Zip | One file that packs many files together |
+| 409 | "Not at this step yet": the project is not ready |
+
+## 8. Lines ready for the report
+- When a build is ready, the person can download the whole project as a zip with one button; failures are shown as plain sentences.

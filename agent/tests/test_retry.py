@@ -9,6 +9,7 @@ from google.genai import errors, types
 
 from agent import retry
 from agent.retry import build_with_retries
+from backend.builder import PHASES
 
 # A "seeded failing project": a small app with a bug, and a test that catches it.
 BUGGY_APP = "def add(a, b):\n    return a - b\n"  # the bug: minus instead of plus
@@ -72,7 +73,7 @@ def test_a_build_that_works_first_time_is_not_retried() -> None:
 
     assert result.status == "ready"
     assert "retrying" not in statuses(steps)
-    assert steps[0] == {"status": "working", "attempt": 1, "max_attempts": 3}
+    assert steps[0] == {"status": "working", "attempt": 1, "max_attempts": retry.MAX_ATTEMPTS}
     assert steps[-1]["status"] == "ready"
 
 
@@ -91,7 +92,7 @@ def test_a_seeded_failing_project_is_fixed_on_the_second_try() -> None:
 
     assert result.status == "ready"
     assert result.files["calc.py"] == FIXED_APP
-    assert {"status": "retrying", "attempt": 2, "max_attempts": 3} in steps
+    assert {"status": "retrying", "attempt": 2, "max_attempts": retry.MAX_ATTEMPTS} in steps
     # The second try's message is the reflection prompt: the reason, the files and pytest's output.
     reflection = model.seen[-1]
     assert "What happened: The tests still fail" in reflection
@@ -111,10 +112,10 @@ def test_every_step_of_a_later_try_says_retrying() -> None:
 
     _, steps = run(model, start_files=SEEDED_PROJECT)
 
-    second_try = steps[steps.index({"status": "retrying", "attempt": 2, "max_attempts": 3}):]
+    second_try = steps[steps.index({"status": "retrying", "attempt": 2, "max_attempts": retry.MAX_ATTEMPTS}):]
     assert statuses(second_try)[:-1] == ["retrying"] * (len(second_try) - 1)  # every step until the end
     assert second_try[-1]["status"] == "ready"
-    first_try = steps[: steps.index({"status": "retrying", "attempt": 2, "max_attempts": 3})]
+    first_try = steps[: steps.index({"status": "retrying", "attempt": 2, "max_attempts": retry.MAX_ATTEMPTS})]
     assert "working" in statuses(first_try)  # try 1 still says "working"
 
 
@@ -128,17 +129,17 @@ def test_the_seeded_project_is_not_changed_for_the_caller() -> None:
     assert seeded == SEEDED_PROJECT  # the builder worked on a copy
 
 
-def test_it_gives_up_after_three_tries_with_a_clear_reason() -> None:
-    model = FakeModel(model="fake", replies=[call("run_tests")] * 9 + [say("I give up.")] * 3)
+def test_it_gives_up_after_four_tries_with_a_clear_reason() -> None:
+    model = FakeModel(model="fake", replies=[call("run_tests")] * 12 + [say("I give up.")] * 4)
 
     result, steps = run(model, start_files=SEEDED_PROJECT)
 
     assert result.status == "failed"
-    assert result.reason == "Still not working after 3 tries. Last problem: The tests still fail after 3 tries."
+    assert result.reason == "Still not working after 4 tries. Last problem: The tests still fail after 3 tries."
     # Only the very last event says "failed": earlier ones would end the live stream too early (W-5).
     assert statuses(steps).count("failed") == 1
     assert steps[-1]["status"] == "failed"
-    assert [step.get("attempt") for step in steps if "attempt" in step] == [1, 2, 3]
+    assert [step.get("attempt") for step in steps if "attempt" in step] == [1, 2, 3, 4]
 
 
 def test_no_files_gets_a_firm_reminder_then_works() -> None:
@@ -201,7 +202,7 @@ def test_busy_after_a_fix_is_still_ready_without_a_new_try(monkeypatch: pytest.M
 
 def test_a_service_that_stays_busy_ends_failed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(retry, "BUSY_WAIT_SECONDS", 0)
-    model = FakeModel(model="fake", busy_first=3, replies=[])
+    model = FakeModel(model="fake", busy_first=4, replies=[])  # busy on all 4 tries, and no backup
 
     result, steps = run(model)
 
@@ -209,3 +210,129 @@ def test_a_service_that_stays_busy_ends_failed(monkeypatch: pytest.MonkeyPatch) 
     assert result.kind == "service_busy"
     assert "busy" in result.reason
     assert statuses(steps).count("failed") == 1
+
+
+# D-018: the backup model, used for the 4th try only after the main model is busy 3 times in one build.
+WORKING_SCRIPT = [
+    call("write_file", path="calc.py", content=FIXED_APP),
+    call("write_file", path="test_calc.py", content=TEST_FILE),
+    call("run_tests"),
+    say("Done."),
+]
+
+
+def build_with_backup(main: FakeModel, backup: FakeModel) -> tuple[retry.BuildResult, list[dict]]:
+    steps: list[dict[str, object]] = []
+    result = asyncio.run(
+        build_with_retries("Build the calculator.", "You are a builder.", main, steps.append, backup_model=backup)
+    )
+    return result, steps
+
+
+def test_main_model_busy_twice_switches_to_the_backup(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(retry, "BUSY_WAIT_SECONDS", 0)
+    main = FakeModel(model="main", busy_first=3, replies=[])  # busy on tries 1, 2 and 3
+    backup = FakeModel(model="backup", replies=WORKING_SCRIPT)
+
+    result, steps = build_with_backup(main, backup)
+
+    assert result.status == "ready"  # try 4, on the backup, built it
+    assert backup.calls == len(WORKING_SCRIPT)
+    assert any("backup" in str(step.get("step", {}).get("text", "")) for step in steps)
+    # The timeline's plain view (D-019) needs a known phase on every step, the backup sentence included.
+    assert all(event["step"]["phase"] in PHASES for event in steps if "step" in event)
+
+
+def test_main_model_busy_twice_does_not_switch(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(retry, "BUSY_WAIT_SECONDS", 0)
+    main = FakeModel(model="main", busy_first=2, replies=WORKING_SCRIPT)  # busy twice, then fine on try 3
+    backup = FakeModel(model="backup", replies=[])
+
+    result, _ = build_with_backup(main, backup)
+
+    assert result.status == "ready"
+    assert backup.calls == 0  # two busy tries are not critical yet: the main model keeps its 3 tries
+
+
+def test_every_step_of_a_retried_build_has_a_known_phase() -> None:
+    # The same story as the seeded-project test: try 1 fails, the retry text is sent, try 2 fixes it.
+    model = FakeModel(
+        model="fake",
+        replies=[call("run_tests"), call("run_tests"), call("run_tests"),
+                 say("The add function subtracts. I will change - to +."),
+                 call("write_file", path="calc.py", content=FIXED_APP),
+                 call("run_tests"), say("Done.")],
+    )
+
+    result, steps = run(model, start_files=SEEDED_PROJECT)
+
+    phases = [event["step"]["phase"] for event in steps if "step" in event]
+    assert result.status == "ready"
+    assert phases and all(phase in PHASES for phase in phases)
+    assert "fixing" in phases  # the sentence that says we are trying again
+    assert phases[-1] == "finishing"
+
+
+
+class DailyLimitFakeModel(FakeModel):
+    """Follows the script, then the free daily allowance runs out: every later call is a per-DAY 429 (#33)."""
+
+    async def generate_content_async(
+        self, llm_request: LlmRequest, stream: bool = False
+    ) -> AsyncGenerator[LlmResponse, None]:
+        if self.calls >= len(self.replies):
+            body = {"error": {"code": 429, "status": "RESOURCE_EXHAUSTED", "message": "quota",
+                              "details": [{"violations": [{"quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier"}]}]}}
+            raise errors.ClientError(429, body)
+        async for response in super().generate_content_async(llm_request, stream):
+            yield response
+
+
+def test_daily_limit_stops_at_once_without_more_tries_or_waits(monkeypatch: pytest.MonkeyPatch) -> None:
+    waits: list[float] = []
+
+    async def no_wait(seconds: float) -> None:
+        waits.append(seconds)
+
+    monkeypatch.setattr(retry.asyncio, "sleep", no_wait)
+    model = DailyLimitFakeModel(model="fake", replies=[])  # the very first call hits the daily limit
+
+    result, steps = run(model)
+
+    assert result.status == "failed"
+    assert result.kind == "daily_limit"
+    assert result.reason == "Today's free AI limit is used up. Please try again tomorrow."
+    assert "retrying" not in statuses(steps)  # no second try
+    assert waits == []  # and no 30-second wait
+    assert statuses(steps).count("failed") == 1
+    assert steps[-1]["step"]["text"] == "Today's free AI limit is used up. Please try again tomorrow."
+
+
+def test_daily_limit_after_a_finished_fix_is_still_ready() -> None:
+    # The AI fixed the bug and the tests passed, then the daily allowance ran out on its last reply.
+    model = DailyLimitFakeModel(
+        model="fake",
+        replies=[call("write_file", path="calc.py", content=FIXED_APP), call("run_tests")],
+    )
+
+    result, steps = run(model, start_files=SEEDED_PROJECT)
+
+    assert result.status == "ready"  # we checked the files ourselves instead of throwing the fix away
+    assert steps[-1]["status"] == "ready"
+
+
+def test_a_failed_try_s_last_step_is_about_fixing_not_finishing() -> None:
+    # Try 1 fails (3 test runs), try 2 fixes it. Between them, nothing may say "finishing" yet.
+    model = FakeModel(
+        model="fake",
+        replies=[call("run_tests"), call("run_tests"), call("run_tests"),
+                 call("write_file", path="calc.py", content=FIXED_APP),
+                 call("run_tests"), say("Done.")],
+    )
+
+    _, steps = run(model, start_files=SEEDED_PROJECT)
+
+    finishing = [step for step in steps if step.get("step", {}).get("phase") == "finishing"]
+    assert [step["status"] for step in finishing][-1] == "ready"  # only the real end says "finishing"
+    held_back = [s for s in steps if s.get("step", {}).get("text") == "The tests still fail after 3 tries."]
+    assert held_back and all(s["step"]["phase"] == "fixing" for s in held_back)

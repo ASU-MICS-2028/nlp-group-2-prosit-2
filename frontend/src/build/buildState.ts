@@ -4,6 +4,7 @@
 import type { BuildEvent } from '../api/events'
 import type { BuildStep, TestResult } from '../components/BuildTimeline'
 import type { Status } from '../components/StatusPill'
+import { PHASES } from './phases'
 
 export type BuildState = {
   status: Status
@@ -44,11 +45,15 @@ export function isFinal(status: Status): boolean {
 }
 
 function toStep(step: NonNullable<BuildEvent['step']>): BuildStep | null {
-  const { kind, text, output, state } = step
+  const { kind, text, output, state, phase } = step
   if (kind !== 'Thinking' && kind !== 'Doing' && kind !== 'Result') return null
   const known = state === 'done' || state === 'current' || state === 'failed'
   const checked: BuildStep = { kind, text, state: known ? state : 'done' }
-  return output ? { ...checked, output } : checked
+  if (output) checked.output = output
+  // Keep the phase only if it is one we know; an unknown word is treated as "no phase".
+  const knownPhase = PHASES.find((name) => name === phase)
+  if (knownPhase) checked.phase = knownPhase
+  return checked
 }
 
 function toTests(words: string[]): TestResult[] {
