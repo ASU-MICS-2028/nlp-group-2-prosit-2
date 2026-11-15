@@ -1,0 +1,51 @@
+F-17 plain timeline tests (frontend), 2026-11-14
+ ✓ src/api/events.test.ts > parseEvent > reads the exact message the real server sends for a new project 2ms
+ ✓ src/api/events.test.ts > parseEvent > reads a full event from the contract, including the step 0ms
+ ✓ src/api/events.test.ts > parseEvent > reads the phase of a step 0ms
+ ✓ src/api/events.test.ts > parseEvent > reads a step that has no phase (an older server) 0ms
+ ✓ src/api/events.test.ts > parseEvent > gives null for text that is not JSON 0ms
+ ✓ src/api/events.test.ts > parseEvent > gives null when there is no status word 0ms
+ ✓ src/api/events.test.ts > parseEvent > drops a damaged step but keeps the status 0ms
+ ✓ src/api/events.test.ts > parseEvent > ignores numbers and lists of the wrong type 0ms
+ ✓ src/api/events.test.ts > splitMessages > cuts the real server text into one message 0ms
+ ✓ src/api/events.test.ts > splitMessages > keeps an unfinished message until the rest arrives 0ms
+ ✓ src/api/events.test.ts > splitMessages > handles two messages arriving together 1ms
+ ✓ src/api/events.test.ts > splitMessages > skips ping comments 0ms
+ ✓ src/api/events.test.ts > splitMessages > accepts \r\n line endings 0ms
+ ✓ src/api/events.test.ts > splitMessages > gives nothing for empty text 0ms
+ ✓ src/build/buildState.test.ts > applyEvent > starts as waiting with nothing invented 2ms
+ ✓ src/build/buildState.test.ts > applyEvent > the real "waiting" event changes nothing but the status word 0ms
+ ✓ src/build/buildState.test.ts > applyEvent > adds each step to the end of the timeline, in order 1ms
+ ✓ src/build/buildState.test.ts > applyEvent > keeps the test output of a failed step 0ms
+ ✓ src/build/buildState.test.ts > applyEvent > keeps earlier tests and attempt when an event does not carry them 0ms
+ ✓ src/build/buildState.test.ts > applyEvent > shows an unknown test word as pending 0ms
+ ✓ src/build/buildState.test.ts > applyEvent > ignores a step with an unknown kind, but still takes the status 0ms
+ ✓ src/build/buildState.test.ts > applyEvent > treats an unknown step state as done 0ms
+ ✓ src/build/buildState.test.ts > phase of a step > keeps a phase it knows 0ms
+ ✓ src/build/buildState.test.ts > phase of a step > drops a phase it does not know, instead of showing something odd 0ms
+ ✓ src/build/buildState.test.ts > toStatus and isFinal > knows every status word the contract names 0ms
+ ✓ src/build/buildState.test.ts > toStatus and isFinal > shows an unknown word as working 0ms
+ ✓ src/build/buildState.test.ts > toStatus and isFinal > only ready, failed and stopped are final 0ms
+ ✓ src/build/plainSteps.test.ts > a real build from the backend > ends ready, and every step kept its phase 2ms
+ ✓ src/build/plainSteps.test.ts > a real build from the backend > becomes a short, plain list with no file names 1ms
+ ✓ src/build/plainSteps.test.ts > a real build from the backend > keeps every raw step for "Show details" 0ms
+ ✓ src/build/plainSteps.test.ts > toPlainSteps > gives nothing for no steps 0ms
+ ✓ src/build/plainSteps.test.ts > toPlainSteps > joins many file steps into one line 0ms
+ ✓ src/build/plainSteps.test.ts > toPlainSteps > keeps the AI’s opening sentence, because it is already plain 0ms
+ ✓ src/build/plainSteps.test.ts > toPlainSteps > shows a file problem on its own line, not hidden in the writing line 0ms
+ ✓ src/build/plainSteps.test.ts > toPlainSteps > shows every test run as its own line 0ms
+ ✓ src/build/plainSteps.test.ts > toPlainSteps > gives a step with no phase a neutral line, and joins several of them 0ms
+ ✓ src/build/plainSteps.test.ts > toPlainSteps > drops a "finishing" step when something comes after it 0ms
+ ✓ src/build/plainSteps.test.ts > toPlainSteps > keeps the last "finishing" steps as one line, and shows a failure 0ms
+ ✓ src/build/plainSteps.test.ts > toPlainSteps > marks the newest line as happening now while the build is going, not after it ends 0ms
+ ✓ src/build/plainSteps.test.ts > toPlainSteps > does not change the steps it is given 0ms
+ ✓ src/screens/BuildScreen.test.tsx > BuildScreen timeline > shows plain lines first, with no file names 32ms
+ ✓ src/screens/BuildScreen.test.tsx > BuildScreen timeline > keeps the exact steps folded away under "Show details" 9ms
+ ✓ src/screens/BuildScreen.test.tsx > BuildScreen timeline > shows no details toggle while there are no steps yet 2ms
+ ✓ src/screens/BuildScreen.test.tsx > BuildScreen timeline > still shows a step from a server that sends no phase 2ms
+ Test Files  4 passed (4)
+      Tests  44 passed (44)
+
+Full frontend suite:
+ Test Files  7 passed | 2 skipped (9)
+      Tests  69 passed | 15 skipped (84)

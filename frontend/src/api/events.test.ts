@@ -34,6 +34,22 @@ describe('parseEvent', () => {
     })
   })
 
+  it('reads the phase of a step', () => {
+    const event = parseEvent(
+      '{"status":"working","step":{"kind":"Doing","text":"x","state":"done","phase":"writing"}}',
+    )
+
+    expect(event?.step?.phase).toBe('writing')
+  })
+
+  it('reads a step that has no phase (an older server)', () => {
+    const event = parseEvent(
+      '{"status":"working","step":{"kind":"Doing","text":"x","state":"done"}}',
+    )
+
+    expect(event?.step).toEqual({ kind: 'Doing', text: 'x', state: 'done' })
+  })
+
   it('gives null for text that is not JSON', () => {
     expect(parseEvent('hello')).toBeNull()
     expect(parseEvent('')).toBeNull()

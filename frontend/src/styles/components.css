@@ -471,3 +471,12 @@
   align-items: center;
   gap: var(--space-3);
 }
+
+/* The folded "Show details" part of the timeline */
+.timeline-details {
+  padding-top: 8px;
+}
+
+.timeline-details > summary {
+  cursor: pointer;
+}
