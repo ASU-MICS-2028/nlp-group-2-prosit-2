@@ -279,12 +279,19 @@ def ready_files(project: dict[str, str]) -> dict[str, str]:
 @router.post("/projects/{project_id}/wake", status_code=202)
 async def wake_project(project: dict[str, str] = Depends(find_project)) -> dict[str, str]:
     # Start a sleeping API again from its stored files (D-011). On a running one, live.start does nothing new.
+    await start_or_explain(project)
+    return {"live_status": "running"}
+
+
+async def start_or_explain(project: dict[str, str]) -> int:
+    # Start the project's live API (or find the running one) and give back its port.
+    # If it can't start, stop with 503 and the runner's message, which is already a plain sentence.
     files = ready_files(project)
     try:
-        await asyncio.to_thread(live.start, project["id"], files, f"/apis/{project['id']}")
+        api = await asyncio.to_thread(live.start, project["id"], files, f"/apis/{project['id']}")
     except live.LiveError as error:
-        raise HTTPException(status_code=503, detail=str(error))  # its message is already a plain sentence
-    return {"live_status": "running"}
+        raise HTTPException(status_code=503, detail=str(error))
+    return api.port
 
 
 # Every method, and any path after /apis/{id}/ ({path:path} also matches "a/b/c").
@@ -299,7 +306,9 @@ async def pass_through(path: str, request: Request, project: dict[str, str] = De
     await asyncio.to_thread(live.stop_idle)  # a good moment to put unused APIs to sleep
     port = live.port_of(project["id"])
     if port is None:
-        raise HTTPException(status_code=503, detail="This API is asleep. Wake it up and try again.")
+        # Asleep: wake it now instead of answering "asleep". A page may still show the link from
+        # before the API went to sleep (seen live on Render), and the person should just get their API.
+        port = await start_or_explain(project)
     live.touch(project["id"])  # it is being used, so it is not idle
 
     body = await request.body()

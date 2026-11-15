@@ -325,3 +325,54 @@ The success case needs a project that is really ready, and a normal server has n
 
 ## 8. Lines ready for the report
 - When a build is ready, the person can download the whole project as a zip with one button; failures are shown as plain sentences.
+
+# F-14 Ready screen (Perfect, 2026-11-15)
+
+## 1. In one sentence
+When a project is ready, the screen shows its facts (files, size, tests), a link that opens the live API's own Swagger page, a "Wake it up" button when the live API is asleep, and the zip download.
+
+## 2. What I did, step by step
+1. Regenerated the API types (`npm run api:generate`), so `api_url`, `live_status` and the wake endpoint are typed.
+2. `wakeProject` in `src/api/client.ts` calls `POST /projects/{id}/wake` with a longer time limit (45 s), because waking can take up to 30 s on the server. `liveDocsUrl` builds the Swagger address.
+3. `src/hooks/useReadyProject.ts` loads `GET /projects/{id}` once the project is ready, can load it again, and can wake the API. After a wake it reads the project again, so the screen shows what the server says and not a guess.
+4. `src/screens/ReadyDetails.tsx` only draws what it is given: loading, error with "Try again", the facts, the live link when `running`, "Wake it up" when not, the wake error, and an empty sentence when the project has no live link. `src/build/readyFacts.ts` writes the facts line and leaves out anything the server did not send.
+5. `BuildScreen` shows it inside the green notice, above the download button.
+
+## 3. Why we did it this way
+- **A view that gets everything as props:** every state can be tested without a server, and the loading and waking live in one hook.
+- **A real link with `target="_blank"` and `rel="noopener noreferrer"`:** the Swagger page is the generated API's own, served by our backend. `noopener` stops the new tab from reaching back into ours.
+- **The sleeping state shows "Wake it up" and no link:** the link would only show a 503.
+- **The wake button blocks a second click** (a ref, as in the download hook), because a wake takes seconds.
+
+## 4. How to check it works
+```
+cd frontend
+npm test -- --run                       # 97 passed, 21 skipped (live ones)
+```
+Live tests need a real backend on your own port. The wake test also needs a really ready project, so start the real backend app with one put into the "ready" state in code (the same way `backend/tests/test_download.py` does), then:
+```
+VITE_LIVE_API=1 VITE_API_URL=http://localhost:8001 VITE_LIVE_READY_ID=p_ready npm test -- --run live
+```
+That test wakes a real generated API (a child process of the server) and fetches its Swagger page through `/apis/p_ready/docs`. Stopping the server also stops that child: I checked that nothing was left. Saved: `evidence/frontend/outputs_f14_ready_screen.txt`.
+
+## 5. What is NOT done or is faked
+- **Clicked in a real browser on 2026-11-15** (Perfect): the facts, the live link, the Swagger page and the download all worked; screenshot `evidence/live/f14_ready_screen.png`. **The keyboard-only walkthrough is not confirmed yet**, so PLAN F-14 and F-7 stay 🔄.
+- **The live API tested is the builder prompt's example project, not one built by Gemini.** A seeded project has no test output, so the facts line first said "0 of 0 tests passed" under "Your API passed its tests". That reads badly, so the line now leaves the tests out when the total is 0 (2 tests added).
+- **Not tried on Render** (free tier, 512 MB): Nana measured about 50 MB per live API.
+- **A double click on "Wake it up" is guarded in code but not tested** (it would need a fake server).
+
+## 6. What will bite us
+- After a server restart or sleep, every live API is asleep and the project may be gone (D-013): the page then shows "Project not found." and a retry button.
+- Swagger's "Try it out" calls our backend, so it only works while the backend is awake.
+
+## 7. Terms used
+| Term | One-line meaning |
+|---|---|
+| Live API | The generated project running as its own process on our server, reachable at `/apis/{id}` |
+| Swagger page | The generated API's own page (`/docs`) where you can try each endpoint |
+| Wake | Start a sleeping live API again from its stored files |
+| `noopener` | A link setting that stops the page it opens from controlling ours |
+
+## 8. Lines ready for the report
+- A finished project opens as a live API with its own Swagger page, so a person who cannot code can try it from a link; if it has gone to sleep, one button wakes it.
+

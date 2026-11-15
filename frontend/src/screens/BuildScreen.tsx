@@ -6,6 +6,8 @@ import { BuildTimeline } from '../components/BuildTimeline'
 import { Button } from '../components/Button'
 import { Notice } from '../components/Notice'
 import { useDownload } from '../hooks/useDownload'
+import { useReadyProject } from '../hooks/useReadyProject'
+import { ReadyDetails } from './ReadyDetails'
 import { useTick } from '../hooks/useTick'
 
 type Props = {
@@ -31,6 +33,26 @@ function DownloadButton({ projectId }: { projectId: string }) {
           {error}
         </span>
       )}
+    </>
+  )
+}
+
+// Everything under "Your API passed its tests": the details, the live link, and the zip.
+// It exists only while the project is ready, so its state starts fresh each time.
+function ReadyActions({ projectId }: { projectId: string }) {
+  const ready = useReadyProject(projectId, true)
+  return (
+    <>
+      <ReadyDetails
+        project={ready.project}
+        loading={ready.loading}
+        error={ready.error}
+        onReload={ready.reload}
+        waking={ready.waking}
+        wakeError={ready.wakeError}
+        onWake={ready.wake}
+      />
+      <DownloadButton projectId={projectId} />
     </>
   )
 }
@@ -71,10 +93,10 @@ export function BuildScreen({
         <Notice
           tone="success"
           title="Your API passed its tests"
-          action={<DownloadButton projectId={projectId} />}
+          action={<ReadyActions projectId={projectId} />}
         >
-          Download the project to keep it. The live link arrives in a later
-          step.
+          Your API is built and tested. Open it and try it, or download it to
+          keep.
         </Notice>
       )}
 

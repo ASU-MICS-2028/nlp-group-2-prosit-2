@@ -488,6 +488,8 @@ Stopping: `terminate()`, wait up to 5 seconds, then `kill()`. The folder is dele
 
 I broke the code on purpose twice (full path forwarded; no root path after a build) and tests failed each time. The second one first passed, which showed a gap, so I added a check to the build test. Full suite: 191 passed, with no process or `live_` folder left. Output: `evidence/backend/outputs_f13_live_link.txt`.
 
+**Change, 2026-11-15 (after the first live test on Render):** opening a sleeping API's link now **starts it first** (`start_or_explain`, shared with `wake`), instead of answering 503 "This API is asleep". On Render, a page still showed the link of an API that had gone to sleep after 10 idle minutes, and the person got that message instead of the Swagger page. Tests: `test_opening_a_sleeping_api_wakes_it_by_itself`, `test_a_sleeping_api_that_cannot_start_says_why_plainly` (both failed before the change).
+
 **Not done / limits**
 - "Try it out" was checked through the schema's `servers` and real calls, **not clicked in a browser**, and not tried on Render or with a Gemini-built project (no quota today).
 - The frontend's Ready screen (F-14, Perfect) must put the **backend's address** in front of `api_url`, because the page is on Vercel.

@@ -16,8 +16,10 @@ import {
   getHealth,
   getProject,
   listProjects,
+  liveDocsUrl,
   startProject,
   streamEvents,
+  wakeProject,
 } from './client'
 
 // Runs the call and returns the ApiError it threw, so a test can check the message.
@@ -188,6 +190,42 @@ describe.skipIf(!import.meta.env.VITE_LIVE_API)(
         expect(file.type).toBe('application/zip')
         const start = new Uint8Array(await file.slice(0, 2).arrayBuffer())
         expect(String.fromCharCode(...start)).toBe('PK') // every zip file starts with these two letters
+      },
+    )
+
+    it('wakeProject refuses a project that is not ready with the 409 sentence', async () => {
+      const started = await startProject('A project that will not be ready')
+
+      const error = await failureOf(wakeProject(started.id))
+
+      expect(error.status).toBe(409)
+    })
+
+    it('wakeProject gives the 404 sentence for an unknown project', async () => {
+      const error = await failureOf(wakeProject('p_does_not_exist'))
+
+      expect(error.status).toBe(404)
+      expect(error.message).toBe('Project not found.')
+    })
+
+    // Needs a really ready project (see the download test above): VITE_LIVE_READY_ID=p_ready.
+    // This starts a REAL generated API as its own process on the server and calls it through our link.
+    it.skipIf(!import.meta.env.VITE_LIVE_READY_ID)(
+      'a ready project has a live link, wakes up, and its Swagger page answers',
+      async () => {
+        const id = String(import.meta.env.VITE_LIVE_READY_ID)
+
+        const before = await getProject(id)
+        expect(before.api_url).toBe(`/apis/${id}`)
+        expect(['running', 'sleeping']).toContain(before.live_status)
+
+        // Waking an API that is already running changes nothing, so this works on every run.
+        expect((await wakeProject(id)).live_status).toBe('running')
+        expect((await getProject(id)).live_status).toBe('running')
+
+        const docs = await fetch(liveDocsUrl(before.api_url ?? ''))
+        expect(docs.status).toBe(200)
+        expect(await docs.text()).toContain('swagger') // the generated API's own Swagger page
       },
     )
 
