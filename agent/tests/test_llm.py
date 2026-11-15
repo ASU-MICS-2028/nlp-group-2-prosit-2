@@ -240,9 +240,11 @@ def test_builder_model_retries_busy_replies():
     model = llm.builder_model("gemini-3.5-flash")
 
     assert model.model == "gemini-3.5-flash"
+    assert isinstance(model, llm.BuilderGemini)  # our wrapper, which retries a per-minute 429 itself
     assert model.retry_options.attempts == 5
-    for code in (429, 503):
-        assert code in model.retry_options.http_status_codes
+    assert 503 in model.retry_options.http_status_codes
+    # 429 is NOT resent by the HTTP retry: it cannot tell a per-day 429 (never resend) from a per-minute one.
+    assert 429 not in model.retry_options.http_status_codes
     assert 400 not in model.retry_options.http_status_codes  # a bad request never gets better by waiting
 
 
@@ -332,3 +334,132 @@ def test_builder_model_cuts_a_hanging_call_and_sends_it_again(monkeypatch):
     assert reply.text == "hello"
     assert HangsThenOkServer.calls == 2  # the hanging call, then the one sent again
     assert seconds < 1.9  # we did not wait for the hanging call to finish
+
+
+# --- Daily free-tier limit (#33): a per-DAY 429 is not worth retrying ---
+
+# The shape Google sent on Render: 429 RESOURCE_EXHAUSTED naming a per-day quota.
+DAILY_429_BODY = {
+    "error": {
+        "code": 429,
+        "status": "RESOURCE_EXHAUSTED",
+        "message": "quota exceeded",
+        "details": [{"violations": [{"quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier"}]}],
+    }
+}
+MINUTE_429_BODY = {
+    "error": {
+        "code": 429,
+        "status": "RESOURCE_EXHAUSTED",
+        "message": "quota exceeded",
+        "details": [{"violations": [{"quotaId": "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"}]}],
+    }
+}
+
+
+def test_per_day_429_is_recognised():
+    assert llm.is_daily_limit(llm.genai.errors.APIError(429, DAILY_429_BODY)) is True
+    assert llm.is_daily_limit(llm.genai.errors.APIError(429, MINUTE_429_BODY)) is False  # clears in seconds
+    assert llm.is_daily_limit(llm.genai.errors.APIError(503, DAILY_429_BODY)) is False  # only a 429 counts
+    assert llm.is_daily_limit(ValueError("not from Google")) is False
+
+
+def test_per_day_429_stops_at_once_without_retrying(monkeypatch):
+    calls = []
+
+    class CountingClient(FakeClient):
+        def __init__(self):
+            super().__init__(llm.genai.errors.APIError(429, DAILY_429_BODY))
+            calls.append(1)
+
+    monkeypatch.setenv("LLM_PROVIDER", "gemini")
+    monkeypatch.setenv("GEMINI_API_KEY", "not-a-real-key")
+    monkeypatch.setattr(llm.genai, "Client", lambda api_key: CountingClient())
+    waits = []
+    monkeypatch.setattr(llm, "_sleep", waits.append)
+
+    with pytest.raises(llm.DailyLimitReached, match="Today's free AI limit is used up"):
+        llm.generate("hi")
+
+    assert len(calls) == 1  # asked once, not 3 times
+    assert waits == []  # and never waited
+
+
+def test_per_minute_429_is_still_retried(monkeypatch):
+    use_gemini(monkeypatch, llm.genai.errors.APIError(429, MINUTE_429_BODY))
+
+    with pytest.raises(llm.RateLimited):
+        llm.generate("hi")
+
+
+# --- BuilderGemini: retries a per-minute 429 inside a build, never a per-day one ---
+
+
+def run_builder_gemini(monkeypatch, outcomes):
+    """Run BuilderGemini once, with ADK's own Gemini call replaced by `outcomes` (errors to raise, then "ok")."""
+    import asyncio
+
+    from google.adk.models import Gemini, LlmRequest, LlmResponse
+
+    calls, waits = [], []
+
+    async def fake_parent_call(self, llm_request, stream=False):
+        outcome = outcomes[len(calls)]
+        calls.append(llm_request)
+        if isinstance(outcome, Exception):
+            raise outcome
+        yield LlmResponse()
+
+    async def fake_sleep(seconds):
+        waits.append(seconds)
+
+    monkeypatch.setattr(Gemini, "generate_content_async", fake_parent_call)
+    monkeypatch.setattr(llm, "_async_sleep", fake_sleep)
+    model = llm.builder_model("gemini-3.5-flash")
+
+    async def collect():
+        return [response async for response in model.generate_content_async(LlmRequest(model="gemini-3.5-flash"))]
+
+    try:
+        responses = asyncio.run(collect())
+    except llm.genai.errors.APIError as error:
+        responses = error
+    return responses, calls, waits
+
+
+def test_builder_gemini_resends_a_per_minute_429(monkeypatch):
+    minute = llm.genai.errors.APIError(429, MINUTE_429_BODY)
+
+    responses, calls, waits = run_builder_gemini(monkeypatch, [minute, minute, "ok"])
+
+    assert len(responses) == 1  # the third call answered
+    assert len(calls) == 3
+    assert waits == llm.MINUTE_LIMIT_WAITS[:2]  # waited 5 s, then 10 s
+    assert calls[0] is not calls[1]  # each resend got a fresh copy of the request
+
+
+def test_builder_gemini_never_resends_a_per_day_429(monkeypatch):
+    day = llm.genai.errors.APIError(429, DAILY_429_BODY)
+
+    error, calls, waits = run_builder_gemini(monkeypatch, [day, "ok"])
+
+    assert llm.is_daily_limit(error)  # passed straight on, for builder.py to turn into "daily_limit"
+    assert len(calls) == 1
+    assert waits == []
+
+
+def test_builder_gemini_gives_up_on_a_per_minute_429_after_its_waits(monkeypatch):
+    minute = llm.genai.errors.APIError(429, MINUTE_429_BODY)
+
+    error, calls, waits = run_builder_gemini(monkeypatch, [minute] * 4)
+
+    assert error.code == 429  # the retry loop (F-4) takes over from here, as "service_busy"
+    assert len(calls) == 4
+    assert waits == llm.MINUTE_LIMIT_WAITS
+
+
+def test_builder_gemini_passes_other_errors_on_unchanged(monkeypatch):
+    error, calls, waits = run_builder_gemini(monkeypatch, [llm.genai.errors.APIError(400, {"error": {}})])
+
+    assert error.code == 400
+    assert len(calls) == 1 and waits == []
