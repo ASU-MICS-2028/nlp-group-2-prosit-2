@@ -1,0 +1,27 @@
+# D-2: first online build that ended ready, 2026-11-15 (Render, separate Gemini key for Render, LLM_MODEL as set in Render)
+$ curl -s -X POST https://nlp-group-2-prosit-2.onrender.com/projects -d '{"request":"A to-do list API: add a task, list tasks, mark a task done."}'
+Started 2026-11-15T10:05:04Z; status polled every ~10 s: working ... ready at ~237 s (10:09:03Z)
+
+$ curl -s https://nlp-group-2-prosit-2.onrender.com/projects/p_2
+{"id":"p_2","name":"A to-do list API: add a task, list…","status":"ready","file_count":6,"size_kb":6,"tests_passed":9,"tests_total":9}
+
+$ curl -s -N https://nlp-group-2-prosit-2.onrender.com/projects/p_2/events   (live timeline, replayed)
+{"status":"waiting"}
+{"status":"working","attempt":1,"max_attempts":3}
+{"status":"working","step":{"kind":"Thinking","text":"Building a To-Do List API with a tasks table and 5 endpoints.","state":"done"}}
+{"status":"working","step":{"kind":"Doing","text":"Writing requirements.txt","state":"done"}}
+{"status":"working","step":{"kind":"Result","text":"Wrote requirements.txt","state":"done"}}
+{"status":"working","step":{"kind":"Doing","text":"Writing conftest.py","state":"done"}}
+{"status":"working","step":{"kind":"Result","text":"Wrote conftest.py","state":"done"}}
+{"status":"working","step":{"kind":"Doing","text":"Writing app/__init__.py","state":"done"}}
+{"status":"working","step":{"kind":"Result","text":"Wrote app/__init__.py","state":"done"}}
+{"status":"working","step":{"kind":"Doing","text":"Writing app/database.py","state":"done"}}
+{"status":"working","step":{"kind":"Result","text":"Wrote app/database.py","state":"done"}}
+{"status":"working","step":{"kind":"Doing","text":"Writing app/main.py","state":"done"}}
+{"status":"working","step":{"kind":"Result","text":"Wrote app/main.py","state":"done"}}
+{"status":"working","step":{"kind":"Doing","text":"Writing tests/test_tasks.py","state":"done"}}
+{"status":"working","step":{"kind":"Result","text":"Wrote tests/test_tasks.py","state":"done"}}
+{"status":"working","step":{"kind":"Doing","text":"Running the tests","state":"done"}}
+{"status":"working","step":{"kind":"Result","text":"Tests passed","state":"done"}}
+{"status":"working","step":{"kind":"Thinking","text":"```json\n{\"status\": \"done\", \"summary\": \"A to-do list API that lets users create, view, update, and delete tasks.\", \"tests_passed\": 9, \"tests_total\": 9}\n```","state":"done"}}
+{"status":"ready","step":{"kind":"Result","text":"All tests pass.","state":"done"}}
