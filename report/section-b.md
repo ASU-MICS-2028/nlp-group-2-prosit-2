@@ -90,12 +90,25 @@ stops at once with a plain "try again tomorrow" message, because no retry can he
 model is a setting: switching `LLM_MODEL` needed no code change (D-4), but other free models were busy, unavailable to new users,
 or, in one case, answered without using the tools at all.
 
-### 3.3 Frontend ✍️ (B-3, Perfect)
-Facts to use (replace with your paragraph):
-- React + Vite + TypeScript `strict`, plain `fetch`, no state library (D-004).
-- Design tokens and 13 small components; `/dev/gallery` to see them all.
-- API types generated from the backend's schema with `openapi-typescript` (D-015, W-6), so a backend change that breaks the frontend fails the type check.
-- Live progress read with a `fetch` stream reader, not `EventSource` (D-016, W-7); explicit loading, error and empty states.
+### 3.3 Frontend (B-3, Perfect)
+The frontend is a React 19 and TypeScript (strict mode) app built with Vite. It talks to the backend only through the API, using
+plain `fetch` in a single file (D-004), and keeps its state in a few small hooks, one for the build, one for the project list, one
+for the ready screen and one for the download, so no state library is needed. The data shapes are not typed by hand: they are
+generated from the backend's own schema with `openapi-typescript` (D-015), so a backend change that breaks the page fails the type check.
+
+The build timeline needed a different tool. The browser's `EventSource` cannot say why a stream failed, so we read the live stream
+with `fetch` and split the messages ourselves (D-016). If the connection drops, the person sees one plain sentence and an
+"Open this project again" button, and the server replays the whole history. We gave up automatic reconnection to get this clear
+error. Because our users cannot code, the timeline speaks plainly: the backend gives every step a fixed `phase` (planning, writing,
+testing, fixing, finishing), and the page shows one short line per phase ("Putting your plan into action…", "Testing your API…"),
+with the exact steps folded under "Show details" (D-019). The line happening now rotates between a few wordings, so a long wait
+feels alive (D-020). The page decides only from `phase`, never from a sentence, so rewording a message cannot break it.
+
+When a build is ready, the screen shows the number of files, the size and the tests that passed, a link to the generated API's own
+Swagger page where the person can try each endpoint, a "Wake it up" button if the API has gone to sleep, and a button that downloads
+the project as a zip. Every screen has explicit loading, error and empty states. The frontend has 97 tests; 21 more "live" tests
+run against a real backend and a real generated API, with nothing faked. We checked the whole flow by hand in a browser against a
+local backend. The page does not yet show a plan to approve before building (F-3), because that step does not exist in the backend (F-2).
 
 ### 3.4 Deployment (B-4, Nana) — draft
 The two halves are deployed separately, both on free plans. The frontend is a set of static files on **Vercel**; the backend is a

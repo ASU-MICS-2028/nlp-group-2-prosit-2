@@ -122,7 +122,7 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 | R-1 | Architecture diagram | Elise | W-9 | ⛔ | Image in `report/figures/` |
 | B-1 | Section B paragraph: backend | Elise | E-4 | ⛔ | In `report/section-b.md` |
 | B-2 | Section B paragraph: prompts / LLM | Opei | E-4 | ⛔ | In `report/section-b.md` |
-| B-3 | Section B paragraph: frontend | Perfect | E-4 | ⛔ | In `report/section-b.md` |
+| B-3 | Section B paragraph: frontend | Perfect | E-4 | ✅ | In `report/section-b.md`. Done 2026-11-15: section 3.3 written (the paragraph needs no results, so it did not have to wait for E-4); counts of tests to be checked again before the report |
 | B-4 | Section B paragraph: deployment + evaluation | Nana | E-4 | ⛔ | In `report/section-b.md` |
 | B-5 | Assemble Section B (approach, architecture, implementation, evaluation) | Nana | B-1..B-4, R-1 | ⛔ | Reads as one text (skeleton draft started 2026-11-14 in `report/section-b.md`: slots for B-1..B-3, deployment and evaluation method drafted, results wait for E-4) |
 | R-2 | Assemble report PDF; **GitHub link on page 1** | Nana | A-1..A-4, B-5 | ⛔ | PDF checked |
