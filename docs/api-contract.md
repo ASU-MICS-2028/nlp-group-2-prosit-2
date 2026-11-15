@@ -103,7 +103,7 @@ After the tests pass, our backend runs the generated project as its own process 
 
 ### `ANY /apis/{id}/{path}`
 Everything under `/apis/{id}/` goes to the generated API. For example `/apis/p_1/docs` is that API's own Swagger page, where "Try it out" really calls it, and `/apis/p_1/books` is one of its endpoints. These calls are not part of our OpenAPI schema.
-- If the API is `sleeping` (stopped to save memory, or the server restarted), the first call returns `503` with `{ "detail": "This API is asleep. Wake it up and try again." }`.
+- If the API is `sleeping` (stopped to save memory, or the server restarted), the first call **starts it first** (a few seconds), then answers as usual. If it cannot start, that call returns `503` with a plain `detail` (for example "The API could not start. Its code has a problem.").
 - Data inside the generated API lasts while it is running and is lost when it restarts.
 - A ready build goes live by itself; `live_status` is `sleeping` if it could not start, and the zip still works.
 - `409` if the project is not ready. `413` "The request is too big." over 1 MB. `502` if the API does not answer within 30 seconds, or its answer is over 1 MB.
