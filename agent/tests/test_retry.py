@@ -336,3 +336,23 @@ def test_a_failed_try_s_last_step_is_about_fixing_not_finishing() -> None:
     assert [step["status"] for step in finishing][-1] == "ready"  # only the real end says "finishing"
     held_back = [s for s in steps if s.get("step", {}).get("text") == "The tests still fail after 3 tries."]
     assert held_back and all(s["step"]["phase"] == "fixing" for s in held_back)
+
+
+def test_a_refusal_stops_at_once_without_a_reminder_to_write_files(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Before: "no files" got a firm "write_file first" reminder, which pushed the AI to build what it refused.
+    waits: list[float] = []
+
+    async def no_wait(seconds: float) -> None:
+        waits.append(seconds)
+
+    monkeypatch.setattr(retry.asyncio, "sleep", no_wait)
+    reason = "Collecting people's personal data without their consent is not something I can build."
+    model = FakeModel(model="fake", replies=[say('{"status": "refused", "summary": "' + reason + '"}')])
+
+    result, steps = run(model)
+
+    assert (result.status, result.kind, result.reason) == ("failed", "refused", reason)
+    assert "retrying" not in statuses(steps)  # no second try
+    assert waits == []
+    assert statuses(steps).count("failed") == 1
+    assert steps[-1]["step"]["text"] == reason

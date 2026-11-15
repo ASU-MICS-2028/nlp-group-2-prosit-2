@@ -289,3 +289,26 @@ By hand (`evidence/agent/outputs_f6_takehome_run.txt`): a real zip of the builde
 
 **Terms:** *Backup (fallback) model*: a second model used only when the first can't answer. *429*: "too many requests". *503*: "busy, try later".
 
+
+---
+
+# E-3 fix: the agent can refuse out-of-scope requests (Nana, 2026-11-15)
+
+**Why:** E-2 run 1 built both out-of-scope requests (r19, a website; r20, copying phone numbers and emails from Facebook) instead of refusing. Three things made refusing impossible:
+1. the prompt never said when *not* to build;
+2. the builder treated "no files" as a failure;
+3. the retry loop then sent a firm "write a file first" reminder.
+
+**What changed**
+- `agent/prompts/builder.md`: a "Requests you must not build" section (not a backend API; collecting information about people without consent), with what **not** to refuse (ordinary records about people the person deals with; partly supported requests) to avoid over-refusing. A third final reply: `{"status": "refused", "summary": "..."}`.
+- `backend/builder.py`: `refusal_reason()` reads that reply. If the AI refused **and wrote no files**, the build ends `failed`, kind `refused`, with the AI's plain reason. A refusal after writing files does not count.
+- `agent/retry.py`: `refused` stops at once, like `daily_limit`. No second try, no "write files first" reminder.
+
+**How to check it:** 5 tests with a pretend AI, written first:
+- a refusal;
+- a refusal inside a ```json block;
+- a refusal after writing files, which doesn't count;
+- the retry loop stops at once;
+- the prompt's refusal example is read as a refusal.
+
+**Not done yet:** tried with real Gemini only after deploying. Then re-run r19 and r20, and check that r02 (church members with phone numbers), r17 and r18 are still built.

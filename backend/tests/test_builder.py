@@ -290,3 +290,39 @@ def test_daily_limit_has_its_own_kind_and_a_plain_sentence() -> None:
     assert result.status == "failed"
     assert result.kind == "daily_limit"
     assert result.reason == "Today's free AI limit is used up. Please try again tomorrow."
+
+
+# E-2 found that out-of-scope requests (a website; collecting people's data) were built: there was no way to refuse.
+REFUSAL = '{"status": "refused", "summary": "A website is not a backend API. I can build the members and events data instead."}'
+
+
+def test_the_ai_can_refuse_a_request_it_must_not_build() -> None:
+    model = FakeModel(model="fake", replies=[say(REFUSAL)])
+    steps: list[dict[str, object]] = []
+
+    result = asyncio.run(build_project("Make me a website.", "You are a builder.", model, report=steps.append))
+
+    assert (result.status, result.kind) == ("failed", "refused")
+    assert result.reason == "A website is not a backend API. I can build the members and events data instead."
+    assert result.files == {}
+    assert steps[-1]["step"]["text"] == result.reason  # the person sees the plain reason
+
+
+def test_a_refusal_in_a_json_code_block_counts_too() -> None:
+    model = FakeModel(model="fake", replies=[say("```json\n" + REFUSAL + "\n```")])
+
+    result = asyncio.run(build_project("Make me a website.", "You are a builder.", model, report=lambda event: None))
+
+    assert result.kind == "refused"
+
+
+def test_a_refusal_after_writing_files_does_not_count() -> None:
+    # Only a refusal with nothing written counts; otherwise we check the files as usual.
+    model = FakeModel(
+        model="fake",
+        replies=[call("write_file", path="test_math.py", content=PASSING_TEST), call("run_tests"), say(REFUSAL)],
+    )
+
+    result = asyncio.run(build_project("Build it.", "You are a builder.", model, report=lambda event: None))
+
+    assert result.status == "ready"

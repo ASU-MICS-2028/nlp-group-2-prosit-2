@@ -65,9 +65,10 @@ async def build_with_retries(
                 output = check.output[-MAX_KEPT_OUTPUT:]
                 return BuildResult(status="ready", reason=reason, files=result.files, test_output=output)
 
-        if result.kind == "daily_limit":
-            # Today's free allowance is used up (#33). Another try or a wait cannot help until tomorrow,
-            # so stop now with the plain sentence, instead of making the person wait minutes for a sure failure.
+        if result.kind in ("daily_limit", "refused"):
+            # Today's free allowance is used up (#33): another try or a wait cannot help until tomorrow.
+            # Or the AI refused a request it must not build (E-2): trying again, or the "write files first"
+            # reminder, would only push it to build it anyway. Either way, stop now with the plain sentence.
             step = {"kind": "Result", "text": result.reason, "state": "failed", "phase": "finishing"}
             report({"status": "failed", "step": step})
             return result
