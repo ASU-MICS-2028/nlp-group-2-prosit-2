@@ -200,3 +200,57 @@ describe('toPlainSteps', () => {
     expect(JSON.stringify(steps)).toBe(before)
   })
 })
+
+describe('changing words while waiting', () => {
+  const going = [
+    step('writing', 'Doing', 'Writing a.py'),
+    step('testing', 'Doing', 'Running the tests'),
+  ]
+
+  it('the line happening now uses a different wording as the tick grows', () => {
+    const seen = new Set<string>()
+    for (let tick = 0; tick < 8; tick++) {
+      const lines = toPlainSteps(going, 'working', tick)
+      seen.add(lines[lines.length - 1].text)
+    }
+
+    expect(seen.size).toBeGreaterThan(1)
+    for (const wording of seen) expect(wording).not.toMatch(/\.py|app\//)
+  })
+
+  it('wraps back to the first wording after the last one', () => {
+    const first = toPlainSteps(going, 'working', 0)
+    const wrapped = toPlainSteps(going, 'working', 4) // testing has 4 wordings
+
+    expect(texts(wrapped)).toEqual(texts(first))
+  })
+
+  it('earlier lines never change, so the history stays steady', () => {
+    const lines = toPlainSteps(going, 'working', 3)
+
+    expect(lines[0].text).toBe('Putting your plan into action…')
+  })
+
+  it('a finished build never changes its words', () => {
+    const done = [...going, step('testing', 'Result', 'Tests passed')]
+
+    expect(texts(toPlainSteps(done, 'ready', 3))).toEqual(
+      texts(toPlainSteps(done, 'ready', 0)),
+    )
+  })
+
+  it('the AI’s plan sentence and test results are never swapped', () => {
+    const lines = toPlainSteps(
+      [
+        step('planning', 'Thinking', 'Building a Bookshop API.'),
+        step('testing', 'Doing', 'Running the tests'),
+        step('testing', 'Result', 'Tests passed'),
+      ],
+      'working',
+      2,
+    )
+
+    expect(lines[0].text).toBe('Building a Bookshop API.')
+    expect(lines[2].text).toBe('Tests passed')
+  })
+})

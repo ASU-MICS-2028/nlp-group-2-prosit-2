@@ -9,20 +9,49 @@
 import type { BuildStep } from '../components/BuildTimeline'
 import type { Status } from '../components/StatusPill'
 import { isFinal } from './buildState'
-import type { Phase } from './phases'
 
-const LINE_FOR_PHASE: Record<Exclude<Phase, 'planning'>, string> = {
-  writing: 'Putting your plan into action…',
-  testing: 'Testing your API…',
-  fixing: 'Fixing a problem and trying again…',
-  finishing: 'Finalizing your API…',
+// Each phase has a few ways to say the same thing. The FIRST one is the fixed wording: finished lines always
+// use it, so the history does not change under the reader's eyes. Only the line happening now rotates
+// through the others (Elise's idea: like Claude's changing words while it works), so waiting is less boring.
+const WORDS: Record<string, string[]> = {
+  writing: [
+    'Putting your plan into action…',
+    'Building the pieces of your API…',
+    'Bringing your idea to life…',
+    'Putting it all together…',
+  ],
+  testing: [
+    'Testing your API…',
+    'Checking that everything works…',
+    'Making sure it behaves…',
+    'Trying it out…',
+  ],
+  fixing: [
+    'Fixing a problem and trying again…',
+    'Smoothing out a problem…',
+    'Finding a better way…',
+  ],
+  finishing: [
+    'Finalizing your API…',
+    'Adding the finishing touches…',
+    'Almost there…',
+  ],
+  // A step without a phase (an old server, or a kind of step we do not know yet).
+  unknown: ['Working on your API…', 'Still working on it…'],
 }
 
-// A step without a phase (an old server, or a kind of step we do not know yet) gets this line.
-const LINE_FOR_UNKNOWN = 'Working on your API…'
+// Which wording to show now: `tick` counts up over time, % wraps it back to the start of the list.
+function wordFor(key: string, tick: number): string {
+  const options = WORDS[key]
+  return options[tick % options.length]
+}
 
-// One plain line, and whether following steps of the same kind should join it.
-type Plain = { line: BuildStep; joinKey: string | null }
+// One plain line, whether following steps of the same kind should join it, and which WORDS it may rotate through.
+type Plain = {
+  line: BuildStep
+  joinKey: string | null
+  wordsKey: string | null
+}
 
 function plainLine(step: BuildStep): Plain {
   const failed = step.state === 'failed'
@@ -32,6 +61,7 @@ function plainLine(step: BuildStep): Plain {
     return {
       line: { kind: 'Thinking', text: step.text, state: step.state },
       joinKey: null,
+      wordsKey: null, // the plan sentence is the AI's own words: never swapped
     }
   }
 
@@ -42,28 +72,46 @@ function plainLine(step: BuildStep): Plain {
       return {
         line: { kind: 'Result', text, state: step.state },
         joinKey: null,
+        wordsKey: null, // a result is a fact, not a waiting line
       }
     }
-    const text = LINE_FOR_PHASE.testing
-    return { line: { kind: 'Doing', text, state: step.state }, joinKey: null }
+    const text = WORDS.testing[0]
+    return {
+      line: { kind: 'Doing', text, state: step.state },
+      joinKey: null,
+      wordsKey: 'testing',
+    }
   }
 
   if (step.phase === 'writing' && failed) {
     // A problem with a file stands on its own line, so it is not hidden inside "Putting your plan into action".
     const text = 'A file could not be written. Trying again.'
-    return { line: { kind: 'Result', text, state: 'failed' }, joinKey: null }
+    return {
+      line: { kind: 'Result', text, state: 'failed' },
+      joinKey: null,
+      wordsKey: null,
+    }
   }
 
   // The rest are many steps that say the same thing to a non-developer, so they join into one line.
   const phase = step.phase ?? 'unknown'
-  const text =
-    step.phase === undefined ? LINE_FOR_UNKNOWN : LINE_FOR_PHASE[step.phase]
+  const text = WORDS[phase][0]
   const kind = phase === 'fixing' ? 'Thinking' : 'Doing'
-  return { line: { kind, text, state: step.state }, joinKey: phase }
+  return {
+    line: { kind, text, state: step.state },
+    joinKey: phase,
+    wordsKey: phase,
+  }
 }
 
-export function toPlainSteps(steps: BuildStep[], status: Status): BuildStep[] {
+// `tick` is a number that grows over time (see useTick). It only changes the wording of the line happening now.
+export function toPlainSteps(
+  steps: BuildStep[],
+  status: Status,
+  tick = 0,
+): BuildStep[] {
   const lines: BuildStep[] = []
+  let lastWordsKey: string | null = null // which WORDS the newest line may rotate through, if any
   let lastJoinKey: string | null = null // the kind of the previous line, if later steps may join it
 
   // A try that failed ends with a "finishing" step, but the build goes on (a new try starts). "Finalizing
@@ -73,7 +121,7 @@ export function toPlainSteps(steps: BuildStep[], status: Status): BuildStep[] {
 
   for (const [index, step] of steps.entries()) {
     if (step.phase === 'finishing' && index < lastOther) continue
-    const { line, joinKey } = plainLine(step)
+    const { line, joinKey, wordsKey } = plainLine(step)
     const previous = lines[lines.length - 1]
 
     if (joinKey !== null && joinKey === lastJoinKey && previous) {
@@ -83,12 +131,16 @@ export function toPlainSteps(steps: BuildStep[], status: Status): BuildStep[] {
       lines.push(line)
     }
     lastJoinKey = joinKey
+    lastWordsKey = wordsKey
   }
 
   // While the build is still going, the newest line is the one happening now.
   const newest = lines[lines.length - 1]
   if (newest && !isFinal(status) && newest.state === 'done') {
     newest.state = 'current'
+    if (lastWordsKey !== null && newest.state === 'current') {
+      newest.text = wordFor(lastWordsKey, tick)
+    }
   }
   return lines
 }

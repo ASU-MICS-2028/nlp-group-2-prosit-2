@@ -256,9 +256,17 @@ Saved: `evidence/frontend/outputs_f17_tests.txt`.
 - Adding a new kind of step in the backend without a `phase` fails a backend test. That is on purpose.
 - If you change a phase word, change `docs/api-contract.md`, `backend/builder.py` and `phases.ts` together.
 
+## 6b. Changing words while waiting (D-020, Elise's idea)
+- Each phase has a few wordings in `WORDS` (`plainSteps.ts`). The first one is the fixed one.
+- `useTick(running)` (`src/hooks/useTick.ts`) counts up every 4 seconds while the build is going. `BuildScreen` passes it to `toPlainSteps(steps, status, tick)`.
+- Only the newest line (the one happening now) uses `WORDS[phase][tick % length]`. `%` wraps the number back to the start of the list. Finished lines, the plan sentence and test results never change.
+- Tests: `plainSteps.test.ts` ("changing words while waiting", 5 tests) and `useTick.test.ts` (4 tests, with fake timers: they fake only the clock, no data). Saved: `evidence/frontend/outputs_f17_wording_tests.txt` (78 passed, 15 skipped). I made the rotation return the first wording on purpose and one test failed, then I restored it.
+- Not done: nobody has watched it on a real build yet; Nana should read the wordings. Changing the timer length is one number (`everyMs`).
+
 ## 7. Terms used
 | Term | One-line meaning |
 |---|---|
+| Tick | A number that goes up on a timer; the page uses it to pick the next wording |
 | Phase | A fixed word saying what a step is about (planning, writing, testing, fixing, finishing) |
 | Plain steps | The short, non-technical lines shown by default |
 | Details | The exact steps, folded away under "Show details" |
