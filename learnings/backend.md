@@ -388,3 +388,47 @@ Saved:
 **How to check it:** `python -m pytest -q` (142 passed). The 8 new tests: every step of a good, a failing and a no-files build has a known phase; each tool has its phase; a tool error keeps its phase; the AI's words get the phase the loop gives them; a retried build and a failed start also carry one. Output: `evidence/backend/outputs_f17_phase_tests.txt`. I also removed one phase on purpose and checked a test failed (`KeyError: 'phase'`), then put it back.
 
 **Not done / limits:** an unknown tool counts as `writing`. `fixing` is a guess from position (the AI's words after it used a tool), which matches what `builder.md` asks it to write. Real Gemini output has not been looked at with the new field.
+
+---
+
+# F-12 Live runner (Nana took this from Elise, 2026-11-15)
+
+**In one sentence:** `backend/live.py` starts a finished project as its own small server on this computer, so people can really call it; F-13 will pass calls from `/apis/{id}/...` through to it. Elise: please read this before the teach-back.
+
+**How it works**
+1. `start(project_id, files)` writes the files into a new throwaway folder (`live_...`), with the same `../` check as the test runner.
+2. It asks the system for a free port and starts `python -m uvicorn app.main:app --host 127.0.0.1 --port <port>` in that folder. `127.0.0.1` means only our own backend can reach it, not the internet.
+3. It waits until the API answers `/openapi.json` (every FastAPI app has it). If the process ends by itself, it was broken: "The API could not start. Its code has a problem." If it takes longer than 30 seconds, it is stopped with a plain message.
+4. The API's environment is `minimal_environment()`, now shared with `run_tests` in `backend/runner.py`: only `PATH` and `SYSTEMROOT`, never our key.
+5. Its log goes to `DEVNULL` (thrown away). A pipe that nobody reads fills up and freezes the program.
+
+**The limits** (top of `backend/live.py`)
+| Rule | Value | Why |
+|---|---|---|
+| `MAX_RUNNING` | 3 | D-011. Starting one more stops the API nobody has used for the longest time (smallest `last_used`) |
+| `IDLE_SECONDS` | 10 minutes | An unused API is stopped (`stop_idle`), to save memory. Its data (`app.db` in its folder) is lost |
+| `START_TIMEOUT_SECONDS` | 30 | An API that never answers can't hang the server |
+| a lock | one start or stop at a time | Two starts at the same moment could otherwise both see "2 running" and go over the limit |
+
+Stopping: `terminate()`, wait up to 5 seconds, then `kill()`. The folder is deleted only after the process has ended, because on Windows a running process keeps its files locked. Starting an API that crashed deletes its old folder first.
+
+**How to check it:** `python -m pytest backend/tests/test_live.py -v` (13 passed; real servers, about 20 seconds, no AI). They cover: the example Notes API answers a real call (PLAN's "done when"), its data lasts while it runs, one more than the limit stops the least recently used (PLAN's "done when"), a second start reuses the running one, stop ends it and deletes its folder, idle ones are stopped, a broken project and a slow one give plain errors and leave nothing behind, our key is hidden, an unsafe file name is refused, two starts at once stay within the limit, and a crashed API is started again. I broke the code on purpose three times (no limit, key passed through, folder not deleted) and a test failed each time. After a run, no live API process and no `live_` folder were left. Output: `evidence/backend/outputs_f12_live_runner.txt`.
+
+**Not done / limits**
+- Nothing calls it yet: F-13 adds `/apis/{id}/...`, `POST /projects/{id}/wake`, `api_url` and `live_status`, and calls `touch` and `stop_idle`.
+- **Memory on Render is not measured yet.** On the laptop each live Notes API used **about 50 MB** (3 at once: 50, 50, 50 MB, measured 2026-11-15; on Windows a venv's `python.exe` is a 5 MB launcher that starts the real Python as a child, and `stop` ends both). With the backend's own ~51 MB at rest (D-2 dry run), 3 live APIs should fit in Render's 512 MB, but a build (Gemini calls plus pytest runs) comes on top. Check Render's Metrics tab after F-13 and lower `MAX_RUNNING` if needed.
+- `start` holds the lock while it waits for the API to answer (up to 30 s), so a second start waits too. Fine for a demo.
+- The generated `requirements.txt` is not installed: the API uses our backend's packages (FastAPI, uvicorn, pydantic), like the test runner. A project needing anything else will not start.
+- The free-port trick has a tiny gap: another program could take the port between our check and uvicorn starting.
+- It is the same demo sandbox as the test runner (D-007): the code can still read other files on the server and use the network.
+
+**Terms**
+| Term | One-line meaning |
+|---|---|
+| Port | A numbered door on a computer; each server listens on its own one |
+| `127.0.0.1` | "This computer": a server listening there can't be reached from outside |
+| `subprocess.Popen` | Start a program and carry on, without waiting for it to end (unlike `subprocess.run`) |
+| `terminate()` / `kill()` | Ask a program to stop / force it to stop |
+| `DEVNULL` | A bin for output nobody needs |
+| Lock | Lets only one piece of code at a time do something, so two at once can't get in each other's way |
+| Least recently used | The one whose last use was longest ago |
