@@ -77,6 +77,8 @@ docstrings to tell the model how to call them. Each project's files live in memo
 and fix. The model's instructions are a Markdown file, `agent/prompts/builder.md` (W-4), so the whole team can review them:
 a fixed FastAPI + SQLite layout, safe SQL, plain-English endpoint summaries, a complete worked example, and the rule to build
 exactly the approved endpoints with tests. In a live check, Gemini built a Bookshop API whose 8 tests passed when we re-ran them.
+Every downloaded project also comes with a Dockerfile and plain step-by-step run instructions (F-6), so the person can run their API
+on their own computer without our platform.
 
 Free models fail in ordinary ways, so the agent is built to recover. The retry loop in `agent/retry.py` (F-4) allows up to three
 tries. After failing tests, the next try gets the test output and must first explain what went wrong, then fix it
