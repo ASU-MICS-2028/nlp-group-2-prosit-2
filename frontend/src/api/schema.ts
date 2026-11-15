@@ -39,6 +39,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/projects/{project_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download Project */
+        get: operations["download_project_projects__project_id__download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/projects/{project_id}/events": {
         parameters: {
             query?: never;
@@ -94,8 +111,18 @@ export interface components {
         ProjectResponse: {
             /** Id */
             id: string;
+            /** Name */
+            name: string;
             /** Status */
             status: string;
+            /** File Count */
+            file_count?: number | null;
+            /** Size Kb */
+            size_kb?: number | null;
+            /** Tests Passed */
+            tests_passed?: number | null;
+            /** Tests Total */
+            tests_total?: number | null;
         };
         /** ProjectSummary */
         ProjectSummary: {
@@ -226,6 +253,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_project_projects__project_id__download_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

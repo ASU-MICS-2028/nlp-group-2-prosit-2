@@ -45,12 +45,15 @@ def new_project_id() -> str:
 
 def test_build_reports_go_into_the_projects_diary(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LLM_MODEL", "fake-model")
+    monkeypatch.setenv("LLM_BACKUP_MODEL", "backup-model")
     asked: list[str] = []
+    backups: list[str | None] = []
 
     # A pretend retry loop: notes the AI's first message, reports one final step and hands back
     # two files (2 KB together) and pytest's last line, like the real one.
-    async def fake_build(message, instruction, model, report):
+    async def fake_build(message, instruction, model, report, backup_model=None):
         asked.append(message)
+        backups.append(backup_model)
         report({"status": "ready", "attempt": 1, "max_attempts": 3})
         files = {"app/main.py": "x" * 1024, "tests/test_main.py": "y" * 1024}
         return BuildResult(status="ready", reason="All tests pass.", files=files, test_output="5 passed in 0.12s")
@@ -61,6 +64,7 @@ def test_build_reports_go_into_the_projects_diary(monkeypatch: pytest.MonkeyPatc
     asyncio.run(real_run_build(project_id, "A notes API"))
 
     assert "A notes API" in asked[0]  # the AI got the person's request
+    assert backups == ["backup-model"]  # the backup from the settings was passed on (D-018)
     assert projects.events[project_id][-1] == {"status": "ready", "attempt": 1, "max_attempts": 3}
     # The project page now shows what was built.
     body = client.get(f"/projects/{project_id}").json()
@@ -99,7 +103,7 @@ def test_build_without_a_model_fails_with_a_reason(monkeypatch: pytest.MonkeyPat
 def test_unexpected_crash_still_ends_the_build(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LLM_MODEL", "fake-model")
 
-    async def crashing_build(message, instruction, model, report):
+    async def crashing_build(message, instruction, model, report, backup_model=None):
         raise ValueError("no API key")  # an error the builder doesn't catch itself
 
     monkeypatch.setattr(projects, "build_with_retries", crashing_build)

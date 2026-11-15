@@ -4,7 +4,7 @@ Background for the team. Summaries only, never pasted source documents.
 
 ## Quick facts
 - Course: ICS554 Natural Language Processing (Ashesi, Master's in Intelligent Computing Systems), PROSIT 2.
-- Prosit due: **Sun 1 Nov 2026**. Presentation and viva come after (dates ❓).
+- Prosit due: **Sun 15 Nov 2026** (moved from Sun 1 Nov). Presentation and viva come after (dates ❓).
 - Viva: individual, covers all the code.
 - Budget: none. Free tiers only (Gemini for the LLM, Vercel and Render for hosting).
 

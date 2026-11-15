@@ -9,7 +9,7 @@
 | Viva quiz | 35% | Individual; held after the presentations; covers all the code |
 
 ## What is live and what is written
-- Written: report (Canvas), code (GitHub), slides (Canvas), all due by **Sun 1 Nov 2026**.
+- Written: report (Canvas), code (GitHub), slides (Canvas), all due by **Sun 15 Nov 2026** (moved from Sun 1 Nov).
 - Live, after the prosit deadline: presentation and viva (dates ❓).
 
 ## Consequences for how we work
