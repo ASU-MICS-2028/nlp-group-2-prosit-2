@@ -41,6 +41,12 @@ Twenty made-up requests a non-developer might type, each with what the platform 
    - r19 (a website) and r20 (collecting people's data from Facebook) were **built** (10-11 files) instead of refused: the agent had no
      way to refuse. That is a real finding, fixed next (E-3).
 
+9. 2026-11-16, **E-4 run 2 on the live site, same 20 requests: 17 of 20 (85%)** (`evidence/evaluation/outputs_eval_run2.txt`).
+   - Clear 8/8, several tables 2/4, vague 3/4, partly 2/2, out of scope 2/2 (was 0/2: the refusal fix works).
+   - New failures: r13 "Build me an online shop" was **refused as a website** (a side effect of the refusal rule: over-refusal);
+     r11 and r12 left out the PUT endpoints (they passed in run 1: the model varies from run to run).
+   - All builds on the first try; mean 47 s, median 39 s; refusals 6-12 s. One run per request is too few for a precise rate.
+
 ## 3. Why we did it this way
 - **Five kinds, not 20 easy ones**: a platform that only handles clear one-table requests would score 100% on an easy set and tell us nothing.
 - **`{id}` instead of the real parameter name**: the builder names it per table (`{book_id}`), so the scorer should accept any name there.

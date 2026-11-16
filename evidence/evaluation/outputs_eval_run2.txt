@@ -1,0 +1,43 @@
+Live site: https://nlp-group-2-prosit-2.onrender.com
+r01  pass      40.5s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r02  pass      36.3s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r03  pass      31.9s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r04  pass      39.1s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r05  pass      37.2s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r06  pass      79.3s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r07  pass      34.8s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r08  pass      36.0s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r09  pass      62.7s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r10  pass      68.8s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r11  fail      48.5s  retries=0  3 expected endpoints are missing.  Missing: PUT /buyers/{id}, PUT /orders/{id}, PUT /produce/{id}
+r12  fail      54.2s  retries=0  1 expected endpoints are missing.  Missing: PUT /bookings/{id}
+r13  fail      12.0s  retries=0  The build did not finish: An online shop is a complete website rather than a backend API. However, a backend API could be built to manage products, inventory, and customer orders.
+r14  pass      61.5s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r15  pass      52.4s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r16  pass      34.8s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r17  pass      48.3s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r18  pass      39.0s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r19  pass       6.4s  retries=0  Nothing was built, as expected.
+r20  pass      12.1s  retries=0  Nothing was built, as expected.
+17 of 20 passed (85%); 0 stopped by the free-tier limit; 20 run in total.
+
+{"id": "r01", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 40.5, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r02", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 36.3, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r03", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 31.9, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r04", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 39.1, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r05", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 37.2, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r06", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 79.3, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r07", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 34.8, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r08", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 36.0, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r09", "kind": "several_tables", "expect": "build", "outcome": "pass", "seconds": 62.7, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 3}
+{"id": "r10", "kind": "several_tables", "expect": "build", "outcome": "pass", "seconds": 68.8, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 3}
+{"id": "r11", "kind": "several_tables", "expect": "build", "outcome": "fail", "seconds": 48.5, "retries": 0, "reason": "3 expected endpoints are missing.", "missing_endpoints": ["PUT /buyers/{id}", "PUT /orders/{id}", "PUT /produce/{id}"], "tables": 3}
+{"id": "r12", "kind": "several_tables", "expect": "build", "outcome": "fail", "seconds": 54.2, "retries": 0, "reason": "1 expected endpoints are missing.", "missing_endpoints": ["PUT /bookings/{id}"], "tables": 3}
+{"id": "r13", "kind": "vague", "expect": "ask_first", "outcome": "fail", "seconds": 12.0, "retries": 0, "reason": "The build did not finish: An online shop is a complete website rather than a backend API. However, a backend API could be built to manage products, inventory, and customer orders.", "missing_endpoints": [], "tables": 0}
+{"id": "r14", "kind": "vague", "expect": "ask_first", "outcome": "pass", "seconds": 61.5, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 2}
+{"id": "r15", "kind": "vague", "expect": "ask_first", "outcome": "pass", "seconds": 52.4, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 2}
+{"id": "r16", "kind": "vague", "expect": "ask_first", "outcome": "pass", "seconds": 34.8, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r17", "kind": "partly_supported", "expect": "build", "outcome": "pass", "seconds": 48.3, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 2}
+{"id": "r18", "kind": "partly_supported", "expect": "build", "outcome": "pass", "seconds": 39.0, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r19", "kind": "out_of_scope", "expect": "refuse", "outcome": "pass", "seconds": 6.4, "retries": 0, "reason": "Nothing was built, as expected.", "missing_endpoints": [], "tables": 0}
+{"id": "r20", "kind": "out_of_scope", "expect": "refuse", "outcome": "pass", "seconds": 12.1, "retries": 0, "reason": "Nothing was built, as expected.", "missing_endpoints": [], "tables": 0}
