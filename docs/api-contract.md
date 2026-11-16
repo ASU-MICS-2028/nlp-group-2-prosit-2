@@ -30,7 +30,7 @@ List projects, newest first, for the sidebar.
 ```json
 [{ "id": "p_1", "name": "Bookshop API", "status": "ready", "updated_at": "2026-11-02T10:15:00Z" }]
 ```
-Built (W-8, 2026-11-11). Until the plan names a project (F-2), `name` is the start of the request, cut at a word to about 40 characters with "…". `updated_at` is UTC with an offset, for example `2026-11-11T09:30:00.123456+00:00`; it changes when the project is created and on every new event.
+Built (W-8, 2026-11-11). `name` is the API's own name, such as "Reading Club Library API", taken from the agent's first sentence ("Building a Reading Club Library API with…"); the first name found stays. Until then, or if there is none (a refusal), it is the start of the request, cut at a word to about 40 characters with "…". `updated_at` is UTC with an offset, for example `2026-11-11T09:30:00.123456+00:00`; it changes when the project is created and on every new event.
 
 ### `POST /projects`
 Start a project from the plain-English request.

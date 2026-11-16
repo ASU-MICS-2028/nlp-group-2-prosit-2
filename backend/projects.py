@@ -102,6 +102,23 @@ def short_name(request: str) -> str:
     return cut.rstrip(",.;:") + "…"  # tidy a trailing comma or full stop, and add "…" to show it was cut
 
 
+# The agent's first sentence names what it builds (builder.md step 1), e.g. "Building a Reading Club Library API with...".
+# The name: words starting with a capital letter or a digit, ending in "API". Only letters, digits, spaces and
+# the marks - & ' in between, so a long sentence can't become the name.
+API_NAME = re.compile(r"\b(?:[Bb]uild|[Bb]uilding)\s+(?:an?\s+|the\s+)?([A-Z0-9][\w&'\- ]{0,58}?\sAPI)\b")
+
+
+def api_name(text: str) -> str | None:
+    # "Building a Reading Club Library API with a books table." -> "Reading Club Library API"; None if there is no name.
+    match = API_NAME.search(text)
+    return match.group(1).strip() if match else None
+
+
+def display_name(project: dict[str, str]) -> str:
+    # The API's own name once the agent has said it; until then (or after a refusal), the start of the request.
+    return project.get("name") or short_name(project["request"])
+
+
 def find_project(project_id: str) -> dict[str, str]:
     # Shared by every endpoint that needs one project, so the "not found" rule lives in one place.
     project = projects.get(project_id)  # .get gives None instead of crashing when the id isn't there
@@ -120,6 +137,12 @@ def add_event(project_id: str, event: dict[str, object]) -> None:
     if isinstance(status, str):  # keep the project's current status up to date too
         projects[project_id]["status"] = status
     projects[project_id]["updated_at"] = now()  # any new event counts as a change, so the sidebar moves it up
+    # The agent's own words may name the API. Only the first name counts, so a later sentence can't rename it.
+    step = event.get("step")
+    if "name" not in projects[project_id] and isinstance(step, dict) and step.get("kind") == "Thinking":
+        name = api_name(str(step.get("text", "")))
+        if name:
+            projects[project_id]["name"] = name
 
 
 def failed(project_id: str, reason: str) -> None:
@@ -187,7 +210,7 @@ def list_projects() -> list[ProjectSummary]:
     return [
         ProjectSummary(
             id=project["id"],
-            name=short_name(project["request"]),
+            name=display_name(project),
             status=project["status"],
             updated_at=project["updated_at"],
         )
@@ -199,7 +222,7 @@ def list_projects() -> list[ProjectSummary]:
 # Depends(find_project) means "run find_project first and give me its answer" (or stop with 404).
 @router.get("/projects/{project_id}", response_model=ProjectResponse)
 def get_project(project: dict[str, str] = Depends(find_project)) -> ProjectResponse:
-    answer = ProjectResponse(id=project["id"], name=short_name(project["request"]), status=project["status"])
+    answer = ProjectResponse(id=project["id"], name=display_name(project), status=project["status"])
     result = results.get(project["id"])  # None while the build is still going
     if result is not None:
         answer.file_count = len(result.files)
