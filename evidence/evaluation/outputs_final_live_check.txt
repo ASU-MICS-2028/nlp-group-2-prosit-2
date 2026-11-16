@@ -1,0 +1,23 @@
+# Final live check, 2026-11-16, after Render was redeployed at main 8845210 (#52, #54, #55, #57) and the frontend at the same commit (#56).
+# Checks: the sharper refusal rule (r13 "Build me an online shop" was over-refused in E-4 run 2), refusals, short names, 3 tries, one stop line.
+# From the live projects after the run (GET /projects and each project's /events):
+#   p_1 ready  name "Online Shop API"        "Building an Online Shop API with products, customers, and orders tables and endpoints."  (r13)
+#   p_2 ready  name "Hair Salon API"         (r14)    p_3 ready  name "School Management API" (r15)    p_4 ready  name "Members API" (r16)
+#   p_5 failed name = the typed request: refused "We cannot build website homepages, visual web designs, or photo galleries ..." (r19)
+#   p_6 failed name = the typed request: refused "This cannot be built because collecting personal contact details like phone numbers ..." (r20)
+#   every project: max_attempts 3; the final line appears once on the timeline
+Live site: https://nlp-group-2-prosit-2.onrender.com
+r13  pass      49.6s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r14  pass      49.8s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r15  pass      45.1s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r16  pass      39.3s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r19  pass       6.6s  retries=0  Nothing was built, as expected.
+r20  pass       6.4s  retries=0  Nothing was built, as expected.
+6 of 6 passed (100%); 0 stopped by the free-tier limit; 6 run in total.
+
+{"id": "r13", "kind": "vague", "expect": "ask_first", "outcome": "pass", "seconds": 49.6, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 3}
+{"id": "r14", "kind": "vague", "expect": "ask_first", "outcome": "pass", "seconds": 49.8, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 2}
+{"id": "r15", "kind": "vague", "expect": "ask_first", "outcome": "pass", "seconds": 45.1, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 2}
+{"id": "r16", "kind": "vague", "expect": "ask_first", "outcome": "pass", "seconds": 39.3, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r19", "kind": "out_of_scope", "expect": "refuse", "outcome": "pass", "seconds": 6.6, "retries": 0, "reason": "Nothing was built, as expected.", "missing_endpoints": [], "tables": 0}
+{"id": "r20", "kind": "out_of_scope", "expect": "refuse", "outcome": "pass", "seconds": 6.4, "retries": 0, "reason": "Nothing was built, as expected.", "missing_endpoints": [], "tables": 0}

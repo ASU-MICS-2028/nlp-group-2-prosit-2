@@ -47,6 +47,8 @@ Twenty made-up requests a non-developer might type, each with what the platform 
      r11 and r12 left out the PUT endpoints (they passed in run 1: the model varies from run to run).
    - All builds on the first try; mean 47 s, median 39 s; refusals 6-12 s. One run per request is too few for a precise rate.
 
+10. 2026-11-16, final live check after the sharper refusal rule (#54) and the redeploys: r13-r16 built (r13 "Build me an online shop" is now an "Online Shop API"), r19 and r20 refused, **6 of 6** (`outputs_final_live_check.txt`). The live projects also showed the short names (#55), `max_attempts` 3 (#57) and one stop line (#52).
+
 ## 3. Why we did it this way
 - **Five kinds, not 20 easy ones**: a platform that only handles clear one-table requests would score 100% on an easy set and tell us nothing.
 - **`{id}` instead of the real parameter name**: the builder names it per table (`{book_id}`), so the scorer should accept any name there.
