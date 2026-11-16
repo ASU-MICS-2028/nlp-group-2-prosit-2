@@ -3,6 +3,7 @@ import { Notice } from './components/Notice'
 import { Sidebar } from './components/Sidebar'
 import { useBuild } from './hooks/useBuild'
 import { useProjectList } from './hooks/useProjectList'
+import { NAMING, waitingForName } from './build/naming'
 import { listRefreshKey } from './build/sidebar'
 import { BuildScreen } from './screens/BuildScreen'
 import { StartScreen } from './screens/StartScreen'
@@ -13,9 +14,24 @@ function App() {
   const { state, start, open, reset } = useBuild()
 
   // Fetch the list again when a project opens, its status changes, or the agent first names the API.
-  const { projects, error: listError } = useProjectList(
-    listRefreshKey(state.projectId, state.build),
-  )
+  const refreshKey = listRefreshKey(state.projectId, state.build)
+  const {
+    projects: listed,
+    error: listError,
+    loadedKey,
+  } = useProjectList(refreshKey)
+
+  // Until the backend has the API's real name, show "Naming your API…" (not the cut-off request) in the
+  // sidebar, and wait with the Build screen. A live-stream error shows at once, so the person can reopen.
+  const naming =
+    state.projectId !== null &&
+    state.error === null &&
+    waitingForName(state.build, loadedKey === refreshKey)
+  const projects = naming
+    ? listed.map((project) =>
+        project.id === state.projectId ? { ...project, name: NAMING } : project,
+      )
+    : listed
 
   const openProject = projects.find((project) => project.id === state.projectId)
 
@@ -41,6 +57,12 @@ function App() {
           error={state.error}
           onSubmit={start}
         />
+      ) : naming ? (
+        <div className="start">
+          <Notice tone="info" title={NAMING}>
+            The agent is reading your request. Your project opens in a moment.
+          </Notice>
+        </div>
       ) : (
         <BuildScreen
           projectId={state.projectId}

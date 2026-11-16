@@ -68,10 +68,23 @@ def test_the_first_name_sticks() -> None:
     assert client.get(f"/projects/{project_id}").json()["name"] == "Reading Club Library API"
 
 
-def test_without_a_name_the_typed_request_is_shown_as_before() -> None:
+def test_without_any_name_the_typed_request_is_shown_as_before() -> None:
     project_id = new_project("Make me a website with a nice homepage and a photo gallery for my church.")
     refusal = {"status": "failed", "step": {"kind": "Result", "text": "I cannot build websites, but a backend API could be built.", "state": "failed", "phase": "finishing"}}
 
     add_event(project_id, refusal)  # a Result step, not the agent's opening sentence: never a name
 
     assert client.get(f"/projects/{project_id}").json()["name"] == "Make me a website with a nice homepage…"
+
+
+def test_a_refused_project_takes_the_name_from_its_final_event() -> None:
+    project_id = new_project("Make me a website with a nice homepage and a photo gallery for my church.")
+    refusal = {
+        "status": "failed",
+        "name": "Church Website (not built)",
+        "step": {"kind": "Result", "text": "I cannot build websites.", "state": "failed", "phase": "finishing"},
+    }
+
+    add_event(project_id, refusal)
+
+    assert client.get(f"/projects/{project_id}").json()["name"] == "Church Website (not built)"

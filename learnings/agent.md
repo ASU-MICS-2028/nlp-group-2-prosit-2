@@ -320,3 +320,9 @@ By hand (`evidence/agent/outputs_f6_takehome_run.txt`): a real zip of the builde
 # Back to 3 tries (D-021, Nana, 2026-11-16)
 
 `MAX_ATTEMPTS` is 3 again (it was 4 since D-018) and `SWITCH_AFTER_BUSY` is 2: if the main model was busy on tries 1 and 2, the 3rd and last try uses the backup model. The screen says "Attempt 1 of 3" (the number comes from the server's `max_attempts`, so the frontend did not change). Tests updated first and watched failing: give up after 3 tries, the backup takes try 3 after 2 busy tries, one busy try keeps the main model, and a service that stays busy ends `failed` after 3 tries. The full suite passes. Not checked live: the backup on the 3rd try.
+
+---
+
+# Better API names, and names for refusals (Nana, 2026-11-16)
+
+`builder.md` step 1 now asks for a 2-4 word name that says what the API is for, in Title Case, ending in "API" ("Clinic Appointment API", not "Clinic API"). The refusal reply has a `name` ("Church Website"); `backend/builder.py` turns it into "Church Website (not built)" on the final event, and `backend/projects.py` keeps it as the project's name. Live on a laptop with real Gemini: "Clinic Appointment API", "Bookshop Inventory API", "Church Website (not built)", "Facebook Contact Collector (not built)". Prompt tests keep both rules.

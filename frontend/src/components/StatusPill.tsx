@@ -2,14 +2,23 @@ import {
   Ban,
   Check,
   CircleCheck,
+  CircleSlash,
   CircleX,
   Clock,
   RotateCw,
   type LucideIcon,
 } from 'lucide-react'
 
+// notBuilt is for the page only: a refused request (nothing was built). The server says "failed".
 export type Status =
-  'working' | 'waiting' | 'retrying' | 'passed' | 'ready' | 'failed' | 'stopped'
+  | 'working'
+  | 'waiting'
+  | 'retrying'
+  | 'passed'
+  | 'ready'
+  | 'failed'
+  | 'stopped'
+  | 'notBuilt'
 
 // Status is never shown by colour alone: every status has a word and an icon.
 const STATUS: Record<
@@ -23,6 +32,8 @@ const STATUS: Record<
   ready: { word: 'Ready', color: 'var(--success)', icon: CircleCheck },
   failed: { word: 'Failed', color: 'var(--error)', icon: CircleX },
   stopped: { word: 'Stopped', color: 'var(--error)', icon: Ban },
+  // A refusal is not an error in our system, so it is not red.
+  notBuilt: { word: 'Not built', color: 'var(--warning)', icon: CircleSlash },
 }
 
 export function StatusPill({ status }: { status: Status }) {
