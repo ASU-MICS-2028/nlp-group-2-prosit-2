@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { downloadProject, errorMessage } from '../api/client'
 import { saveFile } from '../build/saveFile'
 
-export function useDownload(projectId: string) {
+// fileName: what the saved file is called, e.g. "clinic-appointment-api.zip" (zipName in build/naming.ts).
+export function useDownload(projectId: string, fileName: string) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const busyRef = useRef(false) // blocks a second click before React has re-drawn the disabled button
@@ -23,7 +24,7 @@ export function useDownload(projectId: string) {
     setLoading(true)
     setError(null)
     try {
-      saveFile(await downloadProject(projectId), `${projectId}.zip`)
+      saveFile(await downloadProject(projectId), fileName)
     } catch (failure) {
       if (mountedRef.current) setError(errorMessage(failure))
     } finally {

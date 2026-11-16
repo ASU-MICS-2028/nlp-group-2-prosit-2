@@ -65,6 +65,7 @@ class BuildResult:
     # without comparing sentences: "passed", "tests_failed", "no_files", "service_busy", "daily_limit", "too_slow", "too_many_steps", "refused".
     kind: str = "passed"
     test_output: str = ""  # the end of pytest's output from our own final test run (empty if it never ran)
+    name: str = ""  # for a refusal: what was asked, e.g. "Church Website (not built)"; empty otherwise
 
 
 async def build_project(
@@ -90,6 +91,7 @@ async def build_project(
     failed_reason = "The tests still fail."
     tools_used = False  # becomes True once the AI has asked for a tool; it decides what its later words are about
     refused = None  # the AI's plain reason, if it refused the request (builder.md "Requests you must not build")
+    refused_name = None  # and the short name it gave what was asked, e.g. "Church Website"
 
     try:
         # Stop rule 5: a stopwatch around the whole build. If it runs out, Python stops whatever
@@ -113,6 +115,7 @@ async def build_project(
                         tools_used = True
                     if part.text and refusal_reason(part.text.strip()):
                         refused = refusal_reason(part.text.strip())
+                        refused_name = refusal_name(part.text.strip())
 
                 # Stop rule 1: enough test runs. `break` leaves the loop, so ADK never asks the AI for another move.
                 if workspace.test_runs >= MAX_TEST_RUNS:
@@ -137,11 +140,14 @@ async def build_project(
             result = BuildResult(status="failed", reason=reason, files=workspace.files, kind="service_busy")
     else:
         # "else" runs only when the try block finished WITHOUT an error: then we check the work ourselves.
-        result = check_result(workspace, failed_reason, refused)
+        result = check_result(workspace, failed_reason, refused, refused_name)
 
     # The last event carries the final status; it is also what makes the live stream hang up (W-5).
     state = "done" if result.status == "ready" else "failed"
-    report({"status": result.status, "step": {"kind": "Result", "text": result.reason, "state": state, "phase": "finishing"}})
+    final = {"status": result.status, "step": {"kind": "Result", "text": result.reason, "state": state, "phase": "finishing"}}
+    if result.name:
+        final["name"] = result.name  # a refusal's project name; the server keeps it (backend/projects.py add_event)
+    report(final)
     return result
 
 
@@ -188,6 +194,20 @@ def refusal_reason(text: str) -> str | None:
     return None
 
 
+def refusal_name(text: str) -> str | None:
+    # The short name in a refusal reply, e.g. {"status": "refused", "name": "Church Website", ...} -> "Church Website".
+    body = text.removeprefix("```json").removesuffix("```").strip()
+    try:
+        report = json.loads(body)
+    except json.JSONDecodeError:
+        return None
+    name = report.get("name") if isinstance(report, dict) else None
+    # Keep it short and plain: a few words only, so a long sentence can't become the name.
+    if isinstance(name, str) and 0 < len(name.strip()) <= 40:
+        return name.strip()
+    return None
+
+
 def doing_text(tool: str, arguments: dict[str, object]) -> str:
     # Plain words for a non-developer, instead of "write_file(path=...)".
     if tool == "write_file":
@@ -218,11 +238,14 @@ def result_step(tool: str, response: dict[str, object]) -> dict[str, object]:
     return {"kind": "Result", "text": "Done", "state": "done", "phase": phase}
 
 
-def check_result(workspace: Workspace, failed_reason: str, refused: str | None = None) -> BuildResult:
+def check_result(
+    workspace: Workspace, failed_reason: str, refused: str | None = None, refused_name: str | None = None
+) -> BuildResult:
     # The AI refused (E-2: a website, or collecting people's data), and wrote nothing: stop with its plain reason.
     # A refusal only counts when no files were written; otherwise the files are checked as usual below.
     if refused and not workspace.files:
-        return BuildResult(status="failed", reason=refused, files={}, kind="refused")
+        name = f"{refused_name} (not built)" if refused_name else ""
+        return BuildResult(status="failed", reason=refused, files={}, kind="refused", name=name)
 
     # Stop rule 2: nothing was written (Opei's D-4 check saw a smaller model do this).
     # Say so plainly, instead of the misleading "the tests still fail" when there are no tests at all.

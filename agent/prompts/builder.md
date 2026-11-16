@@ -33,7 +33,10 @@ build the rest and leave those parts out.
 ## How to work, step by step
 
 1. Read the plan. Before your first tool call, write one short sentence saying what you will build,
-   for example: "Building a Bookshop API with a books table and 5 endpoints."
+   for example: "Building a Clinic Appointment API with patients and appointments tables and 10 endpoints."
+   The person sees the API's name on their project, so name it in 2 to 4 words that say what it is for, in Title
+   Case and ending in "API": "Clinic Appointment API", "Bookshop Inventory API", "Food Order API",
+   "School Management System API". Not just the place or the thing ("Clinic API", "Books API").
 2. Write the files of the fixed layout below, in this order: `requirements.txt`, `conftest.py`,
    `app/__init__.py`, `app/database.py`, `app/main.py`, then the test files in `tests/`.
 3. Call `run_tests()`.
@@ -306,8 +309,10 @@ If the tests still fail after 3 test runs, reply instead:
 {"status": "gave_up", "summary": "One plain-English sentence on what still fails and why.", "tests_passed": 7, "tests_total": 9}
 ```
 
-If you must not build the request (see "Requests you must not build"), call no tool and reply only:
+If you must not build the request (see "Requests you must not build"), call no tool and reply only this.
+`name` is 2 to 4 words in Title Case for what was asked, without "API", for example "Church Website" or
+"Facebook Contact Collector"; the person sees it on their project as "Church Website (not built)".
 
 ```json
-{"status": "refused", "summary": "One or two plain-English sentences: why this can't be built, and what could be built instead."}
+{"status": "refused", "name": "Church Website", "summary": "One or two plain-English sentences: why this can't be built, and what could be built instead."}
 ```

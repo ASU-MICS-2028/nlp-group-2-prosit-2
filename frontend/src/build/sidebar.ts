@@ -3,6 +3,7 @@
 import type { ProjectSummary as ApiProject } from '../api/client'
 import type { ProjectSummary as SidebarProject } from '../components/Sidebar'
 import { toStatus, type BuildState } from './buildState'
+import { hasName } from './naming'
 
 const MINUTE = 60_000
 const HOUR = 60 * MINUTE
@@ -21,6 +22,11 @@ export function formatWhen(isoTime: string, now: Date): string {
   return time.toLocaleDateString()
 }
 
+// A refused request: the backend names it "… (not built)" and ends it "failed" (backend/builder.py).
+function isRefused(project: ApiProject): boolean {
+  return project.status === 'failed' && project.name.endsWith('(not built)')
+}
+
 export function toSidebarProject(
   project: ApiProject,
   now: Date,
@@ -28,7 +34,7 @@ export function toSidebarProject(
   return {
     id: project.id,
     name: project.name,
-    status: toStatus(project.status),
+    status: isRefused(project) ? 'notBuilt' : toStatus(project.status),
     when: formatWhen(project.updated_at, now),
   }
 }
@@ -41,8 +47,6 @@ export function listRefreshKey(
   projectId: string | null,
   build: BuildState,
 ): string {
-  const named = build.steps.some((step) => step.kind === 'Thinking')
-    ? 'named'
-    : 'unnamed'
+  const named = hasName(build) ? 'named' : 'unnamed'
   return `${projectId ?? 'none'}:${build.status}:${named}`
 }

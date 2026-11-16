@@ -137,6 +137,9 @@ def add_event(project_id: str, event: dict[str, object]) -> None:
     if isinstance(status, str):  # keep the project's current status up to date too
         projects[project_id]["status"] = status
     projects[project_id]["updated_at"] = now()  # any new event counts as a change, so the sidebar moves it up
+    # A refused request's name comes on its final event ("Church Website (not built)", backend/builder.py).
+    if "name" not in projects[project_id] and isinstance(event.get("name"), str):
+        projects[project_id]["name"] = str(event["name"])
     # The agent's own words may name the API. Only the first name counts, so a later sentence can't rename it.
     step = event.get("step")
     if "name" not in projects[project_id] and isinstance(step, dict) and step.get("kind") == "Thinking":
@@ -235,6 +238,14 @@ def get_project(project: dict[str, str] = Depends(find_project)) -> ProjectRespo
     return answer
 
 
+def zip_name(project: dict[str, str]) -> str:
+    # The take-home file is named after the API: "Clinic Appointment API" -> "clinic-appointment-api.zip".
+    # Only a-z, 0-9 and "-" are kept, so the name is safe on every computer; the frontend uses the same rule.
+    words = re.findall(r"[a-z0-9]+", display_name(project).lower())
+    slug = "-".join(words)[:60].strip("-")
+    return f"{slug or project['id']}.zip"
+
+
 def zip_files(files: dict[str, str]) -> bytes:
     # Pack the project into a zip in memory (BytesIO is a file that lives in RAM), so no temp file is left behind.
     buffer = io.BytesIO()
@@ -257,7 +268,7 @@ def download_project(project: dict[str, str] = Depends(find_project)) -> Respons
         # 409 Conflict = "not at this step yet" (docs/api-contract.md).
         raise HTTPException(status_code=409, detail="The API is not ready yet, so there is nothing to download.")
     # "attachment" tells the browser to save the file instead of showing it, under this name.
-    headers = {"Content-Disposition": f'attachment; filename="{project["id"]}.zip"'}
+    headers = {"Content-Disposition": f'attachment; filename="{zip_name(project)}"'}
     return Response(content=zip_files(result.files), media_type="application/zip", headers=headers)
 
 

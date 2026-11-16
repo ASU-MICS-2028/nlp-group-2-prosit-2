@@ -384,3 +384,14 @@ That test wakes a real generated API (a child process of the server) and fetches
 **What:** since #55 the backend names a project after the agent's first sentence ("Reading Club Library API"). The sidebar list was fetched again only when the build's status changed, so the name showed only at the end. `listRefreshKey()` in `src/build/sidebar.ts` adds one more part to `useProjectList`'s refresh key: `named` once the first Thinking step has arrived. The list is fetched **once** more at that moment, not for every step. `App.tsx` uses it.
 
 **How to check it:** `npx vitest run src/build/sidebar.test.ts`. 3 new tests, written first: the key changes at the first Thinking step, stays the same for later steps, and still changes with the project and status. Type check, lint, all 100 tests and the build pass.
+
+---
+
+# Name first, refusals, and the zip name (Nana, for Perfect, 2026-11-16)
+
+**What changed** (`src/build/naming.ts`, with its tests)
+- **Name first:** after sending, the page shows "Naming your API…" until the agent has spoken and the project list has been fetched again (`waitingForName`; `useProjectList` now reports `loadedKey`). The cut-off request never shows. A build that ends without a name (a refusal) shows its result at once.
+- **Refusals show only the result:** if a build ended without a single Doing step (`nothingBuilt`), the Build screen hides the steps, "Show details" and "Attempt …", and shows an amber "Nothing was built" box with the agent's reason. The badge says **"Not built"** (a new `notBuilt` look in `StatusPill`, page-only: the server still says "failed"). The sidebar recognises a refused project by the backend's name ending "(not built)".
+- **Zip name:** the download is saved as the API's name, such as `bookshop-inventory-api.zip` (`zipName`, the same rule as the backend's `zip_name`).
+
+**How to check it:** `npx vitest run` (115 passed). Checked on a local backend with real Gemini: "Naming your API…" then "Gym API"; refusals named "Church Website (not built)" and "Facebook Contact Collector (not built)" with "Not built" badges; the button saved `bookshop-inventory-api.zip`.
