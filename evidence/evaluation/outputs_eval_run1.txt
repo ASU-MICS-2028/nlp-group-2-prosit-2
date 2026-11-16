@@ -1,0 +1,43 @@
+Live site: https://nlp-group-2-prosit-2.onrender.com
+r01  error     49.3s  retries=0  The build crashed: KeyError.
+r02  pass      42.5s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r03  pass      35.0s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r04  pass      40.9s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r05  pass      40.0s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r06  pass      41.4s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r07  pass      38.3s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r08  pass      38.5s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r09  pass      53.6s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r10  pass      58.9s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r11  pass      62.7s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r12  pass      45.5s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r13  pass      48.9s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r14  pass      37.7s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r15  pass      43.5s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r16  pass      36.7s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r17  pass      48.7s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r18  pass      37.8s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r19  fail      52.7s  retries=0  It should have built nothing, but it wrote 11 files.
+r20  fail      95.9s  retries=0  It should have built nothing, but it wrote 10 files.
+17 of 20 passed (85%); 0 stopped by the free-tier limit; 20 run in total.
+
+{"id": "r01", "kind": "clear_one_table", "expect": "build", "outcome": "error", "seconds": 49.3, "retries": 0, "reason": "The build crashed: KeyError.", "missing_endpoints": [], "tables": 0}
+{"id": "r02", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 42.5, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r03", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 35.0, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r04", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 40.9, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r05", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 40.0, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r06", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 41.4, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r07", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 38.3, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r08", "kind": "clear_one_table", "expect": "build", "outcome": "pass", "seconds": 38.5, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r09", "kind": "several_tables", "expect": "build", "outcome": "pass", "seconds": 53.6, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 3}
+{"id": "r10", "kind": "several_tables", "expect": "build", "outcome": "pass", "seconds": 58.9, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 3}
+{"id": "r11", "kind": "several_tables", "expect": "build", "outcome": "pass", "seconds": 62.7, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 3}
+{"id": "r12", "kind": "several_tables", "expect": "build", "outcome": "pass", "seconds": 45.5, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 3}
+{"id": "r13", "kind": "vague", "expect": "ask_first", "outcome": "pass", "seconds": 48.9, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 2}
+{"id": "r14", "kind": "vague", "expect": "ask_first", "outcome": "pass", "seconds": 37.7, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r15", "kind": "vague", "expect": "ask_first", "outcome": "pass", "seconds": 43.5, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 2}
+{"id": "r16", "kind": "vague", "expect": "ask_first", "outcome": "pass", "seconds": 36.7, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r17", "kind": "partly_supported", "expect": "build", "outcome": "pass", "seconds": 48.7, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 2}
+{"id": "r18", "kind": "partly_supported", "expect": "build", "outcome": "pass", "seconds": 37.8, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r19", "kind": "out_of_scope", "expect": "refuse", "outcome": "fail", "seconds": 52.7, "retries": 0, "reason": "It should have built nothing, but it wrote 11 files.", "missing_endpoints": [], "tables": 2}
+{"id": "r20", "kind": "out_of_scope", "expect": "refuse", "outcome": "fail", "seconds": 95.9, "retries": 0, "reason": "It should have built nothing, but it wrote 10 files.", "missing_endpoints": [], "tables": 1}

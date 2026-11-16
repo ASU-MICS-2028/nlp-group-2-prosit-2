@@ -137,3 +137,10 @@ def test_summary_leaves_limit_failures_out_of_the_pass_rate():
 def test_summary_when_every_request_hit_the_limit():
     scores = [score.Score("r01", "k", "build", "limit", 1.0, 0, "")]
     assert score.summary(scores).startswith("none could be judged")
+
+
+def test_the_daily_limit_is_counted_as_a_limit_too():
+    # #35 added this stop reason: "Today's free AI limit is used up." It says nothing about our code.
+    daily = BuildResult("failed", "Today's free AI limit is used up.", {}, kind="daily_limit")
+    assert run(BOOKS, pretend(daily)).outcome == "limit"
+    assert run(REFUSE, pretend(daily)).outcome == "limit"
