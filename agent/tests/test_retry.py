@@ -356,3 +356,22 @@ def test_a_refusal_stops_at_once_without_a_reminder_to_write_files(monkeypatch: 
     assert waits == []
     assert statuses(steps).count("failed") == 1
     assert steps[-1]["step"]["text"] == reason
+
+
+def test_a_stop_shows_its_reason_once_on_the_timeline(monkeypatch: pytest.MonkeyPatch) -> None:
+    # #50: a refusal (and the daily limit) showed the same sentence twice: the try's own last step, then the stop.
+    async def no_wait(seconds: float) -> None:
+        pass
+
+    monkeypatch.setattr(retry.asyncio, "sleep", no_wait)
+    reason = "Collecting people's personal data without their consent is not something I can build."
+    refusing = FakeModel(model="fake", replies=[say('{"status": "refused", "summary": "' + reason + '"}')])
+    out_of_requests = DailyLimitFakeModel(model="fake", replies=[])
+    limit = "Today's free AI limit is used up. Please try again tomorrow."
+
+    for model, text in ((refusing, reason), (out_of_requests, limit)):
+        _, steps = run(model)
+        shown = [s for s in steps if s.get("step", {}).get("text") == text]
+        assert len(shown) == 1
+        assert shown[0] is steps[-1]
+        assert (shown[0]["status"], shown[0]["step"]["phase"]) == ("failed", "finishing")

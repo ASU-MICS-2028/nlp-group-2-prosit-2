@@ -51,7 +51,8 @@ async def build_with_retries(
         status = "working" if attempt == 1 else "retrying"
         report({"status": status, "attempt": attempt, "max_attempts": MAX_ATTEMPTS})
 
-        result = await build_project(message, instruction, model, hold_back_failure(report, status), start_files=files)
+        held: list[dict[str, object]] = []  # this try's own final "failed" event, kept back (see hold_back_failure)
+        result = await build_project(message, instruction, model, hold_back_failure(report, status, held), start_files=files)
         if result.status == "ready":
             return result  # build_project already sent the final "ready" event, which ends the live stream
 
@@ -60,6 +61,8 @@ async def build_with_retries(
         if result.kind in ("service_busy", "daily_limit") and result.files:
             check = run_tests(result.files)
             if check.passed:
+                for event in held:
+                    report(as_not_the_end(event, status))
                 reason = "All tests pass."
                 report({"status": "ready", "step": {"kind": "Result", "text": reason, "state": "done", "phase": "finishing"}})
                 output = check.output[-MAX_KEPT_OUTPUT:]
@@ -69,9 +72,13 @@ async def build_with_retries(
             # Today's free allowance is used up (#33): another try or a wait cannot help until tomorrow.
             # Or the AI refused a request it must not build (E-2): trying again, or the "write files first"
             # reminder, would only push it to build it anyway. Either way, stop now with the plain sentence.
-            step = {"kind": "Result", "text": result.reason, "state": "failed", "phase": "finishing"}
-            report({"status": "failed", "step": step})
+            # The try's own last step already says it, so send that one as the end: once, not twice (#50).
+            report(held[-1] if held else stop_event(result.reason))
             return result
+
+        # Not the end: show the try's last step as being about fixing (see hold_back_failure).
+        for event in held:
+            report(as_not_the_end(event, status))
 
         if attempt == MAX_ATTEMPTS:
             break  # no tries left: don't wait or build a new message for nothing
@@ -99,29 +106,43 @@ async def build_with_retries(
 
     # Every try failed: now, and only now, send the final "failed" event, which ends the live stream (W-5).
     reason = f"Still not working after {MAX_ATTEMPTS} tries. Last problem: {result.reason}"
-    report({"status": "failed", "step": {"kind": "Result", "text": reason, "state": "failed", "phase": "finishing"}})
+    report(stop_event(reason))
     return BuildResult(status="failed", reason=reason, files=result.files, kind=result.kind, test_output=result.test_output)
 
 
-def hold_back_failure(report: Report, status: str) -> Report:
-    """Pass every step on with this try's status, except a try's own final "failed", which would end the stream.
+def hold_back_failure(report: Report, status: str, held: list[dict[str, object]]) -> Report:
+    """Pass every step on with this try's status, but keep back the try's own final "failed" in `held`.
 
     build_project calls every step "working" and ends with "ready" or "failed". From try 2 on, the timeline
     should keep saying "retrying" (the status badge in the UI), so "working" becomes `status`.
-    A "failed" try is not the end while we still have tries left, so it is sent on as `status` too
-    (the step itself is kept). "ready" is passed on as it is: it really is the end.
+    A "failed" try is only the end if build_with_retries decides to stop, so that event goes into `held`
+    and build_with_retries sends it: as it is when it stops, or via as_not_the_end before the next try.
+    Sending it here AND a stop line later showed the same sentence twice on the timeline (#50).
+    "ready" is passed on as it is: it really is the end.
     """
 
     def report_step(event: dict[str, object]) -> None:
-        if event.get("status") == "failed" and isinstance(event.get("step"), dict):
-            # A try's own failure is not the end, so its step is about fixing, not finishing: otherwise the
-            # plain timeline (F-17) says "Finalizing your API…" while we wait for the next try.
-            event = {**event, "step": {**event["step"], "phase": "fixing"}}
-        if event.get("status") in ("working", "failed"):
+        if event.get("status") == "failed":
+            held.append(event)
+            return
+        if event.get("status") == "working":
             event = {**event, "status": status}  # a copy with a new status; the original is left alone
         report(event)
 
     return report_step
+
+
+def as_not_the_end(event: dict[str, object], status: str) -> dict[str, object]:
+    """A try's own "failed" event, when more tries follow: it keeps the try's status, and its step is about
+    fixing, not finishing; otherwise the plain timeline (F-17) says "Finalizing your API…" while we wait."""
+    if isinstance(event.get("step"), dict):
+        event = {**event, "step": {**event["step"], "phase": "fixing"}}
+    return {**event, "status": status}
+
+
+def stop_event(reason: str) -> dict[str, object]:
+    """The final "failed" event, which ends the live stream (W-5)."""
+    return {"status": "failed", "step": {"kind": "Result", "text": reason, "state": "failed", "phase": "finishing"}}
 
 
 def reflection_message(plan_message: str, result: BuildResult) -> str:
