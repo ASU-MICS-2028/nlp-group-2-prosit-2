@@ -22,12 +22,12 @@ from agent.prompts import load_prompt
 from backend.builder import MAX_KEPT_OUTPUT, BuildResult, Report, build_project
 from backend.runner import run_tests
 
-# Whole builds, each with up to 3 test runs. Was 3 (F-4); 4 since D-018, so the main model keeps its 3 tries
-# and the 4th is a last shot (on the backup model if the main one was busy 3 times).
-MAX_ATTEMPTS = 4
+# Whole builds, each with up to 3 test runs. 3 (F-4); D-018 made it 4, D-021 brings it back to 3:
+# the person sees "Attempt 1 of 3", and a build that keeps failing stops sooner.
+MAX_ATTEMPTS = 3
 BUSY_WAIT_SECONDS = 30  # how long to wait after "503 busy" or "429 too many requests" before trying again
-# After the main model has been busy this many times in one build, the tries left use the backup model (D-018).
-SWITCH_AFTER_BUSY = 3
+# After the main model has been busy this many times in one build, the last try uses the backup model (D-021).
+SWITCH_AFTER_BUSY = 2
 
 # The reasons that can be fixed by asking the AI again with what went wrong.
 REFLECT_ON = {"tests_failed", "too_slow", "too_many_steps"}

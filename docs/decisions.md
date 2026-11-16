@@ -145,3 +145,11 @@ Affects: Perfect (`frontend/src/build/plainSteps.ts`, `useTick.ts`, `BuildScreen
 Decision: Each plain phase has a few wordings (for example "Testing your API…", "Checking that everything works…", "Trying it out…"). Only the newest line, while the build is still going, changes wording, every 4 seconds. Finished lines, the AI's own plan sentence and test results never change. The first wording in each list is the fixed one. The backend and the `phase` contract are not touched.
 Why: Elise pointed out that a line that never changes feels dead while a build takes minutes, and Claude itself varies its words while it works. Keeping the change in the page, behind the same `phase` decision, costs nothing on the backend.
 Gave up: A timer on the build screen, and a few more sentences for Nana to read. The wording a person sees at a given second is no longer predictable, so tests check the list, not one sentence, once the clock moves.
+
+## D-021: Back to 3 tries in total; the backup model takes the 3rd try after 2 busy ones
+Date: 2026-11-16 · Decided by: Nana · Status: Proposed (Elise and Opei to confirm: it changes D-018 and Opei's `agent/retry.py`)
+Affects: Opei (`agent/retry.py`), Elise (D-018), Perfect (the screen now says "Attempt 1 of 3" again; no frontend change, the number comes from the server)
+Decision: `MAX_ATTEMPTS` goes from 4 back to 3, and `SWITCH_AFTER_BUSY` from 3 to 2. If the main model was busy on tries 1 and 2, try 3 runs on the backup model (`LLM_BACKUP_MODEL`); otherwise all 3 tries use the main model, as before D-018. D-018 is not rewritten; this replaces its numbers.
+Why: People saw "Attempt 1 of 4", and a build whose tests keep failing went on for a 4th try. In both evaluation runs (E-2, E-4) every build worked on its first try, and since Render's key has paid credit, long busy stretches are rarer. Three tries are what F-4 and the report describe, and a build that keeps failing now stops about a quarter sooner.
+Gave up: The main model now has 2 tries, not 3, before the backup steps in when Google is busy for a long time. The backup was checked live once on a 4th try (D-018); it has not been checked live on a 3rd try (only in tests).
+

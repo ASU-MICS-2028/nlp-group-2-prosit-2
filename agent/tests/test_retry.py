@@ -129,17 +129,17 @@ def test_the_seeded_project_is_not_changed_for_the_caller() -> None:
     assert seeded == SEEDED_PROJECT  # the builder worked on a copy
 
 
-def test_it_gives_up_after_four_tries_with_a_clear_reason() -> None:
-    model = FakeModel(model="fake", replies=[call("run_tests")] * 12 + [say("I give up.")] * 4)
+def test_it_gives_up_after_three_tries_with_a_clear_reason() -> None:
+    model = FakeModel(model="fake", replies=[call("run_tests")] * 9 + [say("I give up.")] * 3)
 
     result, steps = run(model, start_files=SEEDED_PROJECT)
 
     assert result.status == "failed"
-    assert result.reason == "Still not working after 4 tries. Last problem: The tests still fail after 3 tries."
+    assert result.reason == "Still not working after 3 tries. Last problem: The tests still fail after 3 tries."
     # Only the very last event says "failed": earlier ones would end the live stream too early (W-5).
     assert statuses(steps).count("failed") == 1
     assert steps[-1]["status"] == "failed"
-    assert [step.get("attempt") for step in steps if "attempt" in step] == [1, 2, 3, 4]
+    assert [step.get("attempt") for step in steps if "attempt" in step] == [1, 2, 3]
 
 
 def test_no_files_gets_a_firm_reminder_then_works() -> None:
@@ -202,7 +202,7 @@ def test_busy_after_a_fix_is_still_ready_without_a_new_try(monkeypatch: pytest.M
 
 def test_a_service_that_stays_busy_ends_failed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(retry, "BUSY_WAIT_SECONDS", 0)
-    model = FakeModel(model="fake", busy_first=4, replies=[])  # busy on all 4 tries, and no backup
+    model = FakeModel(model="fake", busy_first=3, replies=[])  # busy on all 3 tries, and no backup
 
     result, steps = run(model)
 
@@ -212,7 +212,7 @@ def test_a_service_that_stays_busy_ends_failed(monkeypatch: pytest.MonkeyPatch) 
     assert statuses(steps).count("failed") == 1
 
 
-# D-018: the backup model, used for the 4th try only after the main model is busy 3 times in one build.
+# D-021 (was D-018): the backup model takes the 3rd and last try, only after the main model was busy twice.
 WORKING_SCRIPT = [
     call("write_file", path="calc.py", content=FIXED_APP),
     call("write_file", path="test_calc.py", content=TEST_FILE),
@@ -231,27 +231,28 @@ def build_with_backup(main: FakeModel, backup: FakeModel) -> tuple[retry.BuildRe
 
 def test_main_model_busy_twice_switches_to_the_backup(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(retry, "BUSY_WAIT_SECONDS", 0)
-    main = FakeModel(model="main", busy_first=3, replies=[])  # busy on tries 1, 2 and 3
+    main = FakeModel(model="main", busy_first=2, replies=[])  # busy on tries 1 and 2
     backup = FakeModel(model="backup", replies=WORKING_SCRIPT)
 
     result, steps = build_with_backup(main, backup)
 
-    assert result.status == "ready"  # try 4, on the backup, built it
+    assert result.status == "ready"  # try 3, on the backup, built it
+    assert [step.get("attempt") for step in steps if "attempt" in step] == [1, 2, 3]
     assert backup.calls == len(WORKING_SCRIPT)
     assert any("backup" in str(step.get("step", {}).get("text", "")) for step in steps)
     # The timeline's plain view (D-019) needs a known phase on every step, the backup sentence included.
     assert all(event["step"]["phase"] in PHASES for event in steps if "step" in event)
 
 
-def test_main_model_busy_twice_does_not_switch(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_main_model_busy_once_does_not_switch(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(retry, "BUSY_WAIT_SECONDS", 0)
-    main = FakeModel(model="main", busy_first=2, replies=WORKING_SCRIPT)  # busy twice, then fine on try 3
+    main = FakeModel(model="main", busy_first=1, replies=WORKING_SCRIPT)  # busy once, then fine on try 2
     backup = FakeModel(model="backup", replies=[])
 
     result, _ = build_with_backup(main, backup)
 
     assert result.status == "ready"
-    assert backup.calls == 0  # two busy tries are not critical yet: the main model keeps its 3 tries
+    assert backup.calls == 0  # one busy try is not critical yet: the main model keeps going
 
 
 def test_every_step_of_a_retried_build_has_a_known_phase() -> None:
