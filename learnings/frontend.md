@@ -376,3 +376,11 @@ That test wakes a real generated API (a child process of the server) and fetches
 ## 8. Lines ready for the report
 - A finished project opens as a live API with its own Swagger page, so a person who cannot code can try it from a link; if it has gone to sleep, one button wakes it.
 
+
+---
+
+# The API's short name appears straight away (Nana, for Perfect, 2026-11-16)
+
+**What:** since #55 the backend names a project after the agent's first sentence ("Reading Club Library API"). The sidebar list was fetched again only when the build's status changed, so the name showed only at the end. `listRefreshKey()` in `src/build/sidebar.ts` adds one more part to `useProjectList`'s refresh key: `named` once the first Thinking step has arrived. The list is fetched **once** more at that moment, not for every step. `App.tsx` uses it.
+
+**How to check it:** `npx vitest run src/build/sidebar.test.ts`. 3 new tests, written first: the key changes at the first Thinking step, stays the same for later steps, and still changes with the project and status. Type check, lint, all 100 tests and the build pass.

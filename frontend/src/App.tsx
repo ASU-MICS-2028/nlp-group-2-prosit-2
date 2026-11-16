@@ -3,6 +3,7 @@ import { Notice } from './components/Notice'
 import { Sidebar } from './components/Sidebar'
 import { useBuild } from './hooks/useBuild'
 import { useProjectList } from './hooks/useProjectList'
+import { listRefreshKey } from './build/sidebar'
 import { BuildScreen } from './screens/BuildScreen'
 import { StartScreen } from './screens/StartScreen'
 
@@ -11,9 +12,9 @@ import { StartScreen } from './screens/StartScreen'
 function App() {
   const { state, start, open, reset } = useBuild()
 
-  // Fetch the list again when a project opens or its status changes, so the sidebar stays current.
+  // Fetch the list again when a project opens, its status changes, or the agent first names the API.
   const { projects, error: listError } = useProjectList(
-    `${state.projectId ?? 'none'}:${state.build.status}`,
+    listRefreshKey(state.projectId, state.build),
   )
 
   const openProject = projects.find((project) => project.id === state.projectId)

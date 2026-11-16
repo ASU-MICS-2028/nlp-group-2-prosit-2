@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { formatWhen, toSidebarProject } from './sidebar'
+import { formatWhen, listRefreshKey, toSidebarProject } from './sidebar'
+import { emptyBuild, type BuildState } from './buildState'
 
 const NOW = new Date('2026-11-12T12:00:00+00:00')
 
@@ -69,5 +70,51 @@ describe('toSidebarProject', () => {
     )
 
     expect(row.status).toBe('working')
+  })
+})
+
+describe('listRefreshKey', () => {
+  const thinking = {
+    kind: 'Thinking' as const,
+    text: 'Building a Reading Club Library API with a books table.',
+    state: 'done' as const,
+  }
+  const doing = {
+    kind: 'Doing' as const,
+    text: 'Writing app/main.py',
+    state: 'done' as const,
+  }
+  const build = (
+    status: BuildState['status'],
+    steps: BuildState['steps'],
+  ): BuildState => ({ ...emptyBuild, status, steps })
+
+  it('changes when the first Thinking step arrives, so the list is fetched again and shows the API name', () => {
+    const before = listRefreshKey('p_1', build('working', []))
+    const after = listRefreshKey('p_1', build('working', [thinking]))
+
+    expect(after).not.toBe(before)
+  })
+
+  it('does not change for later steps, so the list is not fetched again for every step', () => {
+    const first = listRefreshKey('p_1', build('working', [thinking]))
+    const later = listRefreshKey(
+      'p_1',
+      build('working', [thinking, doing, thinking]),
+    )
+
+    expect(later).toBe(first)
+  })
+
+  it('still changes with the project and its status', () => {
+    const working = listRefreshKey('p_1', build('working', [thinking]))
+
+    expect(listRefreshKey('p_1', build('ready', [thinking]))).not.toBe(working)
+    expect(listRefreshKey('p_2', build('working', [thinking]))).not.toBe(
+      working,
+    )
+    expect(listRefreshKey(null, build('waiting', []))).toBe(
+      'none:waiting:unnamed',
+    )
   })
 })
