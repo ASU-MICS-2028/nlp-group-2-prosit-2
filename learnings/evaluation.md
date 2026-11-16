@@ -27,6 +27,19 @@ Twenty made-up requests a non-developer might type, each with what the platform 
 6. Live run 0 (r01 and r19, laptop key): both hit Gemini's **daily** limit (429). That showed a bug: r19 should be refused, and "nothing was built"
    was scored `pass`, but nothing was built only because the quota was used up. Fixed: a quota or busy stop is now `limit` first, for every kind.
    The run is kept, with a note, in `evidence/evaluation/outputs_e1_run0_scorer_bug.txt`.
+7. 2026-11-15: **live mode** (`--base-url`, `live_build`): the scorer builds through a running server's API, exactly like a user:
+   `POST /projects`, wait for `ready` or `failed`, read the diary (`/events`) for the tries and the final sentence, and for a ready
+   build download the zip (F-5) and check its endpoints. The server uses its own key, so no key is needed on the laptop, and
+   the score is what the live site really does. 6 tests with a pretend server (`httpx.MockTransport`), written first.
+   Also fixed: #35's new stop reason `daily_limit` was scored `fail`; it is now `limit`, like `service_busy` (1 test).
+   First real check: r01 on the live site, `pass` in 42 s.
+8. 2026-11-15, **E-2 run 1 on the live site: 17 of 20 passed (85%), 0 stopped by the limit** (`evidence/evaluation/outputs_eval_run1.txt`).
+   - Clear one-table 7 of 8, several tables 4 of 4, vague 4 of 4 (build part only), partly supported 2 of 2, out of scope 0 of 2.
+   - Every build worked on the first try; 30-96 s each, most about 40 s.
+   - r01 was an `error`: the live server restarted during its build, so the project was gone (404). Run alone afterwards it passed
+     in 30.5 s (`outputs_eval_run1_r01_rerun.txt`). The scorer now names this `ProjectGone` instead of crashing with `KeyError` (1 test).
+   - r19 (a website) and r20 (collecting people's data from Facebook) were **built** (10-11 files) instead of refused: the agent had no
+     way to refuse. That is a real finding, fixed next (E-3).
 
 ## 3. Why we did it this way
 - **Five kinds, not 20 easy ones**: a platform that only handles clear one-table requests would score 100% on an easy set and tell us nothing.
@@ -37,17 +50,19 @@ Twenty made-up requests a non-developer might type, each with what the platform 
 ## 4. How to check it works
 ```
 $ pytest evaluation
-21 passed
+28 passed
 ```
-A live run (from the repo root, with the backend's venv; reads `GEMINI_API_KEY` and `LLM_MODEL` from `.env`):
+A run on the live site (from the repo root, with the backend's venv; no key needed, the server uses its own):
 ```
-python -m evaluation.score --only r01,r02 --out evidence/evaluation/outputs_e1_<name>.txt
+python -m evaluation.score --base-url https://nlp-group-2-prosit-2.onrender.com --pause 30 --out evidence/evaluation/outputs_eval_run<N>.txt
 ```
+Without `--base-url` it runs the builder on this laptop instead, reading `GEMINI_API_KEY` and `LLM_MODEL` from `.env`.
 It refuses to overwrite an existing output file, so every run is kept.
 
 ## 5. What is NOT done or is faked
 - **No real results yet.** Run 0 hit the daily quota on both requests. E-1 is done when 2 requests run without the limit.
-- **The scorer calls the builder directly**, in its own Python process, not through the server's HTTP API, because the server does not hand out the generated files yet. It sends the same first message as the server (`backend/projects.py`), so the result is what a user gets; but the server's own steps (the request queue, the live stream) are not part of the score.
+- **Live mode reads the stop reason from the final sentence** ("free AI limit" → `daily_limit`, "busy" → `service_busy`), because the server's API does not send the `kind`. If those sentences change, update `kind_from_text`.
+- **A failed build can't be downloaded**, so for refusals live mode only knows how many files were written (`file_count`), which is all the refusal rule needs.
 - **Questions and plans are not scored.** For `ask_first` requests only the build part is scored, because the builder does not ask questions yet (F-2). The `not_included` lists and `must_have_fields` are not checked either.
 - **Table names**: `book`/`books` match, and the other names in the notes (`classrooms`, `products`, `crops`); anything else would fail as a missing endpoint, so read the missing list before calling it a real failure.
 - "Ask first" and "refuse" assume the platform can ask questions and refuse; if it cannot yet, those requests will fail, and that is a real finding, not a bug in the test set.

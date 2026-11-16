@@ -102,8 +102,8 @@ When a task stalls, someone picks it up. The Owner column then says "Name (from 
 
 | ID | Task | Owner | Blocked by | Status | Done when |
 |---|---|---|---|---|---|
-| E-1 | Scoring script (pass/fail per request, retries, seconds) | Nana | W-9 | 🔄 | Runs on 2 requests (2026-11-15: `evaluation/score.py` and 15 tests with a pretend builder; live run 0 on r01, r19 hit Gemini's daily limit and found a scorer bug, now fixed; run again when the quota resets) |
-| E-2 | Run evaluation on all 20 requests | Nana | E-1, F-4, F-5 | ⛔ | `evidence/evaluation/outputs_eval_run1.txt` saved |
+| E-1 | Scoring script (pass/fail per request, retries, seconds) | Nana | W-9 | ✅ | Runs on 2 requests. Done 2026-11-15: `evaluation/score.py`, in-process or `--base-url` (through the live site's API, F-5 download for the endpoint check); 29 tests; ran all 20 in E-2 |
+| E-2 | Run evaluation on all 20 requests | Nana | E-1, F-4, F-5 | ✅ | `evidence/evaluation/outputs_eval_run1.txt` saved. Done 2026-11-15 on the live site: **17 of 20 passed** (all 18 build requests built on the first try, 30-96 s; r01 an error because the server restarted mid-build, passed alone in `outputs_eval_run1_r01_rerun.txt`); both out-of-scope requests were built instead of refused (no way to refuse yet) |
 | E-3 | Fix the top failures (prompts: Opei; code: Elise) | Opei | E-2 | 🔄 | Fixes listed in `learnings/`. 2026-11-15 (Nana): refusal for out-of-scope requests (r19, r20 built in run 1); live check after deploy |
 | E-4 | Re-run evaluation, compare to run 1 | Nana | E-3 | ⛔ | `outputs_eval_run2.txt` saved; numbers go into the report only now |
 | D-1 | Deploy frontend to Vercel | Nana | S-6 | ✅ | Public URL loads (done 2026-11-13: https://mesora-api-builder.vercel.app; CLI deploy per D-014; evidence in `evidence/deploy/`) |
