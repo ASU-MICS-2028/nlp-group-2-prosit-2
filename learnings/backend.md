@@ -506,3 +506,15 @@ I broke the code on purpose twice (full path forwarded; no root path after a bui
 | `asyncio.to_thread` | Run a slow, blocking function on the side, so the server keeps serving others |
 | `lifespan` | FastAPI's start-up and shut-down steps |
 | `413` / `502` | "Your request is too big" / "the server behind us didn't answer properly" |
+
+---
+
+# Project names (Nana, 2026-11-16)
+
+**In one sentence:** the sidebar and the Build screen now show a short API name, like "Reading Club Library API", instead of the first 40 characters of what the person typed.
+
+**How:** the builder prompt already asks the agent to start with one sentence such as "Building a Reading Club Library API with a books table and 5 endpoints." `api_name()` in `backend/projects.py` reads the name from that sentence: capitalised words ending in "API", after "build" or "building". `add_event` keeps the **first** name it finds, so later sentences can't rename the project. `display_name()` uses it, or falls back to the old cut request, for example for a refusal. There's no extra AI call, so no extra cost or quota.
+
+**How to check it:** `python -m pytest backend/tests/test_project_names.py` (11 tests, written first): 5 real-style sentences give the right names, 3 sentences without a name give none, the first name sticks, and a refusal keeps the typed request. I also ran it on the real first sentences saved in `evidence/` ("Books API", "To-Do List API").
+
+**Limits:** the page fetches the project list again only when the build's status changes, so the new name appears **when the build ends**; while it builds, the typed request still shows. Showing it sooner needs a small frontend change (fetch the list again after the first Thinking step). If the AI ever leaves out the name, the old stand-in shows.
