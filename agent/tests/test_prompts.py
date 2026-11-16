@@ -153,3 +153,12 @@ def test_huge_plan_is_refused():
 def test_non_english_text_is_kept_readable():
     message = prompts.builder_message({**BOOKSHOP_PLAN, "name": "Akwaaba Shop"})
     assert "Akwaaba Shop" in message
+
+
+def test_the_refusal_rule_says_a_named_business_is_built_not_refused():
+    # E-4 run 2: "Build me an online shop" was refused as a website. The rule must keep saying it is built.
+    text = prompts.load_prompt("builder")
+    rule = text.split("## Requests you must not build")[1].split("## How to work")[0]
+    assert "online shop" in rule
+    assert "Do **not** refuse a request that names a kind of business" in rule
+    assert "asks only for how something looks" in rule
