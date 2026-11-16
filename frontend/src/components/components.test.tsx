@@ -33,6 +33,13 @@ describe('StatusPill', () => {
 
     expect(screen.getByText('Failed')).toBeInTheDocument()
   })
+
+  it('says "Not built" for a request that was refused, not "Failed"', () => {
+    render(<StatusPill status="notBuilt" />)
+
+    expect(screen.getByText('Not built')).toBeInTheDocument()
+    expect(screen.queryByText('Failed')).toBeNull()
+  })
 })
 
 describe('Notice', () => {

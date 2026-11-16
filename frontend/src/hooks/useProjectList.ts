@@ -10,6 +10,8 @@ import type { ProjectSummary } from '../components/Sidebar'
 export function useProjectList(refreshKey: string) {
   const [projects, setProjects] = useState<ProjectSummary[]>([])
   const [error, setError] = useState<string | null>(null)
+  // The refreshKey of the last list that arrived, so the page knows the list is up to date (the API's name).
+  const [loadedKey, setLoadedKey] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false // set to true if the page goes away (or the key changes) before the answer
@@ -20,6 +22,7 @@ export function useProjectList(refreshKey: string) {
         const now = new Date()
         setProjects(rows.map((row) => toSidebarProject(row, now)))
         setError(null)
+        setLoadedKey(refreshKey)
       },
       (failure: unknown) => {
         if (cancelled) return
@@ -32,5 +35,5 @@ export function useProjectList(refreshKey: string) {
     }
   }, [refreshKey])
 
-  return { projects, error }
+  return { projects, error, loadedKey }
 }

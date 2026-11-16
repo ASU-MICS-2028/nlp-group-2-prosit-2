@@ -48,7 +48,8 @@ def test_a_ready_project_downloads_as_a_zip_of_its_files() -> None:
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/zip"
     # "attachment" makes the browser save the file instead of opening it; the name is what the person sees.
-    assert response.headers["content-disposition"] == f'attachment; filename="{project_id}.zip"'
+    # Named after the project ("A notes API" here, as it has no API name yet), so the person knows which zip it is.
+    assert response.headers["content-disposition"] == 'attachment; filename="a-notes-api.zip"'
     # The project's own files, plus the run files every zip gets (F-6: Dockerfile, HOW_TO_RUN.md, ...).
     assert unzip(response.content) == {**takehome_files(), **NOTES_FILES}
 
@@ -89,3 +90,16 @@ def test_the_unzipped_project_passes_its_own_tests(tmp_path: Path) -> None:
     unzipped = {str(path.relative_to(tmp_path).as_posix()): path.read_text() for path in tmp_path.rglob("*") if path.is_file()}
     assert unzipped == {**takehome_files(), **files}  # nothing lost or changed on the way, plus the run files
     assert run_tests(unzipped, timeout_seconds=60).passed
+
+
+@pytest.mark.parametrize(
+    ("name", "file"),
+    [
+        ("Clinic Appointment API", "clinic-appointment-api.zip"),
+        ("To-Do List API", "to-do-list-api.zip"),
+        ("Café & Bakery Orders API", "caf-bakery-orders-api.zip"),
+        ("!!!", "p_7.zip"),  # nothing usable left: fall back to the project id
+    ],
+)
+def test_the_zip_is_named_after_the_api(name: str, file: str) -> None:
+    assert projects.zip_name({"id": "p_7", "request": "x", "name": name}) == file

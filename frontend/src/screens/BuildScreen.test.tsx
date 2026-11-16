@@ -70,3 +70,43 @@ describe('BuildScreen timeline', () => {
     )
   })
 })
+
+describe('BuildScreen for a request that was refused', () => {
+  // Like the live refusal: try 1 starts, then the agent refuses without writing or testing anything.
+  const refused: BuildState = [
+    { status: 'working', attempt: 1, max_attempts: 3 },
+    {
+      status: 'failed',
+      step: {
+        kind: 'Result',
+        text: 'This request cannot be built because it collects personal details without consent.',
+        state: 'failed',
+        phase: 'finishing',
+      },
+    },
+  ].reduce<BuildState>((state, event) => {
+    const parsed = parseEvent(JSON.stringify(event))
+    return parsed ? applyEvent(state, parsed) : state
+  }, emptyBuild)
+
+  it('shows only the result: the reason, with no steps, no "Finalizing" and no details', () => {
+    const { container } = show(refused)
+
+    expect(screen.getByText('Nothing was built')).toBeInTheDocument()
+    expect(
+      screen.getByText(/cannot be built because it collects personal details/),
+    ).toBeInTheDocument()
+    expect(container.textContent).not.toContain('Finalizing')
+    expect(container.querySelector('details')).toBeNull()
+    expect(container.textContent).not.toContain('Attempt')
+    expect(screen.getByText('Not built')).toBeInTheDocument() // the header's badge, not "Failed"
+    expect(screen.queryByText('Failed')).toBeNull()
+  })
+
+  it('keeps the full timeline for a build that failed after real work', () => {
+    const { container } = show({ ...readyBuild, status: 'failed' })
+
+    expect(screen.getByText('The build did not finish')).toBeInTheDocument()
+    expect(container.querySelector('details')).not.toBeNull()
+  })
+})

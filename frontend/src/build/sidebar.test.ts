@@ -118,3 +118,27 @@ describe('listRefreshKey', () => {
     )
   })
 })
+
+describe('toSidebarProject and refused requests', () => {
+  const row = (name: string, status: string) => ({
+    id: 'p_1',
+    name,
+    status,
+    updated_at: '2026-11-12T11:59:30+00:00',
+  })
+
+  it('shows "Not built" for a refused request (the backend names it "… (not built)")', () => {
+    const project = toSidebarProject(
+      row('Church Website (not built)', 'failed'),
+      NOW,
+    )
+
+    expect(project.status).toBe('notBuilt')
+  })
+
+  it('keeps "failed" for a build that really failed', () => {
+    expect(
+      toSidebarProject(row('Clinic Appointment API', 'failed'), NOW).status,
+    ).toBe('failed')
+  })
+})

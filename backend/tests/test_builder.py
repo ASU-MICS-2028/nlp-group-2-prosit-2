@@ -326,3 +326,27 @@ def test_a_refusal_after_writing_files_does_not_count() -> None:
     result = asyncio.run(build_project("Build it.", "You are a builder.", model, report=lambda event: None))
 
     assert result.status == "ready"
+
+
+# A refusal also names what was asked, so the sidebar shows e.g. "Church Website (not built)", not the typed text.
+NAMED_REFUSAL = '{"status": "refused", "name": "Church Website", "summary": "A website is not a backend API. I can build the members and events data instead."}'
+
+
+def test_a_refusal_gives_the_project_a_not_built_name() -> None:
+    model = FakeModel(model="fake", replies=[say(NAMED_REFUSAL)])
+    steps: list[dict[str, object]] = []
+
+    result = asyncio.run(build_project("Make me a website.", "You are a builder.", model, report=steps.append))
+
+    assert (result.kind, result.name) == ("refused", "Church Website (not built)")
+    assert steps[-1]["name"] == "Church Website (not built)"  # the final event carries it to the server
+
+
+def test_a_refusal_without_a_name_has_none() -> None:
+    model = FakeModel(model="fake", replies=[say(REFUSAL)])
+    steps: list[dict[str, object]] = []
+
+    result = asyncio.run(build_project("Make me a website.", "You are a builder.", model, report=steps.append))
+
+    assert result.name == ""
+    assert "name" not in steps[-1]

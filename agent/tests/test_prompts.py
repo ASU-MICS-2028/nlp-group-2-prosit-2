@@ -87,7 +87,7 @@ def test_final_reply_examples_are_valid_json():
     replies = [json.loads(block) for block in blocks]
     for reply in replies[:2]:
         assert set(reply) == {"status", "summary", "tests_passed", "tests_total"}
-    assert set(replies[2]) == {"status", "summary"}
+    assert set(replies[2]) == {"status", "name", "summary"}
     # The refusal example is exactly what backend/builder.py recognises as a refusal (E-2).
     assert refusal_reason(blocks[2].strip()) == replies[2]["summary"]
 
@@ -162,3 +162,11 @@ def test_the_refusal_rule_says_a_named_business_is_built_not_refused():
     assert "online shop" in rule
     assert "Do **not** refuse a request that names a kind of business" in rule
     assert "asks only for how something looks" in rule
+
+
+def test_the_first_sentence_asks_for_a_descriptive_api_name():
+    # "Clinic API" or "Books API" says too little: the name must say what the API is for.
+    text = prompts.load_prompt("builder")
+    steps = text.split("## How to work, step by step")[1].split("## ")[0]
+    assert "Clinic Appointment API" in steps
+    assert "2 to 4 words" in steps

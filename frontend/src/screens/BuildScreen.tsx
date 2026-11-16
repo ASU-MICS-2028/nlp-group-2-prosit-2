@@ -1,6 +1,7 @@
 import { Download } from 'lucide-react'
 import type { BuildState } from '../build/buildState'
 import { isFinal } from '../build/buildState'
+import { nothingBuilt, zipName } from '../build/naming'
 import { toPlainSteps } from '../build/plainSteps'
 import { BuildTimeline } from '../components/BuildTimeline'
 import { Button } from '../components/Button'
@@ -20,8 +21,14 @@ type Props = {
 
 // Shows one project: its timeline, plus a plain sentence for whatever state it is in.
 // The take-home zip (F-7). It exists only while the project is ready, so the hook (and its state) starts fresh each time.
-function DownloadButton({ projectId }: { projectId: string }) {
-  const { loading, error, download } = useDownload(projectId)
+function DownloadButton({
+  projectId,
+  fileName,
+}: {
+  projectId: string
+  fileName: string
+}) {
+  const { loading, error, download } = useDownload(projectId, fileName)
   return (
     <>
       <Button variant="primary" loading={loading} onClick={download}>
@@ -39,7 +46,13 @@ function DownloadButton({ projectId }: { projectId: string }) {
 
 // Everything under "Your API passed its tests": the details, the live link, and the zip.
 // It exists only while the project is ready, so its state starts fresh each time.
-function ReadyActions({ projectId }: { projectId: string }) {
+function ReadyActions({
+  projectId,
+  title,
+}: {
+  projectId: string
+  title: string
+}) {
   const ready = useReadyProject(projectId, true)
   return (
     <>
@@ -52,7 +65,10 @@ function ReadyActions({ projectId }: { projectId: string }) {
         wakeError={ready.wakeError}
         onWake={ready.wake}
       />
-      <DownloadButton projectId={projectId} />
+      <DownloadButton
+        projectId={projectId}
+        fileName={zipName(title, projectId)}
+      />
     </>
   )
 }
@@ -66,6 +82,8 @@ export function BuildScreen({
 }: Props) {
   const lastStep = build.steps[build.steps.length - 1]
   const hasStarted = build.steps.length > 0
+  // A refused request (nothing was written or tested): show only its result, not "Finalizing your API…".
+  const onlyResult = nothingBuilt(build)
   // Only tick while the build is going: a finished build's words never change.
   const tick = useTick(!isFinal(build.status))
 
@@ -73,11 +91,11 @@ export function BuildScreen({
     <div className="start">
       <BuildTimeline
         title={title}
-        status={build.status}
-        steps={toPlainSteps(build.steps, build.status, tick)}
-        details={build.steps}
+        status={onlyResult ? 'notBuilt' : build.status}
+        steps={onlyResult ? [] : toPlainSteps(build.steps, build.status, tick)}
+        details={onlyResult ? [] : build.steps}
         tests={build.tests}
-        attempt={build.attempt ?? undefined}
+        attempt={onlyResult ? undefined : (build.attempt ?? undefined)}
         maxAttempts={build.maxAttempts ?? undefined}
       />
 
@@ -93,7 +111,7 @@ export function BuildScreen({
         <Notice
           tone="success"
           title="Your API passed its tests"
-          action={<ReadyActions projectId={projectId} />}
+          action={<ReadyActions projectId={projectId} title={title} />}
         >
           Your API is built and tested. Open it and try it, or download it to
           keep.
@@ -102,11 +120,13 @@ export function BuildScreen({
 
       {(build.status === 'failed' || build.status === 'stopped') && (
         <Notice
-          tone="error"
+          tone={onlyResult ? 'warning' : 'error'} // a refusal is not an error: amber, like its "Not built" badge
           title={
-            build.status === 'failed'
-              ? 'The build did not finish'
-              : 'The build was stopped'
+            onlyResult
+              ? 'Nothing was built'
+              : build.status === 'failed'
+                ? 'The build did not finish'
+                : 'The build was stopped'
           }
         >
           {lastStep ? lastStep.text : 'No reason was given.'}
