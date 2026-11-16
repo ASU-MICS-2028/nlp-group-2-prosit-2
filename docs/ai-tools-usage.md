@@ -50,6 +50,7 @@ One line per use. Add a line in the same PR as the work. Say how you checked the
 | 2026-11-16 | Nana | Claude Code | Short API names in the sidebar and title (`api_name` from the agent's first sentence, first name sticks, fallback to the request), 11 tests, contract and learnings | Tests written first and watched failing; checked on the real first sentences in `evidence/`; full suite passes (234) |
 | 2026-11-16 | Nana | Claude Code | Frontend (for Perfect): fetch the sidebar list again at the first Thinking step, so the short API name shows straight away (`listRefreshKey`, 3 tests) | Tests written first and watched failing; type check, lint, 100 tests and build pass; my files pass Prettier (the 62-file warning is Windows line endings on `main` too) |
 | 2026-11-16 | Nana | Claude Code | Back to 3 tries (D-021): `MAX_ATTEMPTS` 3, the backup takes try 3 after 2 busy tries; tests, decision record, learnings, Section B text | Tests updated first and watched failing (3); full suite passes (234); checked the frontend takes the number from the server |
+| 2026-11-16 | Nana | Claude Code | Final live check after the redeploys (frontend from a clean copy of `main`): r13-r16 built, r19-r20 refused (6 of 6); short names, 3 tries and one stop line checked on the live projects; Section B 4.4 updated | Read each live project's name and timeline from the API; the PDF is still 5 pages |
 
 ## Sign-off
 Each person confirms they understand and can explain everything they submitted.
