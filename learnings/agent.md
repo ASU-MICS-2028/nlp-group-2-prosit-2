@@ -314,3 +314,9 @@ By hand (`evidence/agent/outputs_f6_takehome_run.txt`): a real zip of the builde
 **Live check (2026-11-16, Render, after deploying):** 5 of 5. r19 and r20 were refused in 7-13 s with plain reasons that also say what could be built instead; r02 (church members with phone numbers), r17 and r18 were still built (`evidence/evaluation/outputs_e3_refusal_check.txt`). Seen: the refusal sentence shows twice on the timeline (as the daily-limit stop already does); cosmetic.
 
 **Sharper rule (2026-11-16, after E-4):** run 2 refused r13 "Build me an online shop" as a website (over-refusal). The rule now refuses only requests for **how something looks** (pages, homepage, design, gallery, app screens, a game), and says a request naming a business or service ("an online shop", "a booking site") needs data, so the API is built with the obvious tables, named in the first sentence. A prompt test keeps that wording (it fails without the change).
+
+---
+
+# Back to 3 tries (D-021, Nana, 2026-11-16)
+
+`MAX_ATTEMPTS` is 3 again (it was 4 since D-018) and `SWITCH_AFTER_BUSY` is 2: if the main model was busy on tries 1 and 2, the 3rd and last try uses the backup model. The screen says "Attempt 1 of 3" (the number comes from the server's `max_attempts`, so the frontend did not change). Tests updated first and watched failing: give up after 3 tries, the backup takes try 3 after 2 busy tries, one busy try keeps the main model, and a service that stays busy ends `failed` after 3 tries. The full suite passes. Not checked live: the backup on the 3rd try.
