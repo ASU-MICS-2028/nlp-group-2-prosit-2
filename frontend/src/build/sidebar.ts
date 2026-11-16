@@ -2,7 +2,7 @@
 
 import type { ProjectSummary as ApiProject } from '../api/client'
 import type { ProjectSummary as SidebarProject } from '../components/Sidebar'
-import { toStatus } from './buildState'
+import { toStatus, type BuildState } from './buildState'
 
 const MINUTE = 60_000
 const HOUR = 60 * MINUTE
@@ -31,4 +31,18 @@ export function toSidebarProject(
     status: toStatus(project.status),
     when: formatWhen(project.updated_at, now),
   }
+}
+
+// The text that tells useProjectList when to fetch the sidebar list again: when a project opens, when its
+// status changes, and once more when the agent's first "Thinking" step arrives. That first sentence is where
+// the backend reads the API's short name ("Building a Reading Club Library API with…"), so fetching then
+// shows the name straight away instead of only when the build ends. Later steps don't change the text.
+export function listRefreshKey(
+  projectId: string | null,
+  build: BuildState,
+): string {
+  const named = build.steps.some((step) => step.kind === 'Thinking')
+    ? 'named'
+    : 'unnamed'
+  return `${projectId ?? 'none'}:${build.status}:${named}`
 }

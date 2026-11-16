@@ -517,4 +517,4 @@ I broke the code on purpose twice (full path forwarded; no root path after a bui
 
 **How to check it:** `python -m pytest backend/tests/test_project_names.py` (11 tests, written first): 5 real-style sentences give the right names, 3 sentences without a name give none, the first name sticks, and a refusal keeps the typed request. I also ran it on the real first sentences saved in `evidence/` ("Books API", "To-Do List API").
 
-**Limits:** the page fetches the project list again only when the build's status changes, so the new name appears **when the build ends**; while it builds, the typed request still shows. Showing it sooner needs a small frontend change (fetch the list again after the first Thinking step). If the AI ever leaves out the name, the old stand-in shows.
+**Limits:** the frontend fetches the list again when the first Thinking step arrives (`listRefreshKey`, see `learnings/frontend.md`), so the name shows within seconds of the build starting. If the AI ever leaves out the name, the old stand-in shows.
