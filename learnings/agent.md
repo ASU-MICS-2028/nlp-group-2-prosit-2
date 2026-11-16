@@ -311,4 +311,4 @@ By hand (`evidence/agent/outputs_f6_takehome_run.txt`): a real zip of the builde
 - the retry loop stops at once;
 - the prompt's refusal example is read as a refusal.
 
-**Not done yet:** tried with real Gemini only after deploying. Then re-run r19 and r20, and check that r02 (church members with phone numbers), r17 and r18 are still built.
+**Live check (2026-11-16, Render, after deploying):** 5 of 5. r19 and r20 were refused in 7-13 s with plain reasons that also say what could be built instead; r02 (church members with phone numbers), r17 and r18 were still built (`evidence/evaluation/outputs_e3_refusal_check.txt`). Seen: the refusal sentence shows twice on the timeline (as the daily-limit stop already does); cosmetic.
