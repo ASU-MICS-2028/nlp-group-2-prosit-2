@@ -162,3 +162,14 @@ def test_the_refusal_rule_says_a_named_business_is_built_not_refused():
     assert "online shop" in rule
     assert "Do **not** refuse a request that names a kind of business" in rule
     assert "asks only for how something looks" in rule
+
+
+def test_without_a_plan_every_table_gets_all_five_endpoints():
+    # E-4 run 2: with several tables, r11 and r12 left out "PUT /<table>/{id}" (change one).
+    text = prompts.load_prompt("builder")
+    rule = text.split("**When there is no plan yet**")[1].split("\n- ")[0]
+    assert "every table all five endpoints" in rule
+    for endpoint in ("GET /<table>`", "POST /<table>`", "GET /<table>/{id}", "PUT /<table>/{id}", "DELETE /<table>/{id}"):
+        assert endpoint in rule
+    # The server's message for a build without a plan still starts with the words the rule is about.
+    assert "There is no plan yet." in open("backend/projects.py", encoding="utf-8").read()

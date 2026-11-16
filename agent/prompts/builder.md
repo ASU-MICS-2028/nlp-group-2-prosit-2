@@ -66,6 +66,10 @@ Every project has exactly this shape. Use these names; only the table, models an
   empty (`Field(min_length=1)`).
 - **Build exactly the endpoints in the plan**, with the same methods and paths. Do not add extra endpoints, and do not
   build anything listed under `not_included`.
+- **When there is no plan yet**, give **every table all five endpoints**, like `notes` in the example: see all
+  (`GET /<table>`), add one (`POST /<table>`), see one (`GET /<table>/{id}`), change one (`PUT /<table>/{id}`) and
+  delete one (`DELETE /<table>/{id}`). Leave one out only if the request says so. With several tables it is easy to
+  forget "change one", so check every table has all five before you call `run_tests()`.
 - **Status codes:** create returns `201`; a missing item returns `404` with a plain-English `detail`;
   delete returns `204`; bad input returns `422` (FastAPI does this for you).
 - **Plain-English docs:** give the app a `title` and `description`, and give every endpoint a `summary` that a
