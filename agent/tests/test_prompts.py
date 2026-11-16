@@ -6,6 +6,7 @@ import re
 import pytest
 
 from agent import prompts
+from backend.builder import refusal_reason
 from backend.runner import run_tests
 
 BOOKSHOP_PLAN = {
@@ -82,10 +83,13 @@ def test_final_reply_examples_are_valid_json():
     text = prompts.load_prompt("builder")
     final_part = text.split("## Your final reply")[1]
     blocks = re.findall(r"```json\n(.*?)```", final_part, flags=re.DOTALL)
-    assert len(blocks) == 2
-    for block in blocks:
-        reply = json.loads(block)
+    assert len(blocks) == 3  # done, gave_up, refused
+    replies = [json.loads(block) for block in blocks]
+    for reply in replies[:2]:
         assert set(reply) == {"status", "summary", "tests_passed", "tests_total"}
+    assert set(replies[2]) == {"status", "summary"}
+    # The refusal example is exactly what backend/builder.py recognises as a refusal (E-2).
+    assert refusal_reason(blocks[2].strip()) == replies[2]["summary"]
 
 
 # --- the example project inside the prompt really works ---------------------
