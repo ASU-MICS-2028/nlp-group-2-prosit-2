@@ -170,3 +170,14 @@ def test_the_first_sentence_asks_for_a_descriptive_api_name():
     steps = text.split("## How to work, step by step")[1].split("## ")[0]
     assert "Clinic Appointment API" in steps
     assert "2 to 4 words" in steps
+
+
+def test_without_a_plan_every_table_gets_all_five_endpoints():
+    # E-4 run 2: with several tables, r11 and r12 left out "PUT /<table>/{id}" (change one).
+    text = prompts.load_prompt("builder")
+    rule = text.split("**When there is no plan yet**")[1].split("\n- ")[0]
+    assert "every table all five endpoints" in rule
+    for endpoint in ("GET /<table>`", "POST /<table>`", "GET /<table>/{id}", "PUT /<table>/{id}", "DELETE /<table>/{id}"):
+        assert endpoint in rule
+    # The server's message for a build without a plan still starts with the words the rule is about.
+    assert "There is no plan yet." in open("backend/projects.py", encoding="utf-8").read()
