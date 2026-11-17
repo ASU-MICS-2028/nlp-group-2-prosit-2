@@ -52,6 +52,7 @@ One line per use. Add a line in the same PR as the work. Say how you checked the
 | 2026-11-16 | Nana | Claude Code | Back to 3 tries (D-021): `MAX_ATTEMPTS` 3, the backup takes try 3 after 2 busy tries; tests, decision record, learnings, Section B text | Tests updated first and watched failing (3); full suite passes (234); checked the frontend takes the number from the server |
 | 2026-11-16 | Nana | Claude Code | Final live check after the redeploys (frontend from a clean copy of `main`): r13-r16 built, r19-r20 refused (6 of 6); short names, 3 tries and one stop line checked on the live projects; Section B 4.4 updated | Read each live project's name and timeline from the API; the PDF is still 5 pages |
 | 2026-11-16 | Nana | Claude Code | Frontend and naming polish: wait for the API name ("Naming your API…"), refusals show only the result with a "Not built" badge, descriptive API names and "(not built)" names in the prompt and backend, zip named after the API | Tests written first and watched failing; 242 Python and 115 frontend tests, type check, lint and build pass; checked on a local backend with real Gemini and screenshots; changes shown to Nana before committing |
+| 2026-11-17 | Nana | Claude Code | Reviewed and merged Opei's #59 and #61 (fixed one wording slip in #61 in Word); checked #59 live: r11 and r12 now pass | Read both diffs; the PDF re-exported from Word is still 5 pages; ran r11 and r12 through the scorer on the live site |
 
 ## Sign-off
 Each person confirms they understand and can explain everything they submitted.
