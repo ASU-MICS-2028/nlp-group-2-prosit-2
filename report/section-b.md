@@ -71,7 +71,7 @@ Facts to use (replace with your paragraph):
 
 ### 3.2 Agent, prompts and the LLM (B-2, Opei)
 A language model can only write text, so the agent works through four tools in `agent/tools.py` (W-1): write a file,
-read a file, list the files, and run the tests. The agent works in a ReAct loop: it reasons, calls a tool, reads the result, and decides its next step. They are plain Python functions; ADK reads their names, type hints and
+read a file, list the files, and run the tests. The agent works in a ReAct loop: it reasons, calls a tool, reads the result, and decides its next step. The tools are plain Python functions; ADK reads their names, type hints and
 docstrings to tell the model how to call them. Each project's files live in memory, and unsafe names (absolute paths,
 `..`, `./`, drive letters, backslashes) are refused. The tools never crash: a mistake comes back as a message the model can read
 and fix. The model's instructions are a Markdown file, `agent/prompts/builder.md` (W-4), so the whole team can review them:
