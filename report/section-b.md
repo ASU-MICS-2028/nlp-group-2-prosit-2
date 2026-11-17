@@ -71,12 +71,12 @@ Facts to use (replace with your paragraph):
 
 ### 3.2 Agent, prompts and the LLM (B-2, Opei)
 A language model can only write text, so the agent works through four tools in `agent/tools.py` (W-1): write a file,
-read a file, list the files, and run the tests. They are plain Python functions; ADK reads their names, type hints and
+read a file, list the files, and run the tests. The agent works in a ReAct loop: it reasons, calls a tool, reads the result, and decides its next step. The tools are plain Python functions; ADK reads their names, type hints and
 docstrings to tell the model how to call them. Each project's files live in memory, and unsafe names (absolute paths,
 `..`, `./`, drive letters, backslashes) are refused. The tools never crash: a mistake comes back as a message the model can read
 and fix. The model's instructions are a Markdown file, `agent/prompts/builder.md` (W-4), so the whole team can review them:
 a fixed FastAPI + SQLite layout, safe SQL, plain-English endpoint summaries, a complete worked example, and the rule to build
-exactly the approved endpoints with tests. In a live check, Gemini built a Bookshop API whose 8 tests passed when we re-ran them.
+only what was asked, with tests. In a live check, Gemini built a Bookshop API whose 8 tests passed when we re-ran them.
 Every downloaded project also comes with a Dockerfile and plain step-by-step run instructions (F-6), so the person can run their API
 on their own computer without our platform.
 
@@ -84,9 +84,9 @@ Free models fail in ordinary ways, so the agent is built to recover. The retry l
 tries. After failing tests, the next try gets the test output and must first explain what went wrong, then fix it
 (self-reflection). A try that writes no files gets a firm reminder, and after a "busy" error we run the tests ourselves before
 starting over. On a project with a planted bug, the loop ended `ready`. Inside each try, a busy or hanging Gemini call is now
-retried up to five times, with a 90-second limit per call (#29). If the main model stays busy for two tries, the third
+tried up to five times, with a 90-second limit per call (#29). If the main model stays busy for two tries, the third
 and last try runs on a backup Gemini model (D-018, D-021, #28). When Google reports that the free daily allowance is used up, the agent
-stops at once with a plain "try again tomorrow" message, because no retry can help until the next day (#35). All model access goes through `agent/llm.py` (D-002), so the
+stops at once with a plain "try again tomorrow" message, because no retry can help until the next day (#35). The prompt also names the requests the agent must refuse, such as only how a website looks or collecting people's data without consent, and a refusal stops the build at once with the agent's own reason (E-3, #49). All model access goes through `agent/llm.py` (D-002), so the
 model is a setting: switching `LLM_MODEL` needed no code change (D-4), but other free models were busy, unavailable to new users,
 or, in one case, answered without using the tools at all.
 
