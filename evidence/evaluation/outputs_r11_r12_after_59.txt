@@ -1,0 +1,10 @@
+# Live check, 2026-11-17, after Render was redeployed with #59 (without a plan, every table gets all five endpoints).
+# In E-4 run 2 (outputs_eval_run2.txt) r11 and r12 failed: they left out PUT /buyers/{id}, /orders/{id}, /produce/{id} and /bookings/{id}.
+# Now both pass; the live projects are named "Farm Order API" (r11) and "Hostel Management API" (r12).
+Live site: https://nlp-group-2-prosit-2.onrender.com
+r11  pass      56.7s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r12  pass      43.5s  retries=0  Built, its tests pass, and every expected endpoint exists.
+2 of 2 passed (100%); 0 stopped by the free-tier limit; 2 run in total.
+
+{"id": "r11", "kind": "several_tables", "expect": "build", "outcome": "pass", "seconds": 56.7, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 3}
+{"id": "r12", "kind": "several_tables", "expect": "build", "outcome": "pass", "seconds": 43.5, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 3}

@@ -326,3 +326,5 @@ By hand (`evidence/agent/outputs_f6_takehome_run.txt`): a real zip of the builde
 # Better API names, and names for refusals (Nana, 2026-11-16)
 
 `builder.md` step 1 now asks for a 2-4 word name that says what the API is for, in Title Case, ending in "API" ("Clinic Appointment API", not "Clinic API"). The refusal reply has a `name` ("Church Website"); `backend/builder.py` turns it into "Church Website (not built)" on the final event, and `backend/projects.py` keeps it as the project's name. Live on a laptop with real Gemini: "Clinic Appointment API", "Bookshop Inventory API", "Church Website (not built)", "Facebook Contact Collector (not built)". Prompt tests keep both rules.
+
+**Live check of #59 (2026-11-17):** after the Render redeploy, r11 and r12 (which lost their PUT endpoints in E-4 run 2) both passed, with every expected endpoint (`evidence/evaluation/outputs_r11_r12_after_59.txt`); named "Farm Order API" and "Hostel Management API".
