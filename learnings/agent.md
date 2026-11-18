@@ -328,3 +328,29 @@ By hand (`evidence/agent/outputs_f6_takehome_run.txt`): a real zip of the builde
 `builder.md` step 1 now asks for a 2-4 word name that says what the API is for, in Title Case, ending in "API" ("Clinic Appointment API", not "Clinic API"). The refusal reply has a `name` ("Church Website"); `backend/builder.py` turns it into "Church Website (not built)" on the final event, and `backend/projects.py` keeps it as the project's name. Live on a laptop with real Gemini: "Clinic Appointment API", "Bookshop Inventory API", "Church Website (not built)", "Facebook Contact Collector (not built)". Prompt tests keep both rules.
 
 **Live check of #59 (2026-11-17):** after the Render redeploy, r11 and r12 (which lost their PUT endpoints in E-4 run 2) both passed, with every expected endpoint (`evidence/evaluation/outputs_r11_r12_after_59.txt`); named "Farm Order API" and "Hostel Management API".
+
+---
+
+# Websites and data scraping are always refused (D-023, Nana, 2026-11-18)
+
+**In one sentence:** a plain check (`agent/scope.py`) refuses websites and collecting people's data **before** the AI is asked, and the prompt now says the same for any website and any source.
+
+**Why:** in a local test the AI refused "church website" but started building "school website" and "restaurant website", because our own rule (#54) says a named business gets built. And the scraping rule only gave Facebook as its example.
+
+**How it decides** (`check_scope(request)`, plain regular expressions, no AI):
+1. **Personal data + scraping:** a personal-data word (name, phone, email, address, ID number, Ghana Card, photo, profile, …) with *scrape / crawl / harvest*: refused, whatever the source. With an everyday verb (*collect, gather, extract, copy, pull, download, …*) it is refused only if there is an outside source too: a social network named anywhere, or "from/off/across" a website, the internet, online, directories, forums or public records.
+2. **Website:** website / web page / homepage / landing page, **unless** the request asks for an API, backend or endpoints.
+3. Anything else goes to the AI, whose prompt (`builder.md`, "Requests you must not build") is the second net.
+
+`run_build` writes the same final event as the AI's own refusal (`"name": "School Website (not built)"`), so the page shows the amber "Not built" badge with no frontend change.
+
+**How to check it:** `python -m pytest agent/tests/test_scope.py backend/tests/test_scope_refusal.py` (51 + 3 tests): 7 websites and 10 scraping requests from different sources refused; 7 ordinary requests and all 18 evaluation requests that expect a build are not; r19 and r20 are; names like "Hair Salon Website". Broken on purpose twice (14 and 3 failures). Live on a local server with real Gemini: 9 of 9 as intended (`evidence/evaluation/outputs_d023_scope_check.txt`).
+
+**Limits:** a word list can miss a wording (then the prompt still applies) or catch an innocent one ("collect customer emails from my website's sign-up form"). "find", "get" and "track" are left out on purpose. The evaluation's in-process mode doesn't use the check.
+
+**Terms**
+| Term | One-line meaning |
+|---|---|
+| Regular expression | A pattern for finding words in text, e.g. `web ?sites?` matches "website", "web site", "websites" |
+| `\b` | A word edge, so "websites" matches but "cobweb" doesn't |
+| Guard | A plain check that runs before the expensive or unpredictable step (here the AI) |

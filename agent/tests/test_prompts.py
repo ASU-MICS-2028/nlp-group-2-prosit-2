@@ -161,7 +161,20 @@ def test_the_refusal_rule_says_a_named_business_is_built_not_refused():
     rule = text.split("## Requests you must not build")[1].split("## How to work")[0]
     assert "online shop" in rule
     assert "Do **not** refuse a request that names a kind of business" in rule
-    assert "asks only for how something looks" in rule
+
+
+def test_the_refusal_rule_refuses_every_website_and_scraping_from_any_source():
+    # 2026-11-18 (D-023): "school website" and "restaurant website" were built because they name a business.
+    # Facebook was the only source named, so scraping from elsewhere must be named too.
+    text = prompts.load_prompt("builder")
+    rule = text.split("## Requests you must not build")[1].split("## How to work")[0]
+    assert "**asks for a website**" in rule
+    assert "whatever the website is for" in rule
+    assert "a school website" in rule and "a restaurant website" in rule
+    assert "an API for my school website" in rule  # asking for the API is still built
+    assert "**from any source**" in rule
+    for source in ("LinkedIn", "any website", "online directories", "public records"):
+        assert source in rule
 
 
 def test_the_first_sentence_asks_for_a_descriptive_api_name():
