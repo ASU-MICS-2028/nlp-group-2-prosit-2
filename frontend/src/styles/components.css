@@ -423,7 +423,9 @@
   flex-direction: column;
   gap: var(--space-6);
 }
-.menu-button {
+.menu-button,
+.sidebar__close,
+.menu-backdrop {
   display: none;
 }
 .empty {
@@ -435,8 +437,13 @@
 
 /* Under 768px the sidebar slides over the page behind a menu button */
 @media (max-width: 767px) {
+  .shell {
+    /* dvh = the height actually visible on a phone, without the browser's address bar */
+    height: 100dvh;
+  }
   .menu-button {
     display: inline-flex;
+    align-self: flex-start;
     margin-bottom: var(--space-4);
   }
   .sidebar {
@@ -445,15 +452,37 @@
     top: var(--space-3);
     bottom: var(--space-3);
     left: var(--space-3);
+    /* Always leave some page showing beside the menu, so there is somewhere to tap to close it */
+    width: min(280px, calc(100vw - 72px));
     transform: translateX(calc(-100% - var(--space-3)));
-    transition: transform 200ms;
+    /* visibility: a closed menu can't be reached with Tab or a screen reader. It turns off after the slide. */
+    visibility: hidden;
+    transition:
+      transform 200ms,
+      visibility 0s 200ms;
   }
   .sidebar--open {
     transform: none;
+    visibility: visible;
+    transition: transform 200ms;
+  }
+  .sidebar__close {
+    display: inline-flex;
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+  }
+  .menu-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 9; /* just under the menu (10), over the page */
+    background: rgba(0, 0, 0, 0.55);
   }
 }
 @media (max-width: 767px) and (prefers-reduced-motion: reduce) {
-  .sidebar {
+  .sidebar,
+  .sidebar--open {
     transition: none;
   }
 }
