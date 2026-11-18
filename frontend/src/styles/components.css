@@ -141,6 +141,23 @@
   color: var(--text);
 }
 
+/* Stop a running build (F-18): a quiet button under the timeline, then a yes/no row */
+.stop-control {
+  display: flex;
+  justify-content: flex-end;
+}
+/* A filled red square, the usual "stop" sign, so the button is easy to find while a build runs */
+.stop-control__icon {
+  color: var(--error);
+  fill: var(--error);
+}
+.stop-control__choices {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 /* Cards: shared by request, question, plan, timeline, ready */
 .card {
   display: flex;

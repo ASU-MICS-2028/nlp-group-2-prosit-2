@@ -87,6 +87,12 @@ One event per change. Each event's data is JSON:
 - The last event has `status` of `ready`, `failed` or `stopped`, and then the server closes the stream.
 - If the browser reconnects, the server sends the history so far, so the timeline is complete.
 
+### `POST /projects/{id}/stop` (F-18, D-022)
+Stop a build that is still going (`waiting`, `working` or `retrying`). Response `202`: `{ "status": "stopping" }` at once. A moment later the events stream gets the final event `{ "status": "stopped", "step": { "kind": "Result", "text": "You stopped this build. Nothing was kept.", "state": "failed", "phase": "finishing" } }` and hangs up.
+- Nothing is kept: no download (`409`) and no live API. The project stays in the list as `stopped`.
+- If a test run is going, the stop happens when it ends (at most its time limit). An AI request already sent still counts against the quota.
+- `409` "This build has already finished, so there is nothing to stop." for `ready`, `failed` or `stopped`. `404` for an unknown id. Pressing Stop twice before it ends is harmless.
+
 ### `GET /projects/{id}/download`
 Returns the generated project as a `.zip` (`application/zip`), named after the API, such as `clinic-appointment-api.zip` (lowercase words joined with "-"; the project id if no name is usable). Only when the status is `ready`; otherwise `409`.
 The ready screen also shows: `file_count`, `size_kb`, `tests_passed`, `tests_total`, `run_command`. These come from `GET /projects/{id}`:

@@ -23,11 +23,14 @@ export function waitingForName(
   return !(hasName(build) && listUpToDate)
 }
 
-// The build ended without the agent writing or testing anything: a refused request, or one stopped at once
+// The build failed without the agent writing or testing anything: a refused request, or one ended at once
 // (for example by the daily limit). Then only the result is worth showing, not the timeline.
+// Not for "stopped": the person pressed Stop (F-18), so the screen says so ("The build was stopped").
 export function nothingBuilt(build: BuildState): boolean {
-  const ended = build.status === 'failed' || build.status === 'stopped'
-  return ended && !build.steps.some((step) => step.kind === 'Doing')
+  return (
+    build.status === 'failed' &&
+    !build.steps.some((step) => step.kind === 'Doing')
+  )
 }
 
 // The take-home zip is named after the API: "Clinic Appointment API" -> "clinic-appointment-api.zip".

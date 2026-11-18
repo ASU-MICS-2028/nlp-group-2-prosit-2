@@ -137,6 +137,15 @@ export function wakeProject(
   )
 }
 
+// Ask the server to stop a running build (F-18). It answers 202 {"status": "stopping"} at once; the "stopped"
+// event then arrives on the live stream, which ends it. 409 with a plain sentence if the build already finished.
+export function stopProject(projectId: string): Promise<{ status: string }> {
+  return request<{ status: string }>(
+    `/projects/${encodeURIComponent(projectId)}/stop`,
+    { method: 'POST' },
+  )
+}
+
 // Where the generated API's own Swagger page opens. `apiUrl` is the project's `api_url` (for example "/apis/p_1");
 // the page is served by our backend, which passes the calls on to the generated API.
 export function liveDocsUrl(apiUrl: string): string {
