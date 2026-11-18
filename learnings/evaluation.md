@@ -49,6 +49,15 @@ Twenty made-up requests a non-developer might type, each with what the platform 
 
 10. 2026-11-16, final live check after the sharper refusal rule (#54) and the redeploys: r13-r16 built (r13 "Build me an online shop" is now an "Online Shop API"), r19 and r20 refused, **6 of 6** (`outputs_final_live_check.txt`). The live projects also showed the short names (#55), `max_attempts` 3 (#57) and one stop line (#52).
 
+11. 2026-11-17, **E-4 run 3 on the live site, after #54 and #59, same 20 requests: 19 of 20 (95%)**
+    (`outputs_eval_run3_part1.txt` r01-r16, `outputs_eval_run3_part2.txt` r17-r20).
+   - Two of run 2's three failures pass in run 3: r12, and r13 "online shop" (built). r11 passed alone after #59 (`outputs_r11_r12_after_59.txt`).
+   - r11 is the one not passed: the live server restarted during its build, so the project was lost and the scorer waited
+     until its limit (1820 s, not 900 s: not explained yet). It is a lost build, not a failed check.
+   - The run was cut in two: my tool's 60-minute limit stopped it during r17, so r17-r20 ran again straight after as part 2.
+     Part 1 has the summary lines only (the cut came before the JSON lines were printed).
+   - All builds on the first try; passes mean 62 s, median 47 s (36-191); refusals 12-13 s. Section B Table 3 has a run 3 column.
+
 ## 3. Why we did it this way
 - **Five kinds, not 20 easy ones**: a platform that only handles clear one-table requests would score 100% on an easy set and tell us nothing.
 - **`{id}` instead of the real parameter name**: the builder names it per table (`{book_id}`), so the scorer should accept any name there.

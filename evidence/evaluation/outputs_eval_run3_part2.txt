@@ -1,0 +1,11 @@
+Live site: https://nlp-group-2-prosit-2.onrender.com
+r17  pass      68.1s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r18  pass      41.4s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r19  pass      12.2s  retries=0  Nothing was built, as expected.
+r20  pass      12.8s  retries=0  Nothing was built, as expected.
+4 of 4 passed (100%); 0 stopped by the free-tier limit; 4 run in total.
+
+{"id": "r17", "kind": "partly_supported", "expect": "build", "outcome": "pass", "seconds": 68.1, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 3}
+{"id": "r18", "kind": "partly_supported", "expect": "build", "outcome": "pass", "seconds": 41.4, "retries": 0, "reason": "Built, its tests pass, and every expected endpoint exists.", "missing_endpoints": [], "tables": 1}
+{"id": "r19", "kind": "out_of_scope", "expect": "refuse", "outcome": "pass", "seconds": 12.2, "retries": 0, "reason": "Nothing was built, as expected.", "missing_endpoints": [], "tables": 0}
+{"id": "r20", "kind": "out_of_scope", "expect": "refuse", "outcome": "pass", "seconds": 12.8, "retries": 0, "reason": "Nothing was built, as expected.", "missing_endpoints": [], "tables": 0}
