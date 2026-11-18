@@ -1,0 +1,20 @@
+# E-4 run 3, part 1 (r01-r16), 2026-11-17, live site at main 826ca2b (after #54 and #59), --pause 30.
+# The run was stopped during r17 by the assistant's 60-minute tool limit (not by the app); r17-r20 are in outputs_eval_run3_part2.txt.
+# r11: the live server restarted during this build (GET /projects was empty, then started again from p_1), so the project was lost and the scorer waited until its timeout.
+Live site: https://nlp-group-2-prosit-2.onrender.com; 20 requests
+r01  pass      35.8s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r02  pass      36.7s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r03  pass      40.1s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r04  pass      46.8s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r05  pass      42.1s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r06  pass      41.8s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r07  pass      48.6s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r08  pass      44.6s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r09  pass      58.1s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r10  pass      71.7s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r11  timeout 1820.7s  retries=0  No answer within 900 seconds.
+r12  pass     112.4s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r13  pass      62.8s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r14  pass     191.2s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r15  pass      77.4s  retries=0  Built, its tests pass, and every expected endpoint exists.
+r16  pass      41.5s  retries=0  Built, its tests pass, and every expected endpoint exists.
