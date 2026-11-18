@@ -6,7 +6,7 @@ import math
 import os
 import re
 import zipfile
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from datetime import datetime, timezone
 
 import httpx
@@ -36,6 +36,13 @@ results: dict[str, BuildResult] = {}
 
 # When a project reaches one of these, nothing more will happen, so the stream hangs up.
 FINAL_STATUSES = {"ready", "failed", "stopped"}
+
+# Stop a running build (F-18). Each build runs as its own asyncio "task" (a job Python can cancel);
+# `building` keeps its handle until it ends. `stop_asked` remembers who the person asked to stop, so a
+# build cancelled for another reason (the server shutting down) is not reported as "you stopped it".
+building: dict[str, asyncio.Task[BuildResult]] = {}
+stop_asked: set[str] = set()
+STOPPED_TEXT = "You stopped this build. Nothing was kept."
 
 # Until a plan gives a project its real name (F-2), the sidebar shows the start of the request, cut to this length.
 NAME_LENGTH = 40
@@ -153,8 +160,26 @@ def failed(project_id: str, reason: str) -> None:
     add_event(project_id, {"status": "failed", "step": {"kind": "Result", "text": reason, "state": "failed", "phase": "finishing"}})
 
 
+def stopped(project_id: str) -> None:
+    # The person pressed Stop (F-18). Same shape as failed(), with its own status word.
+    add_event(project_id, {"status": "stopped", "step": {"kind": "Result", "text": STOPPED_TEXT, "state": "failed", "phase": "finishing"}})
+
+
+def report_to(project_id: str) -> Callable[[dict[str, object]], None]:
+    # Where the agent's steps go. After Stop, a step that was already on its way is dropped, so nothing
+    # can appear on the timeline after "You stopped this build".
+    def report(event: dict[str, object]) -> None:
+        if project_id not in stop_asked:
+            add_event(project_id, event)
+
+    return report
+
+
 async def run_build(project_id: str, request: str) -> None:
     # The build job (W-9): runs after POST /projects has already answered.
+    if project_id in stop_asked:
+        stopped(project_id)  # Stop was pressed before the build even began: don't start it
+        return
     model = os.environ.get("LLM_MODEL", "")
     if not model:
         # With no model name, ADK quietly picks its own default, so we stop and say so instead.
@@ -162,20 +187,38 @@ async def run_build(project_id: str, request: str) -> None:
         return
     # Until F-2 adds a plan the person approves, the AI gets the request in the person's own words.
     message = f"There is no plan yet. Build a small API for this request:\n\n{request}"
-    try:
-        # Opei's retry loop (F-4) around the builder (W-3). Every step it reports goes into this project's diary.
-        results[project_id] = await build_with_retries(
+    # Opei's retry loop (F-4) around the builder (W-3). Every step it reports goes into this project's diary.
+    # It runs as its own task, kept in `building`, so POST /projects/{id}/stop can cancel it.
+    job = asyncio.create_task(
+        build_with_retries(
             message,
             builder_instruction(),
             model,
-            report=lambda event: add_event(project_id, event),
+            report=report_to(project_id),
             backup_model=llm.backup_model(),  # only used if the main model is busy 3 times (D-018)
         )
+    )
+    building[project_id] = job
+    try:
+        result = await job
+    except asyncio.CancelledError:
+        # CancelledError is not an Exception, so the safety net below never hides it.
+        if project_id not in stop_asked:
+            raise  # not the person's Stop (e.g. the server is shutting down): let the cancel carry on
+        stopped(project_id)
+        return
     except Exception:
         # Last safety net: an error we didn't expect (e.g. no API key). Without this the project stays
         # "working" forever and the screen spins. A plain sentence is better than a spinner.
         failed(project_id, "Something went wrong on our side. Please try again.")
         return
+    finally:
+        building.pop(project_id, None)  # the job is over either way
+    if project_id in stop_asked:
+        # Stop came in the very moment the build finished: the person asked to stop, so honour it.
+        stopped(project_id)
+        return
+    results[project_id] = result
     if results[project_id].status == "ready":
         await start_live_api(project_id)  # D-011: once the tests pass, the API goes live at its link
 
@@ -203,6 +246,23 @@ def start_project(body: StartRequest, background: BackgroundTasks) -> StartRespo
     # instead of waiting minutes for an answer. Until F-2 adds approve, sending a request starts the build.
     background.add_task(run_build, project_id, body.request)
     return StartResponse(id=project_id, status="waiting", questions=[])
+
+
+@router.post("/projects/{project_id}/stop", status_code=202)
+async def stop_project(project: dict[str, str] = Depends(find_project)) -> dict[str, str]:
+    # Stop a running build (F-18). 202 Accepted = "asked; it happens in a moment": the build's own
+    # job writes the "stopped" event, and the live stream shows it and hangs up.
+    # async def: this runs on the server's own event loop, the only place a task may be cancelled from.
+    if project["status"] in FINAL_STATUSES:
+        raise HTTPException(status_code=409, detail="This build has already finished, so there is nothing to stop.")
+    stop_asked.add(project["id"])  # pressing Stop twice is harmless: a set holds each id once
+    job = building.get(project["id"])
+    if job is not None:
+        # cancel() raises CancelledError inside the build at its next "await" (an AI call, a wait between
+        # tries). A test run already going finishes first, because it does not stop at an await.
+        job.cancel()
+    # No job yet means the build has not begun: run_build sees stop_asked and ends it as stopped.
+    return {"status": "stopping"}
 
 
 @router.get("/projects", response_model=list[ProjectSummary])

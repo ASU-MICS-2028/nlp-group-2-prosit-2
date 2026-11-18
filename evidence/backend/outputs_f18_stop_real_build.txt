@@ -1,0 +1,23 @@
+# F-18 check, 2026-11-18T09:40Z: a REAL build (local server, Gemini) stopped while the agent works.
+$ curl -X POST http://127.0.0.1:8010/projects -d '{"request": "A library API with books and members"}'
+{"id":"p_1","status":"waiting","questions":[]}
+# the agent is working; its steps so far:
+events: 7
+$ curl -X POST http://127.0.0.1:8010/projects/p_1/stop
+{"status":"stopping"}  (HTTP 202)
+# status became: stopped after 0.2 s
+$ curl http://127.0.0.1:8010/projects/p_1/events   (whole diary; the stream hangs up by itself after 'stopped')
+data: {"status":"working","step":{"kind":"Result","text":"Wrote conftest.py","state":"done","phase":"writing"}}
+data: {"status":"working","step":{"kind":"Doing","text":"Writing app/__init__.py","state":"done","phase":"writing"}}
+data: {"status":"working","step":{"kind":"Result","text":"Wrote app/__init__.py","state":"done","phase":"writing"}}
+data: {"status":"stopped","step":{"kind":"Result","text":"You stopped this build. Nothing was kept.","state":"failed","phase":"finishing"}}
+$ curl -X POST http://127.0.0.1:8010/projects/p_1/stop   (again)
+{"detail":"This build has already finished, so there is nothing to stop."}  (HTTP 409)
+$ curl http://127.0.0.1:8010/projects/p_1/download
+{"detail":"The API is not ready yet, so there is nothing to download."}  (HTTP 409)
+# 20 s later, the number of events:
+events: 10
+# ...and the last one is still the stop (nothing was added after it):
+data: {"status":"stopped","step":{"kind":"Result","text":"You stopped this build. Nothing was kept.","state":"failed","phase":"finishing"}}
+# server log: no error after the stop
+error lines: 0

@@ -134,6 +134,17 @@ export function toPlainSteps(
     lastWordsKey = wordsKey
   }
 
+  // The person pressed Stop (F-18): the build never got to "Finalizing your API…", so the last line says
+  // what really happened. Decided from the status, a fixed word, like everything else here.
+  const ending = lines[lines.length - 1]
+  if (status === 'stopped' && ending && steps.at(-1)?.phase === 'finishing') {
+    lines[lines.length - 1] = {
+      kind: 'Result',
+      text: 'Stopped by you',
+      state: 'failed',
+    }
+  }
+
   // While the build is still going, the newest line is the one happening now.
   const newest = lines[lines.length - 1]
   if (newest && !isFinal(status) && newest.state === 'done') {

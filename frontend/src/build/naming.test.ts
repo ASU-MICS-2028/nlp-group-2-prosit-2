@@ -60,6 +60,10 @@ describe('nothingBuilt', () => {
     )
   })
 
+  it('is false for a build the person stopped, so the screen says "stopped"', () => {
+    expect(nothingBuilt(build('stopped', [refusal]))).toBe(false)
+  })
+
   it('is false while a build is still going, or when it is ready', () => {
     expect(nothingBuilt(build('working', []))).toBe(false)
     expect(nothingBuilt(build('ready', [thinking, doing]))).toBe(false)

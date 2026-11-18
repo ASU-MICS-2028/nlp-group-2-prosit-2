@@ -18,6 +18,7 @@ import {
   listProjects,
   liveDocsUrl,
   startProject,
+  stopProject,
   streamEvents,
   wakeProject,
 } from './client'
@@ -192,6 +193,40 @@ describe.skipIf(!import.meta.env.VITE_LIVE_API)(
         expect(String.fromCharCode(...start)).toBe('PK') // every zip file starts with these two letters
       },
     )
+
+    it('stopProject stops a started build, and the stream ends with "stopped"', async () => {
+      const started = await startProject('A project we will stop at once')
+
+      const answer = await stopProject(started.id).catch(
+        (error: unknown) => error,
+      )
+      if (answer instanceof ApiError) {
+        // A server with no AI model fails the build at once (before our Stop arrives): then it has finished.
+        expect(answer.status).toBe(409)
+        expect(answer.message).toBe(
+          'This build has already finished, so there is nothing to stop.',
+        )
+        return
+      }
+      expect(answer).toEqual({ status: 'stopping' })
+
+      // The stream replays the history and hangs up after the final status, so this returns by itself.
+      const statuses: string[] = []
+      await streamEvents(
+        started.id,
+        (event) => statuses.push(event.status),
+        new AbortController().signal,
+      )
+      expect(statuses.at(-1)).toBe('stopped')
+      expect((await getProject(started.id)).status).toBe('stopped')
+    })
+
+    it('stopProject gives the 404 sentence for an unknown project', async () => {
+      const error = await failureOf(stopProject('p_does_not_exist'))
+
+      expect(error.status).toBe(404)
+      expect(error.message).toBe('Project not found.')
+    })
 
     it('wakeProject refuses a project that is not ready with the 409 sentence', async () => {
       const started = await startProject('A project that will not be ready')

@@ -1,4 +1,5 @@
-import { Download } from 'lucide-react'
+import { Download, Square } from 'lucide-react'
+import { useState } from 'react'
 import type { BuildState } from '../build/buildState'
 import { isFinal } from '../build/buildState'
 import { nothingBuilt, zipName } from '../build/naming'
@@ -8,6 +9,7 @@ import { Button } from '../components/Button'
 import { Notice } from '../components/Notice'
 import { useDownload } from '../hooks/useDownload'
 import { useReadyProject } from '../hooks/useReadyProject'
+import { useStopBuild } from '../hooks/useStopBuild'
 import { ReadyDetails } from './ReadyDetails'
 import { useTick } from '../hooks/useTick'
 
@@ -73,6 +75,51 @@ function ReadyActions({
   )
 }
 
+// Stop a running build (F-18). Two steps, so one stray click can't throw a build away:
+// "Stop build", then "Stop this build?" with "Yes, stop it" / "Keep building".
+// It exists only while the build is running, so its state starts fresh for every build.
+function StopControl({ projectId }: { projectId: string }) {
+  const [confirming, setConfirming] = useState(false)
+  const { stopping, error, stop } = useStopBuild(projectId)
+
+  if (!confirming) {
+    return (
+      <div className="stop-control">
+        <Button variant="ghost" onClick={() => setConfirming(true)}>
+          <Square size={14} aria-hidden className="stop-control__icon" />
+          Stop build
+        </Button>
+      </div>
+    )
+  }
+  return (
+    <Notice
+      tone="warning"
+      title="Stop this build?"
+      action={
+        <div className="stop-control__choices">
+          <Button variant="secondary" loading={stopping} onClick={stop}>
+            {stopping ? 'Stopping…' : 'Yes, stop it'}
+          </Button>
+          {!stopping && (
+            <Button variant="ghost" onClick={() => setConfirming(false)}>
+              Keep building
+            </Button>
+          )}
+          {error && (
+            <span className="notice__text" role="alert">
+              {error}
+            </span>
+          )}
+        </div>
+      }
+    >
+      Nothing will be kept: no download and no live link. You can send the
+      request again later.
+    </Notice>
+  )
+}
+
 export function BuildScreen({
   projectId,
   title,
@@ -98,6 +145,12 @@ export function BuildScreen({
         attempt={onlyResult ? undefined : (build.attempt ?? undefined)}
         maxAttempts={build.maxAttempts ?? undefined}
       />
+
+      {/* While the build runs, the person can stop it (F-18). Hidden if the live stream is lost:
+          then we don't know whether it is still running. */}
+      {!isFinal(build.status) && !error && (
+        <StopControl projectId={projectId} />
+      )}
 
       {/* Empty state: a new project that nothing has worked on yet. */}
       {!hasStarted && !isFinal(build.status) && !error && (

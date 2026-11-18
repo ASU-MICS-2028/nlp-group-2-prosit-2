@@ -518,3 +518,32 @@ I broke the code on purpose twice (full path forwarded; no root path after a bui
 **How to check it:** `python -m pytest backend/tests/test_project_names.py` (11 tests, written first): 5 real-style sentences give the right names, 3 sentences without a name give none, the first name sticks, and a refusal keeps the typed request. I also ran it on the real first sentences saved in `evidence/` ("Books API", "To-Do List API").
 
 **Limits:** the frontend fetches the list again when the first Thinking step arrives (`listRefreshKey`, see `learnings/frontend.md`), so the name shows within seconds of the build starting. If the AI ever leaves out the name, the old stand-in shows.
+
+---
+
+# Stop a running build (F-18, Nana, 2026-11-18)
+
+**In one sentence:** `POST /projects/{id}/stop` ends a build that is still going; it ends `stopped` with "You stopped this build. Nothing was kept." (D-022).
+
+**How:** `run_build` now runs the retry loop as its own asyncio **task** and keeps it in `building[project_id]`. The stop endpoint adds the id to `stop_asked` and calls `task.cancel()`. Python then raises `CancelledError` inside the build at its next `await` (an AI call, the 30 s wait between busy tries). `run_build` catches it, writes the `stopped` event, and the live stream hangs up as it does after `ready` or `failed`.
+- `CancelledError` is not an `Exception`, so the "something went wrong" safety net never hides a stop.
+- A cancel that is **not** in `stop_asked` (the server shutting down) is passed on, not called "you stopped it".
+- `report_to()` drops any step that arrives after Stop, so the stop is always the last line.
+- Stop before the build has begun (still `waiting`): `run_build` sees `stop_asked` and never starts the agent.
+- The endpoint is `async def` on purpose: a task may only be cancelled from the server's own event loop.
+
+**How to check it:** `python -m pytest backend/tests/test_stop.py` (11 tests, pretend builder, no AI): stop while working, steps before the stop stay, a late step is dropped, stop before the build begins, stop during the real retry loop's 30 s wait (ends in 0.14 s), double stop, `409` when finished, `404` unknown, `202` through HTTP, a shutdown cancel is not "stopped", and the stream ends. A real Gemini build on a local server stopped 0.2 s after the call, while it was writing files; nothing was added after the stop and the server log had no errors: `evidence/backend/outputs_f18_stop_real_build.txt`.
+
+**Limits**
+- A running test run is not interrupted: the tests run inside the agent's tool without an `await`, so the stop lands when they end (at most `TEST_TIMEOUT_SECONDS`). Not seen in the real check, because the stop came while files were being written.
+- An AI request already sent still counts against the quota.
+- Nothing is kept, so a stopped build can't be resumed or downloaded; the person sends the request again.
+- Not tried on Render yet.
+
+**Terms**
+| Term | One-line meaning |
+|---|---|
+| Task (asyncio) | A job running on the server's event loop that Python can cancel |
+| `cancel()` / `CancelledError` | Ask a task to stop / the signal it gets at its next `await` |
+| Event loop | The one thread that takes turns between all the server's `async` jobs |
+| `202 Accepted` | "Asked, and it will happen in a moment", not "done" |

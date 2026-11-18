@@ -395,3 +395,18 @@ That test wakes a real generated API (a child process of the server) and fetches
 - **Zip name:** the download is saved as the API's name, such as `bookshop-inventory-api.zip` (`zipName`, the same rule as the backend's `zip_name`).
 
 **How to check it:** `npx vitest run` (115 passed). Checked on a local backend with real Gemini: "Naming your API…" then "Gym API"; refusals named "Church Website (not built)" and "Facebook Contact Collector (not built)" with "Not built" badges; the button saved `bookshop-inventory-api.zip`.
+
+---
+
+# Stop build (F-18, Nana, agreed with Perfect, 2026-11-18)
+
+**What changed**
+- **`stopProject()`** in `src/api/client.ts`: `POST /projects/{id}/stop`. `openapi.json` and `schema.ts` regenerated with `npm run api:generate`.
+- **`useStopBuild`** (`src/hooks/useStopBuild.ts`), in the same style as `useDownload`: `stopping`, a plain `error`, and a guard against a double click. After the server says yes it stays "Stopping…" until the `stopped` event arrives on the live stream; then the control is gone.
+- **`StopControl`** in `BuildScreen.tsx`: a quiet "Stop build" button under the timeline while the build is `waiting`, `working` or `retrying`. It asks first ("Stop this build?", "Nothing will be kept…", **Yes, stop it** / **Keep building**), so one stray click can't throw a build away. It is hidden when the live stream is lost, because then we don't know if the build still runs.
+- **`plainSteps.ts`:** a stopped build ends with **"Stopped by you"**, not "Finalizing your API…". Decided from the status word, not the sentence.
+- **`naming.ts`:** `nothingBuilt` is only for `failed`, so a build stopped before it wrote anything still says "The build was stopped" (red, "Stopped" pill), not "Nothing was built".
+
+**How to check it:** `npx vitest run` (127 passed): `StopControl.test.tsx` (10 tests; port 1, so "Yes, stop it" really fails and shows the plain sentence), plus one test each in `plainSteps.test.ts` and `naming.test.ts`. Live client tests against a real local server: `stopProject` gives `409` for a finished build and `404` for an unknown one. In a browser (Playwright with Edge) on a local backend with real Gemini: Stop, the question, then "The build was stopped" with "Stopped by you"; the sidebar shows "Stopped" (screenshots checked, not committed).
+
+**Not done:** the "Naming your API…" wait comes before the build screen, so Stop can't be pressed in those first seconds. Not tried on the live site yet.

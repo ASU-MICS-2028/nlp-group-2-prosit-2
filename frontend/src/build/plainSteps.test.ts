@@ -181,6 +181,24 @@ describe('toPlainSteps', () => {
     expect(lines[1].state).toBe('failed')
   })
 
+  it('ends a stopped build with "Stopped by you", not "Finalizing your API…" (F-18)', () => {
+    const lines = toPlainSteps(
+      [
+        step('planning', 'Thinking', 'Building a Notes API.'),
+        step('writing', 'Doing', 'Writing app/main.py'),
+        step('finishing', 'Result', 'You stopped this build.', 'failed'),
+      ],
+      'stopped',
+    )
+
+    expect(texts(lines)).toEqual([
+      'Building a Notes API.',
+      'Putting your plan into action…',
+      'Stopped by you',
+    ])
+    expect(lines[2].state).toBe('failed')
+  })
+
   it('marks the newest line as happening now while the build is going, not after it ends', () => {
     const steps = [step('writing', 'Doing', 'Writing a.py')]
 
