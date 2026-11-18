@@ -410,3 +410,21 @@ That test wakes a real generated API (a child process of the server) and fetches
 **How to check it:** `npx vitest run` (127 passed): `StopControl.test.tsx` (10 tests; port 1, so "Yes, stop it" really fails and shows the plain sentence), plus one test each in `plainSteps.test.ts` and `naming.test.ts`. Live client tests against a real local server: `stopProject` gives `409` for a finished build and `404` for an unknown one. In a browser (Playwright with Edge) on a local backend with real Gemini: Stop, the question, then "The build was stopped" with "Stopped by you"; the sidebar shows "Stopped" (screenshots checked, not committed).
 
 **Not done:** the "Naming your API…" wait comes before the build screen, so Stop can't be pressed in those first seconds. Not tried on the live site yet.
+
+---
+
+# Phone menu fixes (Nana, for Perfect, 2026-11-18)
+
+**What was wrong (under 768px):** the open menu covered the page's own menu button, so there was no way to close it; tapping "New project" or a project did its job, but the menu stayed open over the page, so it looked as if nothing happened; tapping outside or pressing Escape did nothing.
+
+**What changed** (`src/components/AppShell.tsx`, the phone part of `components.css`)
+- A tap on **any button inside the menu** closes it (`closeAfterChoice`: one click handler on the `<aside>`; `closest('button')` also catches a tap on the button's icon or text).
+- A **dimmed backdrop** beside the open menu; tapping it closes the menu.
+- **Escape** closes it (a `keydown` listener that exists only while the menu is open).
+- An **X inside the menu** (top right), so a way out is always visible.
+- The menu is at most `min(280px, 100vw - 72px)` wide, so some page always shows; the shell uses `100dvh` so the phone's address bar doesn't cut off the bottom; a closed menu has `visibility: hidden`, so Tab and screen readers skip it.
+- Wide screens are unchanged: the X and the backdrop are `display: none` there.
+
+**How to check it:** `npx vitest run AppShell` (7 tests; 5 failed on the old code). In a phone-size browser (Playwright with Edge, 390×844): open, then "New project", tap outside, Escape and the X each close it (screenshots checked, not committed).
+
+**Terms:** *backdrop*: the dimmed layer between a menu and the page. *dvh*: "dynamic viewport height", the part of the screen a phone really shows. *Event delegation*: one click handler on a parent that reacts to clicks on its children.
