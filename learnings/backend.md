@@ -547,3 +547,56 @@ I broke the code on purpose twice (full path forwarded; no root path after a bui
 | `cancel()` / `CancelledError` | Ask a task to stop / the signal it gets at its next `await` |
 | Event loop | The one thread that takes turns between all the server's `async` jobs |
 | `202 Accepted` | "Asked, and it will happen in a moment", not "done" |
+
+---
+
+# Viva map: `backend/projects.py` (Nana, 2026-11-18)
+
+The file stays in one piece until after the viva (18 Dec 2026), so everyone finds code where they studied it.
+It has seven parts, each starting with a `# ===== N. ... =====` banner; the table of contents is at the top of the file.
+Search for the **function name**, not a line number (line numbers move with every change).
+
+## Every endpoint, and where to look
+
+| Endpoint | Function (part) | What it does, in one line | Task / decision |
+|---|---|---|---|
+| `POST /projects` | `start_project` (4) | Saves the request as `p_N`, writes the diary's first entry `waiting`, starts `run_build` **after** answering `201` | W-5, W-9, D-017 |
+| `POST /projects/{id}/stop` | `stop_project` (4) | `409` if finished; else marks `stop_asked` and cancels the build's task; answers `202` | F-18, D-022 |
+| `GET /projects` | `list_projects` (4) | The sidebar: every project, newest first, with its short name | W-8 |
+| `GET /projects/{id}` | `get_project` (4) | Status and name; after the build: files, size, test counts; when ready: `api_url`, `live_status` | W-5, F-13 |
+| `GET /projects/{id}/download` | `download_project` (5) | The zip, only when ready (`409` otherwise), named after the API | F-5, F-6 |
+| `GET /projects/{id}/events` | `stream_events` (6) | Sends the whole diary, then each new entry, every 0.5 s; hangs up after a final status | W-5, D-016 |
+| `POST /projects/{id}/wake` | `wake_project` (7) | Starts a sleeping live API again from its stored files | F-13, D-011 |
+| `ANY /apis/{id}/{path}` | `pass_through` (7) | Passes a call on to the generated API on its own port (wakes it first if asleep); 1 MB and 30 s caps | F-13, D-011 |
+
+Every endpoint with `{id}` uses `Depends(find_project)` (part 3), so the `404` "Project not found." rule is in one place.
+
+## Four paths to be able to walk through
+
+**1. A request becomes a ready API**
+`start_project` → (after the reply) `run_build` → `check_scope` (refuse websites and scraping, no AI) → `build_with_retries` (Opei's loop, up to 3 tries, `agent/retry.py`) → each try is `build_project` (`backend/builder.py`: the agent writes files and runs its tests) → every step goes through `report_to` → `add_event` into the diary → `stream_events` pushes it to the page → on `ready`, `results[id]` keeps the files and `start_live_api` starts it (`backend/live.py`).
+
+**2. A refused request**
+Either `check_scope` refuses it at once (D-023: a website, or collecting people's data), or the AI replies `{"status": "refused", ...}` and `builder.py` ends the try with kind `refused`, which the retry loop does not retry. Both write the same final event: status `failed`, name "… (not built)". The page shows "Not built".
+
+**3. Stop**
+`stop_project` → `stop_asked.add(id)` → `building[id].cancel()` → inside the build, `CancelledError` at the next `await` → `run_build` catches it, sees `stop_asked`, writes `stopped` → `stream_events` sends it and hangs up. Steps already on their way are dropped by `report_to`.
+
+**4. Someone uses the live API**
+Browser → `/apis/p_3/books` → `pass_through` → `ready_files` (`409` if not ready) → `live.port_of` (asleep? `start_or_explain` wakes it) → `httpx` call to `127.0.0.1:<port>/books` → its own answer comes back unchanged.
+
+## Questions you may be asked
+
+| Question | Short answer | Where |
+|---|---|---|
+| Why does `POST /projects` answer before the build ends? | A build takes about a minute; the page needs the id at once to open the live stream (D-017) | `start_project`, `background.add_task` |
+| Where are projects stored? What happens on a restart? | In three dictionaries in memory: `projects`, `events`, `results`; a restart loses them (D-013) | part 1 |
+| How does the page see progress live? | Server-Sent Events: one open connection; the server sends each new diary entry | `stream_events` |
+| What if the AI service is down or busy? | The retry loop waits and tries again, then the backup model; a crash gives a plain sentence, never a spinner forever | `run_build` `except Exception`, `agent/retry.py` |
+| How does a refusal cost no quota? | `check_scope` runs before any AI call, with plain word patterns | `run_build`, `agent/scope.py` |
+| How does Stop work, and why isn't it always instant? | Cancel the build's task; it stops at the next `await`. A test run has no `await`, so it finishes first | `stop_project`, `run_build` |
+| Why is `stop_project` `async def` when most endpoints are `def`? | A task may only be cancelled from the server's own event loop; plain `def` endpoints run on other threads | `stop_project` |
+| How is generated code kept from our secrets? | Its process gets a minimal environment, no API key (F-11) | `backend/runner.py` `minimal_environment` |
+| Why can anyone call a live API? | There are no logins in this demo; it is not production isolation (D-007) | report 4.4 |
+| How many live APIs can run at once? | 3; one more puts the least recently used to sleep; 10 idle minutes also sleeps one | `backend/live.py` `MAX_RUNNING`, `IDLE_SECONDS` |
+| Why can only a ready project be downloaded? | A failed build's tests fail, so its zip would not run | `download_project` |

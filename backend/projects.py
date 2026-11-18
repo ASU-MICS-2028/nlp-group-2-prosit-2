@@ -1,4 +1,19 @@
-"""Project endpoints (W-5). The shapes follow docs/api-contract.md."""
+"""Project endpoints (W-5). The shapes follow docs/api-contract.md.
+
+This file has seven parts, in this order (search for the "=====" banners). A walk-through of each endpoint,
+for the viva, is in learnings/backend.md ("Viva map: backend/projects.py").
+
+  1. MEMORY        the three in-memory tables (projects, events, results) and the build jobs (D-013, F-18)
+  2. SHAPES        what goes in and out of each endpoint (pydantic models)
+  3. NAMES, DIARY  the API's short name, the "not found" rule, add_event (the diary every screen reads)
+  4. BUILD JOB     run_build: scope check (D-023), the agent with retries (W-9, F-4), Stop (F-18), go live (D-011)
+                   endpoints: POST /projects, POST /projects/{id}/stop, GET /projects, GET /projects/{id}
+  5. DOWNLOAD      the take-home zip (F-5), and count_tests for GET /projects/{id}
+  6. LIVE STREAM   GET /projects/{id}/events (SSE)
+  7. LIVE LINK     the generated API at /apis/{id}/... and POST /projects/{id}/wake (D-011, F-13)
+
+Kept as one file on purpose until after the viva (18 Dec 2026), so everyone finds code where they studied it.
+"""
 
 import asyncio
 import io
@@ -17,12 +32,15 @@ from pydantic import BaseModel, ConfigDict, Field
 from agent import llm
 from agent.prompts import builder_instruction
 from agent.retry import build_with_retries
+from agent.scope import check_scope
 from agent.takehome import takehome_files
 from backend import live
 from backend.builder import BuildResult
 
 # A router is a group of endpoints; main.py plugs it into the app.
 router = APIRouter(tags=["projects"])
+
+# ===== 1. MEMORY: what the server remembers (all lost on a restart) =====
 
 # Projects are kept in memory for now, so they are lost when the server restarts (D-013).
 projects: dict[str, dict[str, str]] = {}
@@ -46,6 +64,9 @@ STOPPED_TEXT = "You stopped this build. Nothing was kept."
 
 # Until a plan gives a project its real name (F-2), the sidebar shows the start of the request, cut to this length.
 NAME_LENGTH = 40
+
+
+# ===== 2. SHAPES: what goes in and out of the endpoints (FastAPI checks them for us) =====
 
 
 class StartRequest(BaseModel):
@@ -93,6 +114,9 @@ class ProjectSummary(BaseModel):
     name: str
     status: str
     updated_at: str  # when the project last changed, as an ISO 8601 date and time, e.g. 2026-11-11T09:30:00+00:00
+
+
+# ===== 3. NAMES AND THE DIARY: helpers every endpoint uses =====
 
 
 def now() -> str:
@@ -155,6 +179,9 @@ def add_event(project_id: str, event: dict[str, object]) -> None:
             projects[project_id]["name"] = name
 
 
+# ===== 4. THE BUILD JOB: from a request to a ready (or refused, failed, stopped) project =====
+
+
 def failed(project_id: str, reason: str) -> None:
     # End the build with one plain sentence. A final status also ends the live stream.
     add_event(project_id, {"status": "failed", "step": {"kind": "Result", "text": reason, "state": "failed", "phase": "finishing"}})
@@ -179,6 +206,19 @@ async def run_build(project_id: str, request: str) -> None:
     # The build job (W-9): runs after POST /projects has already answered.
     if project_id in stop_asked:
         stopped(project_id)  # Stop was pressed before the build even began: don't start it
+        return
+    refusal = check_scope(request)
+    if refusal is not None:
+        # A website, or collecting people's data (D-023): refused by plain code, before any AI request.
+        # Same final event as the AI's own refusal (backend/builder.py), so the page shows "Not built".
+        add_event(
+            project_id,
+            {
+                "status": "failed",
+                "name": f"{refusal.name} (not built)",
+                "step": {"kind": "Result", "text": refusal.reason, "state": "failed", "phase": "finishing"},
+            },
+        )
         return
     model = os.environ.get("LLM_MODEL", "")
     if not model:
@@ -298,6 +338,9 @@ def get_project(project: dict[str, str] = Depends(find_project)) -> ProjectRespo
     return answer
 
 
+# ===== 5. DOWNLOAD: the take-home zip (F-5), and the test counts GET /projects/{id} shows =====
+
+
 def zip_name(project: dict[str, str]) -> str:
     # The take-home file is named after the API: "Clinic Appointment API" -> "clinic-appointment-api.zip".
     # Only a-z, 0-9 and "-" are kept, so the name is safe on every computer; the frontend uses the same rule.
@@ -341,6 +384,9 @@ def count_tests(output: str) -> tuple[int, int]:
     return passed, passed + not_passed
 
 
+# ===== 6. THE LIVE STREAM: the build's progress, pushed to the page as it happens =====
+
+
 # The live stream (SSE). Each `yield` sends one message to the browser straight away.
 # We use Depends here too: the 404 check must happen BEFORE the stream starts,
 # because once streaming has begun the status code (200) has already been sent.
@@ -358,6 +404,9 @@ async def stream_events(project: dict[str, str] = Depends(find_project)) -> Asyn
             return  # nothing more will happen: hang up
         # Wait half a second, then look for news again. "await" lets the server serve others meanwhile.
         await asyncio.sleep(0.5)
+
+
+# ===== 7. THE LIVE LINK: the generated API, running and reachable at /apis/{id}/... (D-011, F-13) =====
 
 
 # The most a call to a live API may send or get back. A generated API only handles small JSON, and a
